@@ -1,0 +1,58 @@
+import React, { useState } from 'react';
+import { Helmet } from 'react-helmet';
+import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ClipboardList, ThumbsUp } from 'lucide-react';
+import ScheduleHeader from '@/pages/Schedule/components/ScheduleHeader.jsx';
+import MyScheduleTab from '@/pages/Schedule/tabs/MyScheduleTab.jsx';
+import OpenGamesTab from '@/pages/Schedule/tabs/OpenGamesTab.jsx';
+import AddGameDialog from '@/pages/Schedule/components/AddGameDialog.jsx';
+import AssignCourtScheduleDialog from '@/pages/Schedule/components/AssignCourtScheduleDialog.jsx';
+
+const Schedule = () => {
+  // Hooks at the top
+  const { games, referees } = useData();
+  const { user } = useAuth();
+  const [addGameOpen, setAddGameOpen] = useState(false);
+  const [courtScheduleOpen, setCourtScheduleOpen] = useState(false);
+
+  return (
+    <>
+      <Helmet>
+        <title>Schedule - Basketball Referee Manager</title>
+        <meta name="description" content="View and manage your game schedule, assignments, and availability as a basketball referee." />
+      </Helmet>
+
+      <AddGameDialog open={addGameOpen} setOpen={setAddGameOpen} />
+      <AssignCourtScheduleDialog open={courtScheduleOpen} setOpen={setCourtScheduleOpen} />
+
+      <div className="space-y-6">
+        <ScheduleHeader 
+          userRole={user?.role}
+          onScheduleGame={() => setAddGameOpen(true)}
+          onAssignCourtSchedule={() => setCourtScheduleOpen(true)}
+        />
+        
+        {user.role === 'referee' ? (
+          <Tabs defaultValue="my-schedule" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-slate-800">
+              <TabsTrigger value="my-schedule"><ClipboardList className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
+              <TabsTrigger value="open-games"><ThumbsUp className="mr-2 h-4 w-4" /> Open Games</TabsTrigger>
+            </TabsList>
+            <TabsContent value="my-schedule">
+              <MyScheduleTab games={games.filter(g => g.assignments.some(a => a.referee.id === user.id))} referees={referees} />
+            </TabsContent>
+            <TabsContent value="open-games">
+              <OpenGamesTab games={games.filter(g => g.assignments.length === 0)} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <MyScheduleTab games={games} referees={referees} />
+        )}
+      </div>
+    </>
+  );
+};
+
+export default Schedule;
