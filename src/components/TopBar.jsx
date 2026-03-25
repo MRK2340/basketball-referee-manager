@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Menu, Bell, Search } from 'lucide-react';
@@ -10,7 +11,16 @@ import { Badge } from '@/components/ui/badge';
 const TopBar = ({ onMenuClick }) => {
   const { user } = useAuth();
   const { notifications } = useData();
+  const navigate = useNavigate();
+  const [searchValue, setSearchValue] = useState('');
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter' && searchValue.trim()) {
+      navigate(`/schedule?search=${encodeURIComponent(searchValue.trim())}`);
+      setSearchValue('');
+    }
+  };
 
   return (
     <motion.header
@@ -46,7 +56,10 @@ const TopBar = ({ onMenuClick }) => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
             <input
               type="text"
-              placeholder="Search games, teams, or referees..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search games or teams, press Enter..."
               className="w-full pl-10 pr-4 py-2 bg-white/10 border border-[#4DB8E8] rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent transition-all duration-200"
             />
           </div>

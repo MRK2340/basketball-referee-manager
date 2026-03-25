@@ -94,7 +94,7 @@ const Sidebar = ({ onClose }) => {
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-hide">
         {navigationItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname.startsWith(item.path);
           const path = item.path === '/' ? '/dashboard' : item.path;
           
           return (

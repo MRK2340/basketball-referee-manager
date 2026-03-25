@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { format, getMonth } from 'date-fns';
@@ -9,6 +10,7 @@ import { DollarSign, Trophy, Star, TrendingUp } from 'lucide-react';
 
 const PerformanceAnalytics = () => {
   const { payments, games, gameReports } = useData();
+  const { user } = useAuth();
 
   const monthlyEarningsData = useMemo(() => {
     const months = Array(12).fill(0).map((_, i) => ({
@@ -24,17 +26,25 @@ const PerformanceAnalytics = () => {
     return months;
   }, [payments]);
   
+  // For referees, only count games they were personally assigned to
+  const myGames = useMemo(() => {
+    if (user?.role === 'referee') {
+      return games.filter(g => g.assignments.some(a => a.referee.id === user.id));
+    }
+    return games;
+  }, [games, user]);
+
   const monthlyGamesData = useMemo(() => {
       const months = Array(12).fill(0).map((_, i) => ({
           name: format(new Date(0, i), 'MMM'),
           games: 0,
       }));
-      games.forEach(game => {
+      myGames.forEach(game => {
           const monthIndex = getMonth(new Date(game.date));
           months[monthIndex].games += 1;
       });
       return months;
-  }, [games]);
+  }, [myGames]);
 
   const ratingDistribution = useMemo(() => {
     const ratings = { '5': 0, '4': 0, '3': 0, '2': 0, '1': 0 };
@@ -47,10 +57,18 @@ const PerformanceAnalytics = () => {
   const COLORS = ['#0080C8', '#FF8C00', '#10B981', '#F59E0B', '#EF4444'];
 
   const totalEarnings = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-  const totalGames = games.length;
-  const avgRating = gameReports.length > 0 
-    ? (gameReports.reduce((sum, r) => sum + r.professionalismRating, 0) / gameReports.length).toFixed(1) 
+  const totalGames = myGames.length;
+  const avgRating = gameReports.length > 0
+    ? (gameReports.reduce((sum, r) => sum + r.professionalismRating, 0) / gameReports.length).toFixed(1)
     : 'N/A';
+
+  const acceptanceRate = useMemo(() => {
+    if (user?.role !== 'referee') return null;
+    const myAssignments = games.flatMap(g => g.assignments.filter(a => a.referee.id === user.id));
+    if (myAssignments.length === 0) return null;
+    const accepted = myAssignments.filter(a => a.status === 'accepted').length;
+    return Math.round((accepted / myAssignments.length) * 100);
+  }, [games, user]);
 
 
   return (
@@ -65,7 +83,7 @@ const PerformanceAnalytics = () => {
           <p className="text-slate-600">A detailed breakdown of your refereeing activity.</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid gap-4 ${acceptanceRate !== null ? 'grid-cols-1 md:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
             <Card className="glass-effect border-slate-200 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Total Earnings</CardTitle>
@@ -93,6 +111,17 @@ const PerformanceAnalytics = () => {
                     <div className="text-3xl font-black text-slate-900">{avgRating}</div>
                 </CardContent>
             </Card>
+            {acceptanceRate !== null && (
+              <Card className="glass-effect border-slate-200 shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Acceptance Rate</CardTitle>
+                    <TrendingUp className="h-5 w-5 text-brand-blue" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-3xl font-black text-slate-900">{acceptanceRate}%</div>
+                </CardContent>
+              </Card>
+            )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -144,6 +173,11 @@ const PerformanceAnalytics = () => {
                 <CardDescription className="text-slate-600">Breakdown of professionalism ratings from game reports.</CardDescription>
               </CardHeader>
               <CardContent className="h-80">
+                {gameReports.length === 0 ? (
+                  <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                    No game reports yet.
+                  </div>
+                ) : (
                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
@@ -166,6 +200,7 @@ const PerformanceAnalytics = () => {
                         <Legend wrapperStyle={{ color: '#475569', fontWeight: 'bold' }} />
                     </PieChart>
                 </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </motion.div>

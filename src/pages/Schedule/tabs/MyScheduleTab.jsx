@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useSearchParams } from 'react-router-dom';
 import ScheduleFilter from '../components/ScheduleFilter';
 import GameCard from '../components/GameCard';
 import NoGamesFound from '../components/NoGamesFound';
 import AssignRefereeDialog from '../components/AssignRefereeDialog';
+import GameDetailsDialog from '@/pages/Manager/GameDetailsDialog';
 import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 
 const MyScheduleTab = ({ games, referees }) => {
@@ -14,10 +16,18 @@ const MyScheduleTab = ({ games, referees }) => {
   const { fetchData } = useData();
   const { assignRefereeToGame, unassignRefereeFromGame, updateAssignmentStatus } = useAssignmentActions(user, fetchData);
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [filter, setFilter] = useState('all');
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailGame, setDetailGame] = useState(null);
+
+  useEffect(() => {
+    const term = searchParams.get('search');
+    if (term) setSearchTerm(term);
+  }, [searchParams]);
 
   const filteredGames = useMemo(() => {
     return games
@@ -42,8 +52,8 @@ const MyScheduleTab = ({ games, referees }) => {
   };
 
   const handleViewDetails = (game) => {
-    // TODO: navigate to game detail page
-    void game;
+    setDetailGame(game);
+    setDetailDialogOpen(true);
   };
 
   return (
@@ -89,6 +99,11 @@ const MyScheduleTab = ({ games, referees }) => {
           onAssign={assignRefereeToGame}
         />
       )}
+      <GameDetailsDialog
+        open={detailDialogOpen}
+        setOpen={setDetailDialogOpen}
+        game={detailGame}
+      />
     </>
   );
 };
