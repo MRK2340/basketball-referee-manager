@@ -27,11 +27,32 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
 
       // Fetch all non-paginated data only on initial load
       if (isInitialLoad) {
-        const { data: tournamentsData, error: tournamentsError } = await supabase
-          .from('tournaments')
-          .select('id, name, start_date, end_date, location, number_of_courts, games(count)');
+        const roleQuery = user.role === 'manager'
+          ? supabase.from('profiles').select('id, name, phone, role, avatar_url, experience, certifications, rating, games_officiated, referee_availability(*)').eq('role', 'referee')
+          : user.role === 'referee'
+            ? supabase.from('referee_availability').select('id, start_time, end_time').eq('referee_id', user.id)
+            : Promise.resolve({ data: null, error: null });
+
+        const [
+          { data: tournamentsData, error: tournamentsError },
+          { data: paymentsData, error: paymentsError },
+          { data: messagesData, error: messagesError },
+          { data: reportsData, error: reportsError },
+          { data: roleData, error: roleError },
+        ] = await Promise.all([
+          supabase.from('tournaments').select('id, name, start_date, end_date, location, number_of_courts, games(count)'),
+          supabase.from('payments').select('id, game_id, amount, status, payment_date, payment_method').eq('referee_id', user.id),
+          supabase.from('messages').select('id, subject, content, created_at, is_read, sender:sender_id(name, avatar_url)').or(`recipient_id.eq.${user.id},sender_id.eq.${user.id}`).order('created_at', { ascending: false }),
+          supabase.from('game_reports').select('*, game:games(home_team, away_team), referee:referee_id(name)'),
+          roleQuery,
+        ]);
+
         if (tournamentsError) throw tournamentsError;
-        
+        if (paymentsError) throw paymentsError;
+        if (messagesError) throw messagesError;
+        if (reportsError) throw reportsError;
+        if (roleError) throw roleError;
+
         setTournaments(tournamentsData.map(t => ({
           id: t.id,
           name: t.name,
@@ -40,14 +61,9 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
           location: t.location,
           numberOfCourts: t.number_of_courts,
           games: t.games[0] ? t.games[0].count : 0,
-          refereesNeeded: 0 
+          refereesNeeded: 0
         })));
 
-        const { data: paymentsData, error: paymentsError } = await supabase
-          .from('payments')
-          .select('id, game_id, amount, status, payment_date, payment_method')
-          .eq('referee_id', user.id);
-        if (paymentsError) throw paymentsError;
         setPayments(paymentsData.map(p => ({
           id: p.id,
           gameId: p.game_id,
@@ -57,12 +73,6 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
           method: p.payment_method
         })));
 
-        const { data: messagesData, error: messagesError } = await supabase
-          .from('messages')
-          .select('id, subject, content, created_at, is_read, sender:sender_id(name, avatar_url)')
-          .or(`recipient_id.eq.${user.id},sender_id.eq.${user.id}`)
-          .order('created_at', { ascending: false });
-        if (messagesError) throw messagesError;
         setMessages(messagesData.map(m => ({
           id: m.id,
           from: m.sender?.name || 'System',
@@ -73,28 +83,6 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
           read: m.is_read
         })));
 
-        if (user.role === 'manager') {
-          const { data: refereesData, error: refereesError } = await supabase
-            .from('profiles')
-            .select('id, name, phone, role, avatar_url, experience, certifications, rating, games_officiated, referee_availability(*)')
-            .eq('role', 'referee');
-          if (refereesError) throw refereesError;
-          setReferees(refereesData);
-        }
-
-        if (user.role === 'referee') {
-          const { data: availabilityData, error: availabilityError } = await supabase
-            .from('referee_availability')
-            .select('id, start_time, end_time')
-            .eq('referee_id', user.id);
-          if (availabilityError) throw availabilityError;
-          setAvailability(availabilityData);
-        }
-
-        const { data: reportsData, error: reportsError } = await supabase
-          .from('game_reports')
-          .select('*, game:games(home_team, away_team), referee:referee_id(name)');
-        if (reportsError) throw reportsError;
         setGameReports(reportsData.map(r => ({
           id: r.id,
           gameId: r.game_id,
@@ -110,6 +98,11 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
           status: r.status,
           createdAt: r.created_at,
         })));
+
+        if (roleData) {
+          if (user.role === 'manager') setReferees(roleData);
+          else if (user.role === 'referee') setAvailability(roleData);
+        }
       }
 
       // Fetch paginated games data

@@ -1,14 +1,14 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Home, 
-  User, 
-  Calendar, 
-  Trophy, 
-  DollarSign, 
-  MessageSquare, 
+import {
+  Home,
+  User,
+  Calendar,
+  Trophy,
+  DollarSign,
+  MessageSquare,
   CalendarDays,
   Settings,
   LogOut,
@@ -17,9 +17,23 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const navLinkClass = ({ isActive }) =>
+  `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+    isActive ? 'bg-[#FF8C00] text-white shadow-lg' : 'text-white hover:bg-[#4DB8E8] hover:text-white'
+  }`;
+
+const NavItem = ({ item, onClose }) => {
+  const Icon = item.icon;
+  return (
+    <NavLink to={item.path} onClick={onClose} className={navLinkClass}>
+      <Icon className="h-5 w-5" />
+      <span className="font-medium">{item.label}</span>
+    </NavLink>
+  );
+};
+
 const Sidebar = ({ onClose }) => {
   const { user, logout } = useAuth();
-  const location = useLocation();
 
   const navigationItems = [
     { path: '/dashboard', icon: Home, label: 'Dashboard' },
@@ -92,53 +106,18 @@ const Sidebar = ({ onClose }) => {
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-hide">
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname.startsWith(item.path);
-          const path = item.path === '/' ? '/dashboard' : item.path;
-          
-          return (
-            <NavLink
-              key={item.path}
-              to={path}
-              onClick={onClose}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                isActive 
-                  ? 'bg-[#FF8C00] text-white shadow-lg' 
-                  : 'text-white hover:bg-[#4DB8E8] hover:text-white'
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              <span className="font-medium">{item.label}</span>
-            </NavLink>
-          );
-        })}
+        {navigationItems.map((item) => (
+          <NavItem key={item.path} item={item} onClose={onClose} />
+        ))}
 
         {user?.role === 'manager' && (
           <>
             <div className="px-4 pt-4 pb-2 text-xs font-semibold text-white/70 uppercase">
               Manager Tools
             </div>
-            {managerNavigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname.startsWith(item.path);
-              
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={onClose}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-[#FF8C00] text-white shadow-lg' 
-                      : 'text-white hover:bg-[#4DB8E8] hover:text-white'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
-                </NavLink>
-              );
-            })}
+            {managerNavigation.map((item) => (
+              <NavItem key={item.path} item={item} onClose={onClose} />
+            ))}
           </>
         )}
       </nav>
