@@ -11,7 +11,13 @@ export const useAuth = () => {
     return context;
 };
 
-// Security Helper: Simple Base64 encoding to avoid plain text in localStorage
+const STORAGE_KEYS = {
+    USERS: 'iwhistle_users',
+    SESSION: 'iwhistle_session',
+    TEMP_DATA: 'iwhistle_temp_data',
+};
+
+// Base64 encoding provides basic obfuscation to avoid accidental plaintext exposure in developer tools — not cryptographic security
 const obfuscate = (str) => {
     try {
         return btoa(str);
@@ -20,18 +26,9 @@ const obfuscate = (str) => {
     }
 };
 
-const deobfuscate = (str) => {
-    try {
-        return atob(str);
-    } catch (e) {
-        return str;
-    }
-};
-
-// Helper to get users from local storage
 const getStoredUsers = () => {
     try {
-        const stored = localStorage.getItem('iwhistle_users');
+        const stored = localStorage.getItem(STORAGE_KEYS.USERS);
         return stored ? JSON.parse(stored) : [];
     } catch (error) {
         console.error("Error parsing stored users:", error);
@@ -39,10 +36,9 @@ const getStoredUsers = () => {
     }
 };
 
-// Helper to save users to local storage
 const setStoredUsers = (users) => {
     try {
-        localStorage.setItem('iwhistle_users', JSON.stringify(users));
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     } catch (error) {
         console.error("Error saving users to storage:", error);
         toast({
@@ -57,28 +53,24 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Initialize Auth State
     useEffect(() => {
         const initAuth = async () => {
-             const storedSession = localStorage.getItem('iwhistle_session');
+             const storedSession = localStorage.getItem(STORAGE_KEYS.SESSION);
              if (storedSession) {
                  try {
-                     // Verify session integrity
                      const sessionUser = JSON.parse(storedSession);
                      const users = getStoredUsers();
                      const foundUser = users.find(u => u.id === sessionUser.id);
-                     
+
                      if (foundUser) {
-                         // Never keep password in memory state
                          const { password, ...userWithoutPassword } = foundUser;
                          setUser(userWithoutPassword);
                      } else {
-                         // Session invalid - force logout
-                         localStorage.removeItem('iwhistle_session');
+                         localStorage.removeItem(STORAGE_KEYS.SESSION);
                      }
                  } catch (e) {
                      console.error("Session restoration error:", e);
-                     localStorage.removeItem('iwhistle_session');
+                     localStorage.removeItem(STORAGE_KEYS.SESSION);
                  }
              }
              setLoading(false);
@@ -88,31 +80,24 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         setLoading(true);
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
             const users = getStoredUsers();
-            
-            // Check for match (comparing obfuscated password)
             const obfuscatedPassword = obfuscate(password);
-            
-            // We also check plain password for legacy demo accounts or if migration hasn't happened
-            const foundUser = users.find(u => 
-                u.email.toLowerCase() === email.toLowerCase() && 
+            // Check obfuscated password first, fall back to plaintext for legacy accounts
+            const foundUser = users.find(u =>
+                u.email.toLowerCase() === email.toLowerCase() &&
                 (u.password === obfuscatedPassword || u.password === password)
             );
 
             if (foundUser) {
                 const { password: _, ...userWithoutPassword } = foundUser;
                 setUser(userWithoutPassword);
-                // Store session
-                localStorage.setItem('iwhistle_session', JSON.stringify(userWithoutPassword));
-                
+                localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(userWithoutPassword));
                 setLoading(false);
                 return userWithoutPassword;
             }
-            
+
             throw new Error("Invalid email or password.");
         } catch (error) {
             setLoading(false);
@@ -122,8 +107,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (userData) => {
         setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         try {
             const users = getStoredUsers();
             if (users.find(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
@@ -139,7 +123,7 @@ export const AuthProvider = ({ children }) => {
             const newUser = {
                 id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 ...userData,
-                password: obfuscate(userData.password), // Store obfuscated
+                password: obfuscate(userData.password),
                 role: userData.role || 'referee',
                 created_at: new Date().toISOString(),
                 avatar_url: userData.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.email}`
@@ -163,14 +147,9 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
         setUser(null);
-        localStorage.removeItem('iwhistle_session');
-        
-        // Clear any other temporary potential sensitive items if they existed
-        localStorage.removeItem('iwhistle_temp_data'); 
-        
+        localStorage.removeItem(STORAGE_KEYS.SESSION);
+        localStorage.removeItem(STORAGE_KEYS.TEMP_DATA);
         toast({
             title: "Logged out",
             description: "See you next time! 👋",
@@ -181,13 +160,11 @@ export const AuthProvider = ({ children }) => {
     const updateProfile = async (updates) => {
         if (!user) return;
         setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
             const users = getStoredUsers();
             const updatedUsers = users.map(u => {
                 if (u.id === user.id) {
-                    // If password is being updated, obfuscate it
                     if (updates.password) {
                         return { ...u, ...updates, password: obfuscate(updates.password) };
                     }
@@ -195,14 +172,14 @@ export const AuthProvider = ({ children }) => {
                 }
                 return u;
             });
-            
+
             setStoredUsers(updatedUsers);
-            
+
             const updatedUser = updatedUsers.find(u => u.id === user.id);
             const { password: _, ...userWithoutPassword } = updatedUser;
-            
+
             setUser(userWithoutPassword);
-            localStorage.setItem('iwhistle_session', JSON.stringify(userWithoutPassword));
+            localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(userWithoutPassword));
 
             toast({
                 title: "Profile updated! ✅",
@@ -221,24 +198,19 @@ export const AuthProvider = ({ children }) => {
     };
 
     const uploadAvatar = async (file) => {
-        // Mock function
         if (!user) return;
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
         toast({ title: "Simulator Notice", description: "File upload is simulated." });
-        setLoading(false);
     };
 
     const createDemoAccounts = async () => {
-        // This runs quickly without artificial delay to ensure smooth demo login
         try {
             const users = getStoredUsers();
-            
+
             const demoAccounts = [
                 {
                     id: 'demo-manager',
                     email: 'manager@demo.com',
-                    password: obfuscate('password'), // Store encoded
+                    password: obfuscate('password'),
                     name: 'Demo Manager',
                     role: 'manager',
                     avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=manager',
@@ -249,7 +221,7 @@ export const AuthProvider = ({ children }) => {
                 {
                     id: 'demo-referee',
                     email: 'referee@demo.com',
-                    password: obfuscate('password'), // Store encoded
+                    password: obfuscate('password'),
                     name: 'Demo Referee',
                     role: 'referee',
                     avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=referee',
@@ -274,7 +246,7 @@ export const AuthProvider = ({ children }) => {
             if (added) {
                 setStoredUsers(newUsers);
             }
-            
+
             return { success: true };
         } catch (error) {
             console.error("Create demo accounts error:", error);

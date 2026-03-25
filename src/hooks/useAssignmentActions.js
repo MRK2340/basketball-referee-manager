@@ -103,15 +103,6 @@ export const useAssignmentActions = (user, fetchData, sendMessage, games) => {
 
   const requestGameAssignment = async (gameId) => {
     if (!user || user.role !== 'referee') return;
-  
-    // Re-fetch data to ensure it's up to date before checking
-    await fetchData();
-  
-    const game = games.find(g => g.id === gameId);
-    if (game && game.assignments.some(a => a.referee.id === user.id)) {
-        toast({ title: "Already Requested", description: "You have already requested to officiate this game.", variant: "default" });
-        return;
-    }
 
     const { error } = await supabase
       .from('game_assignments')
@@ -119,7 +110,7 @@ export const useAssignmentActions = (user, fetchData, sendMessage, games) => {
       .select();
 
     if (error) {
-      if (error.code === '23505') { 
+      if (error.code === '23505') {
         toast({ title: "Already Requested", description: "You have already requested to officiate this game.", variant: "default" });
       } else {
         toast({
@@ -130,26 +121,22 @@ export const useAssignmentActions = (user, fetchData, sendMessage, games) => {
       }
       return;
     }
-    
-    // Fetch data again to update UI and context
-    fetchData().then(() => {
-        const updatedGame = games.find(g => g.id === gameId);
-        if (!updatedGame || !updatedGame.managerId) return;
-
-        const managerId = updatedGame.managerId;
-        if (managerId) {
-          sendMessage({
-            recipientId: managerId,
-            subject: `New Game Request: ${updatedGame.homeTeam} vs ${updatedGame.awayTeam}`,
-            content: `Referee ${user.name} has requested to officiate the game between ${updatedGame.homeTeam} and ${updatedGame.awayTeam} on ${new Date(updatedGame.date).toLocaleDateString()}.`,
-          });
-        }
-    });
 
     toast({
       title: "Request Sent! 👍",
       description: "Your request to officiate this game has been sent to the manager.",
     });
+
+    const game = games.find(g => g.id === gameId);
+    if (game?.managerId) {
+      sendMessage({
+        recipientId: game.managerId,
+        subject: `New Game Request: ${game.homeTeam} vs ${game.awayTeam}`,
+        content: `Referee ${user.name} has requested to officiate the game between ${game.homeTeam} and ${game.awayTeam} on ${new Date(game.date).toLocaleDateString()}.`,
+      });
+    }
+
+    fetchData();
   };
 
 
