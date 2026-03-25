@@ -1,0 +1,25 @@
+/* iWhistle Brand Colors */
+:root {
+  /* Primary Colors */
+  --iwhistle-blue-primary: #0080C8;
+  --iwhistle-orange-primary: #FF8C00;
+  
+  /* Secondary Colors */
+  --iwhistle-blue-deep: #003D7A;
+  --iwhistle-blue-light: #4DB8E8;
+  --iwhistle-orange-burnt: #E67300;
+  
+  /* Neutral Colors */
+  --iwhistle-white: #FFFFFF;
+  --iwhistle-gray: #666666;
+  
+  /* Gradients */
+  --iwhistle-gradient-primary: linear-gradient(90deg, #0080C8 0%, #FF8C00 100%);
+  --iwhistle-gradient-reverse: linear-gradient(90deg, #FF8C00 0%, #0080C8 100%);
+  
+  /* Semantic Colors with iWhistle Brand */
+  --iwhistle-success: #10B981;
+  --iwhistle-warning: #FF8C00;
+  --iwhistle-error: #EF4444;
+  --iwhistle-info: #4DB8E8;
+}
