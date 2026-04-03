@@ -62,14 +62,16 @@ const Settings = () => {
         <meta name="description" content="Manage your account settings, notifications, and preferences for the Basketball Referee Manager app." />
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="settings-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center lg:text-left"
+          className="text-left"
+          data-testid="settings-page-header"
         >
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Settings</h1>
-          <p className="text-slate-600">Manage your account preferences and notifications</p>
+          <p className="app-kicker mb-3">Preferences</p>
+          <h1 className="app-heading mb-3 text-4xl text-slate-950">Settings</h1>
+          <p className="max-w-2xl text-slate-600">Manage notifications, app behavior, and account-level preferences in a cleaner control center.</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-6">

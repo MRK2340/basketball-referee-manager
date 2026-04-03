@@ -80,7 +80,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
 
   return (
     <>
-      <Card className="glass-effect border-slate-200 shadow-sm">
+      <Card className="glass-effect border-slate-200 shadow-sm" data-testid="manager-game-assignments-card">
         <CardHeader>
           <CardTitle className="text-slate-900">Game Assignments</CardTitle>
           <CardDescription className="text-slate-600">Assign referees to upcoming games and mark games as completed.</CardDescription>
@@ -99,7 +99,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
               </TableHeader>
               <TableBody>
                 {games.map((game) => (
-                  <TableRow key={game.id} className="border-b-slate-100 hover:bg-slate-50/80 transition-colors">
+                  <TableRow key={game.id} className="border-b-slate-100 hover:bg-slate-50/80 transition-colors" data-testid={`manager-assignment-row-${game.id}`}>
                     <TableCell>
                       <p className="font-bold text-slate-900">{game.home_team} vs {game.away_team}</p>
                       <p className="text-sm text-slate-600 font-medium">{game.tournament?.name} - {game.venue}</p>
@@ -115,7 +115,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                             <span>{assignment.profiles?.name || '...'}</span>
                             {getAssignmentStatusBadge(assignment.status)}
                             {game.status !== 'completed' && (
-                              <button onClick={() => unassignRefereeFromGame(assignment.id)} className="ml-2 rounded-full hover:bg-red-100 hover:text-red-600 text-slate-400 p-0.5 transition-colors">
+                              <button data-testid={`manager-unassign-referee-${assignment.id}`} onClick={() => unassignRefereeFromGame(assignment.id)} className="ml-2 rounded-full hover:bg-red-100 hover:text-red-600 text-slate-400 p-0.5 transition-colors">
                                 <X className="h-3 w-3" />
                               </button>
                             )}
@@ -126,10 +126,10 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                     <TableCell className="text-right">
                       {game.status !== 'completed' && (
                         <div className="flex gap-2 justify-end">
-                          <Button size="sm" className="basketball-gradient hover:opacity-90 text-white shadow-sm font-semibold" onClick={() => handleOpenAssignDialog(game)}>
+                          <Button size="sm" data-testid={`manager-assign-referee-${game.id}`} className="basketball-gradient hover:opacity-90 text-white shadow-sm font-semibold" onClick={() => handleOpenAssignDialog(game)}>
                             Assign
                           </Button>
-                          <Button size="sm" variant="outline" className="border-green-300 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800 font-semibold" onClick={() => markGameAsCompleted(game.id)}>
+                          <Button size="sm" variant="outline" data-testid={`manager-complete-game-${game.id}`} className="border-green-300 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800 font-semibold" onClick={() => markGameAsCompleted(game.id)}>
                             <CheckCircle className="h-4 w-4 mr-1.5" />
                             Complete
                           </Button>

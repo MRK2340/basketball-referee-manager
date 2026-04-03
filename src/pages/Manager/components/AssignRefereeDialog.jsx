@@ -66,21 +66,21 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
         setConflictWarning(null);
       }
     }}>
-      <DialogContent className="sm:max-w-md bg-slate-900 border-slate-700 text-white">
+      <DialogContent className="sm:max-w-md bg-white border-slate-200 text-slate-900" data-testid="assign-referee-dialog">
         <DialogHeader>
           <DialogTitle>Assign Referee</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-slate-600">
             Assign a referee to {game?.home_team} vs {game?.away_team}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
           <div>
-            <Label htmlFor="referee" className="text-slate-300">Available Referees</Label>
+            <Label htmlFor="referee" className="text-slate-700">Available Referees</Label>
             <Select value={selectedRefereeId} onValueChange={handleRefereeSelect}>
-              <SelectTrigger className="w-full bg-slate-800 border-slate-600">
+              <SelectTrigger className="w-full bg-white border-slate-300" data-testid="assign-referee-select-trigger">
                 <SelectValue placeholder="Select a referee" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-white">
+              <SelectContent className="bg-white border-slate-200 text-slate-900">
                 {availableReferees.length > 0 ? availableReferees.map(ref => (
                   <SelectItem key={ref.id} value={ref.id}>{ref.name}</SelectItem>
                 )) : <div className="p-2 text-slate-400">No available referees</div>}
@@ -88,9 +88,9 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
             </Select>
           </div>
           {selectedReferee && (
-             <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg space-y-2">
+             <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3" data-testid="assign-referee-selected-summary">
                 <div className="flex justify-between items-center">
-                    <p className="font-semibold text-white">{selectedReferee.name}</p>
+                    <p className="font-semibold text-slate-900">{selectedReferee.name}</p>
                     <div className="flex items-center text-sm text-yellow-400">
                         <Star className="h-4 w-4 mr-1 fill-current" />
                         {selectedReferee.rating?.toFixed(1) || 'N/A'}
@@ -107,15 +107,15 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
             </div>
           )}
           {conflictWarning && (
-            <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start space-x-2">
+            <div className="flex items-start space-x-2 rounded-lg border border-yellow-200 bg-yellow-50 p-3" data-testid="assign-referee-conflict-warning">
               <AlertCircle className="h-5 w-5 text-yellow-400 mt-0.5" />
-              <p className="text-yellow-400 text-sm">{conflictWarning}</p>
+              <p className="text-sm text-yellow-700">{conflictWarning}</p>
             </div>
           )}
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button type="button" onClick={handleAssign} className="basketball-gradient hover:opacity-90">Assign Referee</Button>
+          <Button type="button" variant="outline" data-testid="assign-referee-cancel-button" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button type="button" data-testid="assign-referee-confirm-button" onClick={handleAssign} className="basketball-gradient hover:opacity-90">Assign Referee</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

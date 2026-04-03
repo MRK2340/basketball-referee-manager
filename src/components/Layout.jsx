@@ -18,7 +18,7 @@ const Layout = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col">
+    <div className="min-h-screen flex flex-col app-page-shell">
       {/* Top Bar */}
       <TopBar onMenuClick={() => setSidebarOpen(true)} />
       
@@ -47,13 +47,13 @@ const Layout = ({ children }) => {
       </AnimatePresence>
 
       {/* Desktop Sidebar - Always visible on large screens */}
-      <div className="hidden lg:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-80 z-30">
+      <div className="hidden lg:block fixed left-0 top-20 h-[calc(100vh-5rem)] w-72 z-30 px-4 pb-4">
         <Sidebar />
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 pt-16 pb-20 lg:pb-4 lg:pl-80 transition-all duration-300">
-        <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <main className="flex-1 pt-20 pb-24 lg:pb-8 lg:pl-72 transition-all duration-300">
+        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10 }}

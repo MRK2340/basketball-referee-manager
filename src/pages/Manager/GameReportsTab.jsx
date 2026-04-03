@@ -71,31 +71,32 @@ const GameReportsTab = ({ gameReports }) => {
 
   return (
     <>
-      <Card className="glass-effect border-slate-600">
+      <Card className="glass-effect border-slate-200 shadow-sm" data-testid="manager-game-reports-card">
         <CardHeader>
-          <CardTitle className="text-white">Game Reports</CardTitle>
-          <CardDescription className="text-slate-400">Review post-game reports submitted by referees.</CardDescription>
+          <CardTitle className="text-slate-900">Game Reports</CardTitle>
+          <CardDescription className="text-slate-600">Review post-game reports submitted by referees.</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-700 hover:bg-slate-800/50">
-                <TableHead className="text-white">Game</TableHead>
-                <TableHead className="text-white">Referee</TableHead>
-                <TableHead className="text-white">Date Submitted</TableHead>
-                <TableHead className="text-white text-center">Status</TableHead>
-                <TableHead className="text-right text-white">Actions</TableHead>
+              <TableRow className="border-slate-200 bg-slate-50 hover:bg-slate-50">
+                <TableHead className="text-slate-900">Game</TableHead>
+                <TableHead className="text-slate-900">Referee</TableHead>
+                <TableHead className="text-slate-900">Date Submitted</TableHead>
+                <TableHead className="text-center text-slate-900">Status</TableHead>
+                <TableHead className="text-right text-slate-900">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {gameReports.map((report) => (
-                <TableRow key={report.id} className="border-slate-700 hover:bg-slate-800/50">
-                  <TableCell className="font-medium text-white">{report.gameTitle}</TableCell>
-                  <TableCell className="text-slate-300">{report.refereeName}</TableCell>
-                  <TableCell className="text-slate-300">{format(new Date(report.createdAt), 'MMM dd, yyyy')}</TableCell>
+                <TableRow key={report.id} className="border-slate-100 hover:bg-slate-50/80" data-testid={`manager-report-row-${report.id}`}>
+                  <TableCell className="font-medium text-slate-900">{report.gameTitle}</TableCell>
+                  <TableCell className="text-slate-700">{report.refereeName}</TableCell>
+                  <TableCell className="text-slate-700">{format(new Date(report.createdAt), 'MMM dd, yyyy')}</TableCell>
                   <TableCell className="text-center">{getStatusBadge(report.status)}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-800" onClick={() => handleViewDetails(report)}>
+                    <Button size="sm" variant="outline" data-testid={`manager-view-report-${report.id}`} className="border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => handleViewDetails(report)}>
                       View Details
                     </Button>
                   </TableCell>
@@ -103,6 +104,7 @@ const GameReportsTab = ({ gameReports }) => {
               ))}
             </TableBody>
           </Table>
+        </div>
         </CardContent>
       </Card>
       <ReportDetailsDialog open={detailsOpen} setOpen={setDetailsOpen} report={selectedReport} />

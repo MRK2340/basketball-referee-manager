@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import './styles/iwhistle-brand.css';
 
 html {
@@ -30,6 +29,15 @@ html {
   --input: 214.3 31.8% 91.4%;
   --ring: 200 100% 39%;
   --radius: 0.75rem;
+  --app-bg: #f8fafc;
+  --app-surface: #ffffff;
+  --app-panel: #f1f5f9;
+  --app-border: #dbe4f0;
+  --app-text: #0f172a;
+  --app-muted: #64748b;
+  --app-accent: #0052ff;
+  --app-accent-dark: #0f172a;
+  --app-accent-soft: #eff6ff;
 }
 
 * {
@@ -37,23 +45,63 @@ html {
 }
 
 body {
-  background-color: var(--iwhistle-white);
-  color: var(--iwhistle-blue-deep);
-  font-family: 'Inter', sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(0, 82, 255, 0.08), transparent 28%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  color: var(--app-text);
+  font-family: 'IBM Plex Sans', sans-serif;
   min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: var(--iwhistle-blue-primary);
+  color: var(--app-text);
+  font-family: 'Cabinet Grotesk', sans-serif;
 }
 
 a {
-  color: var(--iwhistle-orange-primary);
+  color: inherit;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--iwhistle-blue-primary);
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-page-shell {
+  background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(248,250,252,0.88) 100%);
+}
+
+.app-heading {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.app-kicker {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  font-weight: 700;
+}
+
+.app-surface-card {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--app-border);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.app-toolbar-card {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(219, 228, 240, 0.95);
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(12px);
 }
 
 .iwhistle-gradient {
@@ -85,10 +133,20 @@ a:hover {
 }
 
 .glass-effect {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--iwhistle-blue-light);
+  border: 1px solid var(--app-border);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.basketball-gradient {
+  background: linear-gradient(135deg, var(--app-accent-dark) 0%, var(--app-accent) 100%);
+  color: #fff;
+}
+
+.basketball-gradient:hover {
+  background: linear-gradient(135deg, #111827 0%, #0043d1 100%);
 }
 
 .neon-glow {

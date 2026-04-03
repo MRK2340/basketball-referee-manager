@@ -60,17 +60,19 @@ const Games = () => {
         <meta name="description" content="Track your game history, performance statistics, and manage game reports as a basketball referee." />
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="games-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center lg:text-left"
+          className="text-left"
+          data-testid="games-page-header"
         >
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Game Management</h1>
-          <p className="text-slate-600">Track your games, performance, and statistics</p>
+          <p className="app-kicker mb-3">Performance</p>
+          <h1 className="app-heading mb-3 text-4xl text-slate-950">Game Management</h1>
+          <p className="max-w-2xl text-slate-600">Track completed work, monitor active assignments, and review your recent game history.</p>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { title: 'Total Games', value: games.length, icon: Trophy, color: 'text-blue-600', bgColor: 'bg-blue-100' },
             { title: 'Completed', value: completedGames.length, icon: TrendingUp, color: 'text-green-600', bgColor: 'bg-green-100' },
@@ -85,7 +87,7 @@ const Games = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="glass-effect border-slate-200 shadow-sm">
+                <Card className="glass-effect border-slate-200 shadow-sm" data-testid={`games-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -128,7 +130,7 @@ const Games = () => {
                         <span>{game.venue}</span>
                         <span className="font-medium">${game.payment}</span>
                       </div>
-                      <Button size="sm" className="w-full mt-3 basketball-gradient hover:opacity-90 text-white" onClick={() => handleFeatureClick('manage-live-game')}>
+                      <Button size="sm" data-testid={`games-manage-live-${game.id}`} className="w-full mt-3 basketball-gradient hover:opacity-90 text-white" onClick={() => handleFeatureClick('manage-live-game')}>
                         Manage Game
                       </Button>
                     </div>
@@ -210,7 +212,7 @@ const Games = () => {
                       <span>{game.date}</span>
                       <span className="text-green-600 font-semibold">${game.payment}</span>
                     </div>
-                    <Button size="sm" variant="outline" className="w-full mt-3 border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => handleFeatureClick('view-game-report')}>
+                    <Button size="sm" variant="outline" data-testid={`games-view-report-${game.id}`} className="w-full mt-3 border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => handleFeatureClick('view-game-report')}>
                       View Report
                     </Button>
                   </div>

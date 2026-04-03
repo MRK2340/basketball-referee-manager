@@ -94,20 +94,23 @@ const Payments = () => {
         <meta name="description" content="Track your referee payments, earnings, and payment history for basketball games." />
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="payments-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0"
+          data-testid="payments-page-header"
         >
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Payment Center</h1>
-            <p className="text-slate-600">Track your earnings and payment history</p>
+            <p className="app-kicker mb-3">Finance</p>
+            <h1 className="app-heading mb-3 text-4xl text-slate-950">Payment Center</h1>
+            <p className="max-w-2xl text-slate-600">Track earnings, review payment status, and keep your referee income organized.</p>
           </div>
           
           <div className="flex space-x-3">
             <Button 
               variant="outline"
+              data-testid="payments-export-button"
               className="border-slate-300 text-slate-700 hover:bg-slate-100"
               onClick={() => handleFeatureClick('export-payments')}
             >
@@ -116,6 +119,7 @@ const Payments = () => {
             </Button>
             <Button 
               className="basketball-gradient hover:opacity-90 text-white"
+              data-testid="payments-settings-button"
               onClick={() => handleFeatureClick('payment-settings')}
             >
               <CreditCard className="h-4 w-4 mr-2" />
@@ -124,7 +128,7 @@ const Payments = () => {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -134,7 +138,7 @@ const Payments = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="glass-effect border-slate-200 shadow-sm">
+                <Card className="glass-effect border-slate-200 shadow-sm" data-testid={`payments-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -157,9 +161,9 @@ const Payments = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm">
+          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="payments-filter-card">
             <CardContent className="p-4">
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 {[
                   { key: 'all', label: 'All Payments' },
                   { key: 'paid', label: 'Paid' },
@@ -168,6 +172,7 @@ const Payments = () => {
                 ].map((filterOption) => (
                   <Button
                     key={filterOption.key}
+                    data-testid={`payments-filter-${filterOption.key}-button`}
                     variant={filter === filterOption.key ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFilter(filterOption.key)}
@@ -195,7 +200,7 @@ const Payments = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * (index + 4) }}
                 >
-                  <Card className="glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-sm">
+                  <Card className="glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-sm" data-testid={`payment-row-${payment.id}`}>
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                         <div className="flex-1">
@@ -247,6 +252,7 @@ const Payments = () => {
                             <Button 
                               size="sm" 
                               variant="outline"
+                              data-testid={`payment-view-receipt-${payment.id}`}
                               className="border-slate-300 text-slate-700 hover:bg-slate-100"
                               onClick={() => handleFeatureClick('view-receipt')}
                             >
@@ -255,6 +261,7 @@ const Payments = () => {
                             {payment.status === 'paid' && (
                               <Button 
                                 size="sm"
+                                data-testid={`payment-download-receipt-${payment.id}`}
                                 className="basketball-gradient hover:opacity-90 text-white"
                                 onClick={() => handleFeatureClick('download-receipt')}
                               >
@@ -287,6 +294,7 @@ const Payments = () => {
                   </p>
                   <Button 
                     className="basketball-gradient hover:opacity-90 text-white"
+                    data-testid="payments-help-button"
                     onClick={() => handleFeatureClick('payment-help')}
                   >
                     Payment Help & FAQ
@@ -338,6 +346,7 @@ const Payments = () => {
                   <div className="space-y-3">
                     <Button 
                       variant="outline" 
+                      data-testid="payments-setup-direct-deposit-button"
                       className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                       onClick={() => handleFeatureClick('setup-direct-deposit')}
                     >
@@ -346,6 +355,7 @@ const Payments = () => {
                     </Button>
                     <Button 
                       variant="outline" 
+                      data-testid="payments-update-payment-info-button"
                       className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                       onClick={() => handleFeatureClick('update-payment-info')}
                     >
@@ -354,6 +364,7 @@ const Payments = () => {
                     </Button>
                     <Button 
                       variant="outline" 
+                      data-testid="payments-tax-documents-button"
                       className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                       onClick={() => handleFeatureClick('tax-documents')}
                     >

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
@@ -26,17 +26,19 @@ const Manager = () => {
         <meta name="description" content="Manage tournaments, assign games, and oversee referees for your league." />
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="manager-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          data-testid="manager-page-header"
         >
-          <h1 className="text-3xl font-bold text-white mb-2">League Management</h1>
-          <p className="text-slate-400">Oversee tournaments, games, and referees from one central hub.</p>
+          <p className="app-kicker mb-3">Manager tools</p>
+          <h1 className="app-heading mb-3 text-4xl text-slate-950">League Management</h1>
+          <p className="max-w-2xl text-slate-600">Oversee tournaments, games, and referees from one central hub with cleaner workflows and faster tab access.</p>
         </motion.div>
 
-        <Tabs defaultValue="tournaments" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-slate-800">
+        <Tabs defaultValue="tournaments" className="w-full" data-testid="manager-tabs-root">
+          <TabsList className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm lg:grid-cols-4">
             <TabsTrigger value="tournaments" data-testid="manager-tab-tournaments">
               <Trophy className="h-4 w-4 mr-2" /> Tournaments
             </TabsTrigger>

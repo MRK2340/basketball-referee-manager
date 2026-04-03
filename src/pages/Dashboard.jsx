@@ -85,21 +85,19 @@ const Dashboard = () => {
         <meta name="description" content="View your referee dashboard with upcoming games, earnings, and performance statistics." />
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="dashboard-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center lg:text-left"
+          className="text-left"
+          data-testid="dashboard-header"
         >
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Welcome back, {user?.name}! 🏀
-          </h1>
-          <p className="text-slate-600">
-            Here's what's happening with your referee activities
-          </p>
+          <p className="app-kicker mb-3">Overview</p>
+          <h1 className="app-heading mb-3 text-4xl sm:text-5xl text-slate-950">Welcome back, {user?.name}</h1>
+          <p className="max-w-2xl text-base text-slate-600">Here is your live view of assignments, earnings, and the most important next actions.</p>
         </motion.div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
@@ -109,15 +107,15 @@ const Dashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                        <Icon className={`h-5 w-5 ${stat.color}`} />
-                      </div>
+                <Card className="glass-effect border-slate-200 hover:-translate-y-0.5 transition-all duration-300 shadow-sm" data-testid={`dashboard-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-slate-600 text-sm font-medium">{stat.title}</p>
-                        <p className="text-slate-900 text-xl font-bold">{stat.value}</p>
+                        <p className="app-kicker mb-2 text-[11px]">{stat.title}</p>
+                        <p className="text-2xl font-bold text-slate-950">{stat.value}</p>
+                      </div>
+                      <div className={`rounded-2xl p-3 ${stat.bgColor}`}>
+                        <Icon className={`h-5 w-5 ${stat.color}`} />
                       </div>
                     </div>
                   </CardContent>
@@ -129,7 +127,7 @@ const Dashboard = () => {
 
         <div className="grid lg:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="glass-effect border-slate-200 shadow-sm">
+            <Card className="glass-effect border-slate-200 shadow-sm" data-testid="dashboard-upcoming-games-card">
               <CardHeader>
                 <CardTitle className="text-slate-900 flex items-center space-x-2">
                   <Calendar className="h-5 w-5 text-brand-orange" />
@@ -142,7 +140,7 @@ const Dashboard = () => {
               <CardContent className="space-y-4">
                 {upcomingGames.length > 0 ? (
                   upcomingGames.map((game) => (
-                    <div key={game.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                    <div key={game.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`dashboard-upcoming-game-${game.id}`}>
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h4 className="text-slate-900 font-semibold">
@@ -174,6 +172,7 @@ const Dashboard = () => {
                 )}
                 <Button 
                   className="w-full basketball-gradient hover:opacity-90 text-white"
+                  data-testid="dashboard-view-full-schedule-button"
                   onClick={() => handleQuickAction('view-schedule')}
                 >
                   View Full Schedule
@@ -183,7 +182,7 @@ const Dashboard = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="glass-effect border-slate-200 shadow-sm">
+            <Card className="glass-effect border-slate-200 shadow-sm" data-testid="dashboard-recent-payments-card">
               <CardHeader>
                 <CardTitle className="text-slate-900 flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5 text-green-600" />
@@ -198,7 +197,7 @@ const Dashboard = () => {
                   recentPayments.map((payment) => {
                     const game = games.find(g => g.id === payment.gameId);
                     return (
-                      <div key={payment.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                      <div key={payment.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4" data-testid={`dashboard-payment-${payment.id}`}>
                         <div className="flex justify-between items-center">
                           <div>
                             <h4 className="text-slate-900 font-semibold">
@@ -224,6 +223,7 @@ const Dashboard = () => {
                 )}
                 <Button 
                   variant="outline" 
+                  data-testid="dashboard-view-all-payments-button"
                   className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
                   onClick={() => handleQuickAction('view-payments')}
                 >
@@ -235,7 +235,7 @@ const Dashboard = () => {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="glass-effect border-slate-200 shadow-sm">
+          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="dashboard-quick-actions-card">
             <CardHeader>
               <CardTitle className="text-slate-900">Quick Actions</CardTitle>
               <CardDescription className="text-slate-600">
@@ -243,9 +243,10 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <Button 
                   variant="outline" 
+                  data-testid="dashboard-update-availability-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('update-availability')}
                 >
@@ -254,6 +255,7 @@ const Dashboard = () => {
                 </Button>
                 <Button 
                   variant="outline" 
+                  data-testid="dashboard-submit-report-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('submit-report')}
                 >
@@ -262,6 +264,7 @@ const Dashboard = () => {
                 </Button>
                 <Button 
                   variant="outline" 
+                  data-testid="dashboard-view-messages-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('view-messages')}
                 >
@@ -270,6 +273,7 @@ const Dashboard = () => {
                 </Button>
                 <Button 
                   variant="outline" 
+                  data-testid="dashboard-update-profile-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('update-profile')}
                 >

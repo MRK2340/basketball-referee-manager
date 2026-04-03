@@ -67,73 +67,73 @@ const AddGameDialog = ({ open, setOpen }) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-lg bg-slate-900 border-slate-700 text-white">
+      <DialogContent className="sm:max-w-lg bg-white border-slate-200 text-slate-900" data-testid="schedule-add-game-dialog">
         <DialogHeader>
           <DialogTitle>Schedule New Game</DialogTitle>
-          <DialogDescription>Fill in the details for the new game.</DialogDescription>
+          <DialogDescription className="text-slate-600">Fill in the details for the new game.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tournament" className="text-right text-slate-300">Tournament</Label>
+            <Label htmlFor="tournament" className="text-right text-slate-700">Tournament</Label>
             <Select onValueChange={setTournamentId} value={tournamentId}>
-              <SelectTrigger className="col-span-3 bg-slate-800 border-slate-600">
+              <SelectTrigger className="col-span-3 bg-white border-slate-300" data-testid="schedule-add-game-tournament-trigger">
                 <SelectValue placeholder="Select a tournament" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-white">
+              <SelectContent className="bg-white border-slate-200 text-slate-900">
                 {tournaments.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="homeTeam" className="text-right text-slate-300">Home Team</Label>
-            <Input id="homeTeam" value={homeTeam} onChange={(e) => setHomeTeam(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" />
+            <Input id="homeTeam" data-testid="schedule-add-game-home-team-input" value={homeTeam} onChange={(e) => setHomeTeam(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="awayTeam" className="text-right text-slate-300">Away Team</Label>
-            <Input id="awayTeam" value={awayTeam} onChange={(e) => setAwayTeam(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" />
+            <Input id="awayTeam" data-testid="schedule-add-game-away-team-input" value={awayTeam} onChange={(e) => setAwayTeam(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right text-slate-300">Date</Label>
+            <Label htmlFor="date" className="text-right text-slate-700">Date</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant={"outline"} className={cn("col-span-3 justify-start text-left font-normal bg-slate-800 border-slate-600 hover:bg-slate-700", !date && "text-muted-foreground")}>
+                <Button data-testid="schedule-add-game-date-button" variant={"outline"} className={cn("col-span-3 justify-start text-left font-normal bg-white border-slate-300 hover:bg-slate-50", !date && "text-muted-foreground")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date ? format(date, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700">
-                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus className="text-white" />
+              <PopoverContent className="w-auto p-0 bg-white border-slate-200">
+                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus className="text-slate-900" />
               </PopoverContent>
             </Popover>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="time" className="text-right text-slate-300">Time</Label>
-            <Input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" />
+            <Input id="time" data-testid="schedule-add-game-time-input" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="venue" className="text-right text-slate-300">Venue</Label>
-            <Input id="venue" value={venue} onChange={(e) => setVenue(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" />
+            <Input id="venue" data-testid="schedule-add-game-venue-input" value={venue} onChange={(e) => setVenue(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="division" className="text-right text-slate-300">Division</Label>
-            <Input id="division" value={division} onChange={(e) => setDivision(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" placeholder="e.g., U14 Boys" />
+            <Input id="division" data-testid="schedule-add-game-division-input" value={division} onChange={(e) => setDivision(e.target.value)} className="col-span-3 bg-white border-slate-300" placeholder="e.g., U14 Boys" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="payment" className="text-right text-slate-300">Payment ($)</Label>
-            <Input id="payment" type="number" value={payment} onChange={(e) => setPayment(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" />
+            <Input id="payment" data-testid="schedule-add-game-payment-input" type="number" value={payment} onChange={(e) => setPayment(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="level" className="text-right text-slate-300">Game Level</Label>
-            <Input id="level" value={level} onChange={(e) => setLevel(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" placeholder="e.g., Varsity, JV" />
+            <Input id="level" data-testid="schedule-add-game-level-input" value={level} onChange={(e) => setLevel(e.target.value)} className="col-span-3 bg-white border-slate-300" placeholder="e.g., Varsity, JV" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="requiredCerts" className="text-right text-slate-300">Certs</Label>
-            <Input id="requiredCerts" value={requiredCerts} onChange={(e) => setRequiredCerts(e.target.value)} className="col-span-3 bg-slate-800 border-slate-600" placeholder="e.g., State, Certified (comma-sep)" />
+            <Input id="requiredCerts" data-testid="schedule-add-game-certs-input" value={requiredCerts} onChange={(e) => setRequiredCerts(e.target.value)} className="col-span-3 bg-white border-slate-300" placeholder="e.g., State, Certified (comma-sep)" />
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button type="submit" onClick={handleSubmit} className="basketball-gradient hover:opacity-90">Schedule Game</Button>
+          <Button type="button" variant="outline" data-testid="schedule-add-game-cancel-button" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button type="submit" data-testid="schedule-add-game-save-button" onClick={handleSubmit} className="basketball-gradient hover:opacity-90">Schedule Game</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

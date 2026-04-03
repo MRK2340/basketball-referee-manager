@@ -98,14 +98,16 @@ const Profile = () => {
         <meta name="description" content="Manage your referee profile, view statistics, and update your personal information." />
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="profile-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center lg:text-left"
+          className="text-left"
+          data-testid="profile-page-header"
         >
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Profile</h1>
-          <p className="text-slate-600">Manage your referee information and statistics</p>
+          <p className="app-kicker mb-3">Account</p>
+          <h1 className="app-heading mb-3 text-4xl text-slate-950">Profile</h1>
+          <p className="max-w-2xl text-slate-600">Manage your referee information, credentials, and performance details from one place.</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -115,7 +117,7 @@ const Profile = () => {
             transition={{ delay: 0.1 }}
             className="lg:col-span-1"
           >
-            <Card className="glass-effect border-slate-200">
+            <Card className="glass-effect border-slate-200" data-testid="profile-summary-card">
               <CardHeader className="text-center">
                 <Avatar className="mx-auto w-24 h-24 ring-4 ring-brand-orange mb-4">
                   <AvatarImage src={user?.avatar_url} alt={user?.name} />
@@ -171,6 +173,7 @@ const Profile = () => {
                 />
                 <Button 
                   className="w-full basketball-gradient hover:opacity-90 text-white"
+                  data-testid="profile-change-photo-button"
                   onClick={() => fileInputRef.current.click()}
                   disabled={authLoading}
                 >
@@ -191,7 +194,7 @@ const Profile = () => {
             transition={{ delay: 0.2 }}
             className="lg:col-span-2"
           >
-            <Card className="glass-effect border-slate-200">
+            <Card className="glass-effect border-slate-200" data-testid="profile-details-card">
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <div>
@@ -204,6 +207,7 @@ const Profile = () => {
                     <Button
                       variant="outline"
                       size="sm"
+                      data-testid="profile-edit-button"
                       onClick={() => setEditing(true)}
                       className="border-slate-300 text-slate-700 hover:bg-slate-100"
                     >
@@ -214,6 +218,7 @@ const Profile = () => {
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
+                        data-testid="profile-save-button"
                         onClick={handleSave}
                         className="basketball-gradient hover:opacity-90 text-white"
                         disabled={authLoading}
@@ -224,6 +229,7 @@ const Profile = () => {
                       <Button
                         variant="outline"
                         size="sm"
+                        data-testid="profile-cancel-button"
                         onClick={handleCancel}
                         className="border-slate-300 text-slate-700 hover:bg-slate-100"
                       >
@@ -244,6 +250,7 @@ const Profile = () => {
                         <Input
                           id="name"
                           name="name"
+                          data-testid="profile-name-input"
                           value={formData.name}
                           onChange={handleChange}
                           className="pl-10 bg-white border-slate-300 text-slate-900"
@@ -274,6 +281,7 @@ const Profile = () => {
                         <Input
                           id="phone"
                           name="phone"
+                          data-testid="profile-phone-input"
                           value={formData.phone}
                           onChange={handleChange}
                           className="pl-10 bg-white border-slate-300 text-slate-900"
@@ -296,6 +304,7 @@ const Profile = () => {
                         <Input
                           id="experience"
                           name="experience"
+                          data-testid="profile-experience-input"
                           value={formData.experience}
                           onChange={handleChange}
                           placeholder="e.g., 5 years"
@@ -318,6 +327,7 @@ const Profile = () => {
                     <div className="grid md:grid-cols-2 gap-4">
                       <Button 
                         variant="outline" 
+                        data-testid="profile-change-password-button"
                         className="border-slate-300 text-slate-700 hover:bg-slate-100"
                         onClick={() => handleFeatureClick('change-password')}
                       >
@@ -325,6 +335,7 @@ const Profile = () => {
                       </Button>
                       <Button 
                         variant="outline" 
+                        data-testid="profile-notification-settings-button"
                         className="border-slate-300 text-slate-700 hover:bg-slate-100"
                         onClick={() => handleFeatureClick('notification-settings')}
                       >

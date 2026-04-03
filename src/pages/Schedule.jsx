@@ -33,7 +33,7 @@ const Schedule = () => {
       <AddGameDialog open={addGameOpen} setOpen={setAddGameOpen} />
       <AssignCourtScheduleDialog open={courtScheduleOpen} setOpen={setCourtScheduleOpen} />
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="schedule-page">
         <ScheduleHeader 
           userRole={user?.role}
           onScheduleGame={() => setAddGameOpen(true)}
@@ -41,8 +41,8 @@ const Schedule = () => {
         />
         
         {user.role === 'referee' ? (
-          <Tabs defaultValue="my-schedule" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-slate-800">
+          <Tabs defaultValue="my-schedule" className="w-full" data-testid="schedule-tabs-root">
+            <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
               <TabsTrigger value="my-schedule" data-testid="schedule-tab-my-schedule"><ClipboardList className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
               <TabsTrigger value="open-games" data-testid="schedule-tab-open-games"><ThumbsUp className="mr-2 h-4 w-4" /> Open Games</TabsTrigger>
             </TabsList>
@@ -54,7 +54,9 @@ const Schedule = () => {
             </TabsContent>
           </Tabs>
         ) : (
-          <MyScheduleTab games={games} referees={referees} />
+          <div data-testid="schedule-manager-view">
+            <MyScheduleTab games={games} referees={referees} />
+          </div>
         )}
       </div>
     </>

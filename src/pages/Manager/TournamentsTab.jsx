@@ -47,14 +47,14 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament }) => {
         tournament={editingTournament}
         onSubmit={handleEditTournament}
       />
-      <Card className="glass-effect border-slate-200 shadow-sm">
+      <Card className="glass-effect border-slate-200 shadow-sm" data-testid="manager-tournaments-card">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-slate-900">Tournaments</CardTitle>
               <CardDescription className="text-slate-600">Create and manage your league's tournaments.</CardDescription>
             </div>
-            <Button className="basketball-gradient hover:opacity-90 text-white shadow-md" onClick={() => setAddDialogOpen(true)}>
+            <Button className="basketball-gradient hover:opacity-90 text-white shadow-md" data-testid="manager-add-tournament-button" onClick={() => setAddDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" /> Add Tournament
             </Button>
           </div>
@@ -74,17 +74,17 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament }) => {
               </TableHeader>
               <TableBody>
                 {tournaments.map((t) => (
-                  <TableRow key={t.id} className="border-b-slate-100 hover:bg-slate-50/80 transition-colors">
+                  <TableRow key={t.id} className="border-b-slate-100 hover:bg-slate-50/80 transition-colors" data-testid={`manager-tournament-row-${t.id}`}>
                     <TableCell className="font-bold text-slate-900">{t.name}</TableCell>
                     <TableCell className="text-slate-600 font-medium">{format(new Date(t.startDate), "MMM dd")} - {format(new Date(t.endDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell className="text-slate-600 font-medium">{t.location}</TableCell>
                     <TableCell className="text-center text-slate-700 font-semibold">{t.numberOfCourts || 'N/A'}</TableCell>
                     <TableCell className="text-center text-slate-700 font-semibold">{t.games}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(t)} className="hover:text-brand-blue hover:bg-blue-50 text-slate-500">
+                      <Button variant="ghost" size="icon" data-testid={`manager-edit-tournament-${t.id}`} onClick={() => openEditDialog(t)} className="hover:text-brand-blue hover:bg-blue-50 text-slate-500">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleFeatureClick('delete-tournament')} className="hover:text-red-600 hover:bg-red-50 text-slate-500">
+                      <Button variant="ghost" size="icon" data-testid={`manager-delete-tournament-${t.id}`} onClick={() => handleFeatureClick('delete-tournament')} className="hover:text-red-600 hover:bg-red-50 text-slate-500">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>

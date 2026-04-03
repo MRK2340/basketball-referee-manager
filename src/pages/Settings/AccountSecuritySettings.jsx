@@ -10,24 +10,25 @@ import {
 
 const AccountSecuritySettings = ({ onFeatureClick }) => {
   return (
-    <Card className="glass-effect border-slate-600">
+    <Card className="glass-effect border-slate-200 shadow-sm" data-testid="settings-account-security-card">
       <CardHeader>
-        <CardTitle className="text-white flex items-center space-x-2">
-          <Shield className="h-5 w-5 text-red-400" />
+        <CardTitle className="flex items-center space-x-2 text-slate-900">
+          <Shield className="h-5 w-5 text-red-500" />
           <span>Account & Security</span>
         </CardTitle>
-        <CardDescription className="text-slate-400">
+        <CardDescription className="text-slate-600">
           Manage your account security and data
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h4 className="text-white font-semibold">Security Settings</h4>
+            <h4 className="font-semibold text-slate-900">Security Settings</h4>
             <div className="space-y-3">
               <Button 
                 variant="outline" 
-                className="w-full justify-start border-slate-600 text-slate-300 hover:bg-slate-800"
+                data-testid="settings-change-password-button"
+                className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                 onClick={() => onFeatureClick('change-password')}
               >
                 <Shield className="h-4 w-4 mr-2" />
@@ -35,7 +36,8 @@ const AccountSecuritySettings = ({ onFeatureClick }) => {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full justify-start border-slate-600 text-slate-300 hover:bg-slate-800"
+                data-testid="settings-two-factor-button"
+                className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                 onClick={() => onFeatureClick('two-factor-auth')}
               >
                 <Smartphone className="h-4 w-4 mr-2" />
@@ -43,7 +45,8 @@ const AccountSecuritySettings = ({ onFeatureClick }) => {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full justify-start border-slate-600 text-slate-300 hover:bg-slate-800"
+                data-testid="settings-login-history-button"
+                className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                 onClick={() => onFeatureClick('login-history')}
               >
                 <Globe className="h-4 w-4 mr-2" />
@@ -53,11 +56,12 @@ const AccountSecuritySettings = ({ onFeatureClick }) => {
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-white font-semibold">Data Management</h4>
+            <h4 className="font-semibold text-slate-900">Data Management</h4>
             <div className="space-y-3">
               <Button 
                 variant="outline" 
-                className="w-full justify-start border-slate-600 text-slate-300 hover:bg-slate-800"
+                data-testid="settings-export-data-button"
+                className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                 onClick={() => onFeatureClick('export-data')}
               >
                 <SettingsIcon className="h-4 w-4 mr-2" />
@@ -65,7 +69,8 @@ const AccountSecuritySettings = ({ onFeatureClick }) => {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full justify-start border-slate-600 text-slate-300 hover:bg-slate-800"
+                data-testid="settings-privacy-settings-button"
+                className="w-full justify-start border-slate-300 text-slate-700 hover:bg-slate-100"
                 onClick={() => onFeatureClick('privacy-settings')}
               >
                 <Shield className="h-4 w-4 mr-2" />
@@ -73,7 +78,8 @@ const AccountSecuritySettings = ({ onFeatureClick }) => {
               </Button>
               <Button 
                 variant="outline" 
-                className="w-full justify-start border-red-600 text-red-400 hover:bg-red-900/20"
+                data-testid="settings-delete-account-button"
+                className="w-full justify-start border-red-300 text-red-600 hover:bg-red-50"
                 onClick={() => onFeatureClick('delete-account')}
               >
                 <Shield className="h-4 w-4 mr-2" />

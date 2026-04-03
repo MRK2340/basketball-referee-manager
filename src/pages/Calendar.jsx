@@ -190,20 +190,23 @@ export default function Calendar() {
         <meta name="description" content="View your game schedule and manage your availability." />
       </Helmet>
 
-      <div className="space-y-6">
+      <div className="space-y-8" data-testid="calendar-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0"
+          data-testid="calendar-page-header"
         >
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Calendar</h1>
-            <p className="text-slate-600">View your game schedule and availability</p>
+            <p className="app-kicker mb-3">Planning</p>
+            <h1 className="app-heading mb-3 text-4xl text-slate-950">Calendar</h1>
+            <p className="max-w-2xl text-slate-600">Review the month at a glance, inspect assignments, and block off your availability in a few clicks.</p>
           </div>
           
           <div className="flex space-x-3">
             <Button 
               variant="outline"
+              data-testid="calendar-sync-button"
               className="border-slate-300 text-slate-700 hover:bg-slate-100"
               onClick={() => handleFeatureClick('sync-calendar')}
             >
@@ -212,6 +215,7 @@ export default function Calendar() {
             </Button>
             <Button 
               className="basketball-gradient hover:opacity-90 text-white"
+              data-testid="calendar-add-availability-button"
               onClick={() => setShowAvailabilityDialog(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -225,13 +229,14 @@ export default function Calendar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm">
+          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="calendar-toolbar-card">
             <CardContent className="p-4">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div className="flex items-center space-x-4">
                   <Button
                     variant="outline"
                     size="icon"
+                    data-testid="calendar-previous-month-button"
                     onClick={() => navigateMonth(-1)}
                     className="border-slate-300 text-slate-700 hover:bg-slate-100"
                   >
@@ -245,6 +250,7 @@ export default function Calendar() {
                   <Button
                     variant="outline"
                     size="icon"
+                    data-testid="calendar-next-month-button"
                     onClick={() => navigateMonth(1)}
                     className="border-slate-300 text-slate-700 hover:bg-slate-100"
                   >
@@ -256,6 +262,7 @@ export default function Calendar() {
                   {['month', 'week', 'day'].map((viewType) => (
                     <Button
                       key={viewType}
+                      data-testid={`calendar-view-${viewType}-button`}
                       variant={view === viewType ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => setView(viewType)}
@@ -278,7 +285,7 @@ export default function Calendar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm">
+          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="calendar-grid-card">
             <CardContent className="p-6">
               <div className="grid grid-cols-7 gap-2 mb-4">
                 {dayNames.map((day) => (
@@ -301,6 +308,7 @@ export default function Calendar() {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.01 }}
                       onClick={() => calendarDay.isCurrentMonth && handleDateSelect(calendarDay.date)}
+                      data-testid={calendarDay.isCurrentMonth ? `calendar-day-${format(calendarDay.date, 'yyyy-MM-dd')}` : undefined}
                       className={`min-h-[120px] p-2 border border-slate-200 rounded-lg transition-all duration-200 relative ${
                         !calendarDay.isCurrentMonth ? 'opacity-40 bg-slate-50' : 'cursor-pointer hover:border-brand-orange hover:shadow-md bg-white'
                       } ${isToday ? 'ring-2 ring-brand-orange bg-orange-50' : ''} ${
@@ -357,7 +365,7 @@ export default function Calendar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm">
+          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="calendar-upcoming-games-card">
             <CardHeader>
               <CardTitle className="text-slate-900">Upcoming Games This Month</CardTitle>
               <CardDescription className="text-slate-600">
@@ -419,7 +427,7 @@ export default function Calendar() {
       </div>
 
       <Dialog open={showAvailabilityDialog} onOpenChange={setShowAvailabilityDialog}>
-        <DialogContent className="sm:max-w-[425px] bg-white border-slate-200 text-slate-900">
+        <DialogContent className="sm:max-w-[425px] bg-white border-slate-200 text-slate-900" data-testid="calendar-availability-dialog">
           <DialogHeader>
             <DialogTitle>Set Your Availability</DialogTitle>
             <DialogDescription className="text-slate-600">
@@ -435,10 +443,10 @@ export default function Calendar() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAvailabilityDialog(false)} className="border-slate-300 text-slate-700 hover:bg-slate-100">
+            <Button variant="outline" data-testid="calendar-availability-cancel-button" onClick={() => setShowAvailabilityDialog(false)} className="border-slate-300 text-slate-700 hover:bg-slate-100">
               Cancel
             </Button>
-            <Button onClick={handleSaveAvailability} className="basketball-gradient hover:opacity-90 text-white">
+            <Button onClick={handleSaveAvailability} data-testid="calendar-availability-save-button" className="basketball-gradient hover:opacity-90 text-white">
               Save Availability
             </Button>
           </DialogFooter>
@@ -446,7 +454,7 @@ export default function Calendar() {
       </Dialog>
 
       <Dialog open={showEventDetailsDialog} onOpenChange={setShowEventDetailsDialog}>
-        <DialogContent className="sm:max-w-md bg-white border-slate-200 text-slate-900">
+        <DialogContent className="sm:max-w-md bg-white border-slate-200 text-slate-900" data-testid="calendar-event-details-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center text-xl">
               <CalendarIcon className="h-5 w-5 mr-2 text-brand-orange" />
@@ -513,7 +521,7 @@ export default function Calendar() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEventDetailsDialog(false)} className="border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold w-full">
+            <Button variant="outline" data-testid="calendar-event-details-close-button" onClick={() => setShowEventDetailsDialog(false)} className="border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold w-full">
               Close
             </Button>
           </DialogFooter>

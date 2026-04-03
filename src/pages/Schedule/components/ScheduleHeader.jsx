@@ -8,11 +8,13 @@ const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule }) => 
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0"
+      className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
+      data-testid="schedule-page-header"
     >
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Game Schedule</h1>
-        <p className="text-slate-600">
+        <p className="app-kicker mb-3">Scheduling</p>
+        <h1 className="app-heading mb-3 text-4xl text-slate-950">Game Schedule</h1>
+        <p className="max-w-2xl text-slate-600">
           {userRole === 'manager' 
             ? 'Manage your game assignments and availability'
             : 'View your upcoming game assignments'}
@@ -23,6 +25,7 @@ const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule }) => 
         <div className="flex gap-2">
           <Button 
             variant="outline"
+            data-testid="schedule-assign-court-button"
             className="border-slate-300 text-slate-800 hover:bg-slate-100"
             onClick={onAssignCourtSchedule}
           >
@@ -31,6 +34,7 @@ const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule }) => 
           </Button>
           <Button 
             className="basketball-gradient hover:opacity-90 text-white"
+            data-testid="schedule-game-button"
             onClick={onScheduleGame}
           >
             <Plus className="h-4 w-4 mr-2" />

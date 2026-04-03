@@ -26,9 +26,9 @@ const TopBar = ({ onMenuClick }) => {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-40 bg-[#0080C8] backdrop-blur-md border-b border-[#4DB8E8]"
+      className="fixed top-0 left-0 right-0 z-40 border-b border-slate-200/80 bg-white/88 backdrop-blur-xl"
     >
-      <div className="flex items-center justify-between px-4 h-16">
+      <div className="flex h-20 items-center justify-between px-5 sm:px-8 lg:px-10">
         {/* Left Section */}
         <div className="flex items-center space-x-4">
           <Button
@@ -36,25 +36,28 @@ const TopBar = ({ onMenuClick }) => {
             size="icon"
             data-testid="topbar-menu-button"
             onClick={onMenuClick}
-            className="lg:hidden text-white hover:bg-[#4DB8E8]/30 transition-all duration-200"
+            className="lg:hidden text-slate-700 hover:bg-slate-100 transition-all duration-200"
           >
             <Menu className="h-6 w-6" />
           </Button>
           
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 flex items-center justify-center">
-              <img alt="Basketball Reff logo" className="w-full h-full" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
+              <img alt="Basketball Reff logo" className="h-7 w-7" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
             </div>
-            <span className="hidden sm:block text-white font-bold text-lg">
+            <div className="hidden sm:block">
+              <p className="app-kicker">Operations</p>
+              <span className="block text-lg font-bold tracking-tight text-slate-950">
               Basketball Reff
-            </span>
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Center Section - Search (Desktop) */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
+        <div className="hidden md:flex flex-1 max-w-xl mx-8">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
             <input
               type="text"
               data-testid="topbar-search-input"
@@ -62,7 +65,7 @@ const TopBar = ({ onMenuClick }) => {
               onChange={(e) => setSearchValue(e.target.value)}
               onKeyDown={handleSearchKeyDown}
               placeholder="Search games or teams, press Enter..."
-              className="w-full pl-10 pr-4 py-2 bg-white/10 border border-[#4DB8E8] rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#FF8C00] focus:border-transparent transition-all duration-200"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-3 text-slate-900 placeholder-slate-400 shadow-sm transition-all duration-200 focus:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
@@ -74,24 +77,24 @@ const TopBar = ({ onMenuClick }) => {
             variant="ghost"
             size="icon"
             data-testid="topbar-notifications-button"
-            className="relative text-white hover:bg-[#4DB8E8]/30 transition-all duration-200"
+            className="relative rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition-all duration-200"
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-[#FF8C00] text-white text-xs flex items-center justify-center p-0 border-2 border-[#0080C8]">
+              <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 p-0 text-xs text-white">
                 {unreadCount}
               </Badge>
             )}
           </Button>
 
           {/* User Avatar */}
-          <div className="flex items-center space-x-2">
-            <Avatar className="h-8 w-8 ring-2 ring-[#FF8C00]">
+          <div className="flex items-center space-x-3 rounded-2xl border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
+            <Avatar className="h-9 w-9 ring-2 ring-slate-200">
               <img src={user?.avatar_url} alt={user?.name} className="rounded-full" />
             </Avatar>
             <div className="hidden sm:block">
-              <p className="text-white text-sm font-medium">{user?.name}</p>
-              <p className="text-white/70 text-xs capitalize">{user?.role}</p>
+              <p className="text-sm font-semibold text-slate-950">{user?.name}</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{user?.role}</p>
             </div>
           </div>
         </div>
