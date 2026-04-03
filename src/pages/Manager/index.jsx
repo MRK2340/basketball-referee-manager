@@ -37,16 +37,16 @@ const Manager = () => {
 
         <Tabs defaultValue="tournaments" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-slate-800">
-            <TabsTrigger value="tournaments">
+            <TabsTrigger value="tournaments" data-testid="manager-tab-tournaments">
               <Trophy className="h-4 w-4 mr-2" /> Tournaments
             </TabsTrigger>
-            <TabsTrigger value="assignments">
+            <TabsTrigger value="assignments" data-testid="manager-tab-assignments">
               <ClipboardList className="h-4 w-4 mr-2" /> Game Assignments
             </TabsTrigger>
-            <TabsTrigger value="referees">
+            <TabsTrigger value="referees" data-testid="manager-tab-referees">
               <Users className="h-4 w-4 mr-2" /> Referees
             </TabsTrigger>
-            <TabsTrigger value="reports">
+            <TabsTrigger value="reports" data-testid="manager-tab-reports">
               <FileText className="h-4 w-4 mr-2" /> Game Reports
             </TabsTrigger>
           </TabsList>

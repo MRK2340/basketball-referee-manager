@@ -77,21 +77,23 @@ const Messages = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0"
+          data-testid="messages-page-header"
         >
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Messages</h1>
-            <p className="text-slate-600">
-              Communicate with league managers and referees
+            <div className="flex items-center gap-2 flex-wrap text-slate-600" data-testid="messages-page-subtitle-row">
+              <p>Communicate with league managers and referees</p>
               {unreadCount > 0 && (
-                <Badge className="ml-2 basketball-gradient text-white border-0">
+                <Badge className="basketball-gradient text-white border-0" data-testid="messages-unread-count-badge">
                   {unreadCount} new
                 </Badge>
               )}
-            </p>
+            </div>
           </div>
           
           <Button 
             className="basketball-gradient hover:opacity-90 text-white"
+            data-testid="messages-new-message-button"
             onClick={() => {
               setShowCompose(true);
               setSelectedMessage(null);
@@ -121,6 +123,7 @@ const Messages = () => {
                 <div className="relative mt-4">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
                   <Input
+                    data-testid="messages-search-input"
                     placeholder="Search messages..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -136,6 +139,7 @@ const Messages = () => {
                       <div
                         key={message.id}
                         onClick={() => handleMessageClick(message)}
+                        data-testid={`message-list-item-${message.id}`}
                         className={`p-4 border-b border-slate-100 cursor-pointer transition-all duration-200 hover:bg-slate-50 ${
                           selectedMessage?.id === message.id ? 'bg-slate-100 border-l-4 border-l-brand-orange' : ''
                         } ${!message.read ? 'bg-blue-50/50' : ''}`}
@@ -190,6 +194,7 @@ const Messages = () => {
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">To:</label>
                      <Input
+                      data-testid="messages-compose-recipient-input"
                       value="League Manager"
                       readOnly
                       className="bg-slate-50 border-slate-200 text-slate-600 cursor-not-allowed"
@@ -199,6 +204,7 @@ const Messages = () => {
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">Subject:</label>
                     <Input
+                      data-testid="messages-compose-subject-input"
                       placeholder="Message subject..."
                       value={newSubject}
                       onChange={(e) => setNewSubject(e.target.value)}
@@ -209,6 +215,7 @@ const Messages = () => {
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">Message:</label>
                     <textarea
+                      data-testid="messages-compose-body-input"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Type your message here..."
@@ -219,6 +226,7 @@ const Messages = () => {
                   
                   <div className="flex space-x-3">
                     <Button 
+                      data-testid="messages-send-button"
                       onClick={handleSendMessage}
                       className="basketball-gradient hover:opacity-90 text-white"
                     >
@@ -227,6 +235,7 @@ const Messages = () => {
                     </Button>
                     <Button 
                       variant="outline"
+                      data-testid="messages-cancel-compose-button"
                       onClick={() => setShowCompose(false)}
                       className="border-slate-300 text-slate-700 hover:bg-slate-100"
                     >
@@ -249,6 +258,7 @@ const Messages = () => {
                       <Button
                         variant="ghost"
                         size="icon"
+                        data-testid="messages-delete-message-button"
                         onClick={() => handleFeatureClick('delete-message')}
                         className="text-slate-500 hover:text-red-600 hover:bg-red-50"
                       >
@@ -265,6 +275,7 @@ const Messages = () => {
                  <div className="p-6 mt-auto pt-6 border-t border-slate-100 bg-slate-50/50">
                     <div className="flex space-x-3">
                       <Button 
+                        data-testid="messages-reply-button"
                         className="bg-brand-blue hover:bg-brand-blue-deep text-white"
                         onClick={() => handleFeatureClick('reply-message')}
                       >
@@ -273,6 +284,7 @@ const Messages = () => {
                       </Button>
                       <Button 
                         variant="outline"
+                        data-testid="messages-forward-button"
                         className="border-slate-300 text-slate-700 hover:bg-slate-100"
                         onClick={() => handleFeatureClick('forward-message')}
                       >
@@ -291,6 +303,7 @@ const Messages = () => {
                   </p>
                   <Button 
                     className="basketball-gradient hover:opacity-90 text-white"
+                    data-testid="messages-compose-placeholder-button"
                     onClick={() => setShowCompose(true)}
                   >
                     <Plus className="h-4 w-4 mr-2" />

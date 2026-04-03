@@ -34,6 +34,7 @@ const TopBar = ({ onMenuClick }) => {
           <Button
             variant="ghost"
             size="icon"
+            data-testid="topbar-menu-button"
             onClick={onMenuClick}
             className="lg:hidden text-white hover:bg-[#4DB8E8]/30 transition-all duration-200"
           >
@@ -56,6 +57,7 @@ const TopBar = ({ onMenuClick }) => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
             <input
               type="text"
+              data-testid="topbar-search-input"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               onKeyDown={handleSearchKeyDown}
@@ -71,6 +73,7 @@ const TopBar = ({ onMenuClick }) => {
           <Button
             variant="ghost"
             size="icon"
+            data-testid="topbar-notifications-button"
             className="relative text-white hover:bg-[#4DB8E8]/30 transition-all duration-200"
           >
             <Bell className="h-5 w-5" />

@@ -109,6 +109,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                 <Button 
                   size="sm" 
                   variant="outline"
+                  data-testid={`game-card-view-details-${game.id}`}
                   className="border-slate-300 text-slate-800 hover:bg-slate-100 w-full"
                   onClick={() => onViewDetails(game)}
                 >
@@ -118,6 +119,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                   <div className="flex gap-2 w-full">
                     <Button 
                       size="sm"
+                      data-testid={`game-card-decline-${game.id}`}
                       className="bg-red-600 hover:bg-red-700 text-white flex-1"
                       onClick={() => handleDeclineClick(userAssignment)}
                     >
@@ -126,6 +128,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                     </Button>
                     <Button 
                       size="sm"
+                      data-testid={`game-card-accept-${game.id}`}
                       className="bg-green-600 hover:bg-green-700 text-white flex-1"
                       onClick={() => onUpdateAssignmentStatus(userAssignment.id, 'accepted')}
                     >
@@ -137,6 +140,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                 {user?.role === 'manager' && (
                    <Button 
                     size="sm"
+                    data-testid={`game-card-assign-${game.id}`}
                     className="basketball-gradient hover:opacity-90 text-white w-full"
                     onClick={() => onAssignClick(game)}
                   >

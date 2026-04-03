@@ -70,6 +70,8 @@ VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
+> This recreated project runs from the repository root in this environment, so the active env path is `/.env` at the project root rather than `/frontend/.env`.
+
 ### Development
 
 ```bash

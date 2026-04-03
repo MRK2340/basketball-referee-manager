@@ -43,8 +43,8 @@ const Schedule = () => {
         {user.role === 'referee' ? (
           <Tabs defaultValue="my-schedule" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-slate-800">
-              <TabsTrigger value="my-schedule"><ClipboardList className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
-              <TabsTrigger value="open-games"><ThumbsUp className="mr-2 h-4 w-4" /> Open Games</TabsTrigger>
+              <TabsTrigger value="my-schedule" data-testid="schedule-tab-my-schedule"><ClipboardList className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
+              <TabsTrigger value="open-games" data-testid="schedule-tab-open-games"><ThumbsUp className="mr-2 h-4 w-4" /> Open Games</TabsTrigger>
             </TabsList>
             <TabsContent value="my-schedule">
               <MyScheduleTab games={games.filter(g => g.assignments.some(a => a.referee.id === user.id))} referees={referees} />

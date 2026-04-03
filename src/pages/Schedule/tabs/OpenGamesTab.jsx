@@ -41,6 +41,7 @@ const OpenGameCard = ({ game, onRequestGame, isRequested }) => {
                             <span className="text-2xl font-bold text-green-600">{game.payment}</span>
                         </div>
                         <Button 
+                            data-testid={`open-game-request-${game.id}`}
                             className={`${isRequested ? 'bg-slate-400 cursor-not-allowed text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`} 
                             onClick={() => !isRequested && onRequestGame(game.id)}
                             disabled={isRequested}

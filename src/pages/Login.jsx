@@ -96,10 +96,11 @@ const Login = () => {
             <p className="text-slate-600 text-center">Sign in to manage your games and schedule.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" data-testid="login-form">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-slate-900 font-semibold">Email</Label>
               <Input
+                data-testid="login-email-input"
                 id="email"
                 type="email"
                 placeholder="you@example.com"
@@ -112,6 +113,7 @@ const Login = () => {
             <div className="space-y-2">
               <Label htmlFor="password" className="text-slate-900 font-semibold">Password</Label>
               <Input
+                data-testid="login-password-input"
                 id="password"
                 type="password"
                 placeholder="••••••••"
@@ -123,6 +125,7 @@ const Login = () => {
             </div>
             <Button 
                 type="submit" 
+                data-testid="login-submit-button"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-all shadow-md font-bold" 
                 disabled={isLoading}
             >
@@ -141,7 +144,7 @@ const Login = () => {
           
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-600 bg-transparent font-bold">
+              <Button variant="outline" data-testid="login-demo-trigger-button" className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-600 bg-transparent font-bold">
                 Try Demo Account
               </Button>
             </DialogTrigger>
@@ -154,6 +157,7 @@ const Login = () => {
               </DialogHeader>
               <div className="grid grid-cols-1 gap-4 pt-4">
                 <Button
+                  data-testid="login-demo-manager-button"
                   onClick={() => handleDemoLogin('manager')}
                   disabled={isDemoLoading}
                   className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-lg font-bold"
@@ -161,6 +165,7 @@ const Login = () => {
                   {isDemoLoading ? "Loading..." : "Log in as Manager"}
                 </Button>
                 <Button
+                  data-testid="login-demo-referee-button"
                   onClick={() => handleDemoLogin('referee')}
                   disabled={isDemoLoading}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-lg font-bold"

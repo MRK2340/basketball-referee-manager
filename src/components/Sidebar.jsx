@@ -25,7 +25,12 @@ const navLinkClass = ({ isActive }) =>
 const NavItem = ({ item, onClose }) => {
   const Icon = item.icon;
   return (
-    <NavLink to={item.path} onClick={onClose} className={navLinkClass}>
+    <NavLink
+      to={item.path}
+      onClick={onClose}
+      className={navLinkClass}
+      data-testid={`sidebar-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+    >
       <Icon className="h-5 w-5" />
       <span className="font-medium">{item.label}</span>
     </NavLink>
@@ -76,6 +81,7 @@ const Sidebar = ({ onClose }) => {
             <Button
               variant="ghost"
               size="icon"
+              data-testid="sidebar-close-button"
               onClick={onClose}
               className="text-white hover:bg-[#4DB8E8]/30 lg:hidden transition-all duration-200"
             >
@@ -126,6 +132,7 @@ const Sidebar = ({ onClose }) => {
         <Button
           onClick={handleLogout}
           variant="ghost"
+          data-testid="sidebar-sign-out-button"
           className="w-full justify-start text-white hover:text-white hover:bg-[#4DB8E8]/30 transition-all duration-200"
         >
           <LogOut className="h-5 w-5 mr-3" />
