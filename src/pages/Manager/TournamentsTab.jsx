@@ -3,14 +3,25 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
 import TournamentFormDialog from '@/pages/Manager/TournamentFormDialog';
 
-const TournamentsTab = ({ tournaments, addTournament, updateTournament }) => {
+const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTournament }) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingTournament, setEditingTournament] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingTournament, setDeletingTournament] = useState(null);
 
   const handleAddTournament = (data) => {
     addTournament(data);
@@ -26,12 +37,18 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament }) => {
     setEditingTournament(tournament);
     setEditDialogOpen(true);
   };
-  
-  const handleFeatureClick = (feature) => {
-    toast({
-      title: "🚧 Feature Coming Soon!",
-      description: "This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀",
-    });
+
+  const openDeleteDialog = (tournament) => {
+    setDeletingTournament(tournament);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingTournament) {
+      deleteTournament(deletingTournament.id);
+    }
+    setDeleteDialogOpen(false);
+    setDeletingTournament(null);
   };
 
   return (
@@ -47,6 +64,30 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament }) => {
         tournament={editingTournament}
         onSubmit={handleEditTournament}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent data-testid="delete-tournament-confirm-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-900">Delete Tournament?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600">
+              This will permanently delete <strong>{deletingTournament?.name}</strong> and all of its associated games, assignments, and reports. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="delete-tournament-cancel-button" className="border-slate-300 text-slate-700 hover:bg-slate-100">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              data-testid="delete-tournament-confirm-button"
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete Tournament
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Card className="glass-effect border-slate-200 shadow-sm" data-testid="manager-tournaments-card">
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -84,7 +125,7 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament }) => {
                       <Button variant="ghost" size="icon" data-testid={`manager-edit-tournament-${t.id}`} onClick={() => openEditDialog(t)} className="hover:text-brand-blue hover:bg-blue-50 text-slate-500">
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" data-testid={`manager-delete-tournament-${t.id}`} onClick={() => handleFeatureClick('delete-tournament')} className="hover:text-red-600 hover:bg-red-50 text-slate-500">
+                      <Button variant="ghost" size="icon" data-testid={`manager-delete-tournament-${t.id}`} onClick={() => openDeleteDialog(t)} className="hover:text-red-600 hover:bg-red-50 text-slate-500">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>

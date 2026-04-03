@@ -2,6 +2,7 @@ import { toast } from '@/components/ui/use-toast';
 import {
   addTournament as addTournamentRecord,
   updateTournamentRecord,
+  deleteTournamentRecord,
 } from '@/lib/demoDataService';
 
 export const useTournamentActions = (user, fetchData) => {
@@ -43,5 +44,25 @@ export const useTournamentActions = (user, fetchData) => {
     }
   };
 
-  return { addTournament, updateTournament };
+  const deleteTournament = async (tournamentId) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = deleteTournamentRecord(user, tournamentId);
+
+    if (error) {
+      toast({
+        title: "Error deleting tournament",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Tournament Deleted",
+        description: "The tournament and all related games have been removed.",
+        variant: "destructive",
+      });
+      fetchData();
+    }
+  };
+
+  return { addTournament, updateTournament, deleteTournament };
 };

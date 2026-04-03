@@ -29,6 +29,20 @@ const toIsoFromToday = (offsetDays = 0, hour = 9, minute = 0) => {
 
 const createError = (message, code) => ({ message, code });
 
+const createNotification = (store, recipientId, type, title, body, link = '/') => {
+  if (!store.notifications) store.notifications = [];
+  store.notifications.unshift({
+    id: createId('notif'),
+    type,
+    title,
+    body,
+    link,
+    read: false,
+    created_at: new Date().toISOString(),
+    recipient_id: recipientId,
+  });
+};
+
 const getStoredUsers = () => parseJson(localStorage.getItem(USER_STORAGE_KEY), []);
 
 const createSeedStore = () => ({
@@ -223,6 +237,58 @@ const createSeedStore = () => ({
     },
   ],
   courtAssignments: [],
+  notifications: [
+    {
+      id: 'notif-seed-1',
+      type: 'message',
+      title: 'New message from Demo Manager',
+      body: 'Welcome to the showcase weekend — you are scheduled for Friday.',
+      link: '/messages',
+      read: false,
+      created_at: toIsoFromToday(-1, 8, 30),
+      recipient_id: 'demo-referee',
+    },
+    {
+      id: 'notif-seed-2',
+      type: 'assignment',
+      title: 'Game assigned: Metro Eagles vs Northside Lions',
+      body: 'You have been assigned to officiate on Court 1.',
+      link: '/schedule',
+      read: false,
+      created_at: toIsoFromToday(-1, 9, 0),
+      recipient_id: 'demo-referee',
+    },
+    {
+      id: 'notif-seed-3',
+      type: 'payment',
+      title: 'Payment processed: $75',
+      body: 'Capital Cougars vs Southside Rockets — Direct Deposit',
+      link: '/payments',
+      read: true,
+      created_at: toIsoFromToday(-2, 14, 30),
+      recipient_id: 'demo-referee',
+    },
+    {
+      id: 'notif-seed-4',
+      type: 'game_request',
+      title: 'New game request from Demo Referee',
+      body: 'Demo Referee requested Lake City Panthers vs Harbor Heat.',
+      link: '/manager',
+      read: false,
+      created_at: toIsoFromToday(-1, 10, 0),
+      recipient_id: 'demo-manager',
+    },
+    {
+      id: 'notif-seed-5',
+      type: 'report',
+      title: 'Game report submitted',
+      body: 'Capital Cougars vs Southside Rockets — ready for your review.',
+      link: '/manager',
+      read: true,
+      created_at: toIsoFromToday(-2, 21, 10),
+      recipient_id: 'demo-manager',
+    },
+  ],
 });
 
 const syncProfiles = (store) => {
@@ -261,6 +327,9 @@ const saveStore = (store) => {
 const loadStore = () => {
   const stored = parseJson(localStorage.getItem(STORAGE_KEY), null);
   const base = stored || createSeedStore();
+  if (!base.notifications) {
+    base.notifications = createSeedStore().notifications;
+  }
   const synced = syncProfiles(base);
   saveStore(synced);
   return synced;
@@ -474,9 +543,9 @@ export const fetchAppData = (user, page = 1, pageSize = 20) => {
     messages: messages
       .sort((left, right) => right.created_at.localeCompare(left.created_at))
       .map((message) => mapMessage(message, store)),
-    notifications: messages
-      .filter((message) => message.recipient_id === user.id && !message.is_read)
-      .map((message) => ({ id: message.id, read: false })),
+    notifications: (store.notifications || [])
+      .filter((n) => n.recipient_id === user.id)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at)),
     tournaments: store.tournaments.map((tournament) => mapTournament(tournament, store)),
     referees: store.profiles.filter((profile) => profile.role === 'referee').map((profile) => mapReferee(profile, store)),
     availability: store.refereeAvailability
@@ -607,6 +676,14 @@ export const assignReferee = (user, gameId, refereeId) => updateStore((store) =>
       `New assignment: ${game.home_team} vs ${game.away_team}`,
       `You have been assigned to officiate on ${game.game_date} at ${game.game_time.slice(0, 5)}.`
     );
+    createNotification(
+      store,
+      refereeId,
+      'assignment',
+      `Game assigned: ${game.home_team} vs ${game.away_team}`,
+      `You have been assigned to officiate on ${game.game_date} at ${game.game_time.slice(0, 5)}.`,
+      '/schedule'
+    );
   }
 
   return { data: true };
@@ -692,6 +769,14 @@ export const requestAssignment = (user, gameId) => updateStore((store) => {
       `New game request: ${game.home_team} vs ${game.away_team}`,
       `${user.name} requested to officiate this game.`
     );
+    createNotification(
+      store,
+      tournament.manager_id,
+      'game_request',
+      `New game request from ${user.name}`,
+      `${user.name} requested: ${game.home_team} vs ${game.away_team}.`,
+      '/manager'
+    );
   }
 
   return { data: true };
@@ -708,6 +793,14 @@ export const sendMessageRecord = (user, messageData) => updateStore((store) => {
   }
 
   createMessage(store, user.id, recipientId, messageData.subject, messageData.content);
+  createNotification(
+    store,
+    recipientId,
+    'message',
+    `New message from ${user.name}`,
+    messageData.subject,
+    '/messages'
+  );
   return { data: true };
 });
 
@@ -790,7 +883,56 @@ export const submitGameReportRecord = (user, reportData) => updateStore((store) 
       `Game report submitted: ${game?.home_team || 'Game'} vs ${game?.away_team || ''}`,
       'A completed game report is ready for your review.'
     );
+    createNotification(
+      store,
+      reportData.manager_id,
+      'report',
+      'Game report submitted',
+      `${game?.home_team || 'Game'} vs ${game?.away_team || ''} — ready for your review.`,
+      '/manager'
+    );
   }
 
+  return { data: true };
+});
+
+export const deleteTournamentRecord = (user, tournamentId) => updateStore((store) => {
+  if (!user || user.role !== 'manager') {
+    return { error: createError('Only managers can delete tournaments.') };
+  }
+
+  const tournamentGameIds = store.games
+    .filter((game) => game.tournament_id === tournamentId)
+    .map((game) => game.id);
+
+  store.gameAssignments = store.gameAssignments.filter(
+    (a) => !tournamentGameIds.includes(a.game_id)
+  );
+  store.payments = store.payments.filter(
+    (p) => !tournamentGameIds.includes(p.game_id)
+  );
+  store.gameReports = store.gameReports.filter(
+    (r) => !tournamentGameIds.includes(r.game_id)
+  );
+  store.games = store.games.filter((g) => g.tournament_id !== tournamentId);
+  store.tournaments = store.tournaments.filter((t) => t.id !== tournamentId);
+
+  return { data: true };
+});
+
+export const markNotificationReadRecord = (user, notificationId) => updateStore((store) => {
+  if (!store.notifications) return { data: null };
+  const notif = store.notifications.find(
+    (n) => n.id === notificationId && n.recipient_id === user?.id
+  );
+  if (notif) notif.read = true;
+  return { data: true };
+});
+
+export const markAllNotificationsReadRecord = (user) => updateStore((store) => {
+  if (!store.notifications) return { data: null };
+  store.notifications
+    .filter((n) => n.recipient_id === user?.id)
+    .forEach((n) => { n.read = true; });
   return { data: true };
 });

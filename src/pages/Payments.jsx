@@ -5,6 +5,14 @@ import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -13,7 +21,8 @@ import {
   Calendar,
   Download,
   CreditCard,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -80,10 +89,46 @@ const Payments = () => {
     }
   };
 
+  const downloadCsv = (content, filename) => {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPaymentsCsv = () => {
+    const headers = ['Payment ID', 'Game', 'Date', 'Amount ($)', 'Status', 'Method'];
+    const rows = payments.map((p) => {
+      const game = games.find(g => g.id === p.gameId);
+      const gameLabel = game ? `${game.homeTeam} vs ${game.awayTeam}` : 'N/A';
+      return [p.id, gameLabel, p.date || '', p.amount, p.status, p.method || ''];
+    });
+    const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    downloadCsv(csv, 'payments.csv');
+    toast({ title: 'Payments exported', description: 'payments.csv has been downloaded.' });
+  };
+
+  const exportScheduleCsv = () => {
+    const headers = ['Game ID', 'Tournament', 'Home Team', 'Away Team', 'Date', 'Time', 'Venue', 'Division', 'Level', 'Status', 'Payment ($)'];
+    const rows = games.map((g) => [
+      g.id, g.tournamentName || '', g.homeTeam, g.awayTeam,
+      g.date || '', g.time || '', g.venue || '',
+      g.division || '', g.level || '', g.status, g.payment || ''
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    downloadCsv(csv, 'schedule.csv');
+    toast({ title: 'Schedule exported', description: 'schedule.csv has been downloaded.' });
+  };
+
   const handleFeatureClick = (feature) => {
     toast({
-      title: "🚧 Feature Coming Soon!",
-      description: "This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀",
+      title: "Feature Coming Soon",
+      description: "This feature isn't implemented yet.",
     });
   };
 
@@ -108,15 +153,39 @@ const Payments = () => {
           </div>
           
           <div className="flex space-x-3">
-            <Button 
-              variant="outline"
-              data-testid="payments-export-button"
-              className="border-slate-300 text-slate-700 hover:bg-slate-100"
-              onClick={() => handleFeatureClick('export-payments')}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  data-testid="payments-export-button"
+                  className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>Export Data</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  data-testid="payments-export-payments-csv"
+                  onClick={exportPaymentsCsv}
+                  className="cursor-pointer"
+                >
+                  <Download className="h-4 w-4 mr-2 text-green-600" />
+                  Export Payments (CSV)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  data-testid="payments-export-schedule-csv"
+                  onClick={exportScheduleCsv}
+                  className="cursor-pointer"
+                >
+                  <Download className="h-4 w-4 mr-2 text-brand-blue" />
+                  Export Schedule (CSV)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button 
               className="basketball-gradient hover:opacity-90 text-white"
               data-testid="payments-settings-button"

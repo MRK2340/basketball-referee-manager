@@ -7,6 +7,8 @@ import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 import { useMessageActions } from '@/hooks/useMessageActions';
 import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
+import { markNotificationReadRecord, markAllNotificationsReadRecord } from '@/lib/demoDataService';
+import { toast } from '@/components/ui/use-toast';
 
 const DataContext = createContext();
 
@@ -46,6 +48,18 @@ export const DataProvider = ({ children }) => {
   const availabilityActions = useAvailabilityActions(user, fetchData);
   const reportActions = useReportActions(user, fetchData);
 
+  const markNotificationRead = (notificationId) => {
+    if (!user) return;
+    markNotificationReadRecord(user, notificationId);
+    fetchData();
+  };
+
+  const markAllNotificationsRead = () => {
+    if (!user) return;
+    markAllNotificationsReadRecord(user);
+    fetchData();
+  };
+
   const value = {
     loading,
     games,
@@ -57,6 +71,8 @@ export const DataProvider = ({ children }) => {
     availability,
     gameReports,
     fetchData,
+    markNotificationRead,
+    markAllNotificationsRead,
     ...tournamentActions,
     ...gameActions,
     ...assignmentActions,

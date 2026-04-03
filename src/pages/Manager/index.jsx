@@ -13,7 +13,7 @@ import GameReportsTab from './GameReportsTab';
 
 const Manager = () => {
   const { user } = useAuth();
-  const { tournaments, games, referees, gameReports, addTournament, updateTournament, assignRefereeToGame, unassignRefereeFromGame } = useData();
+  const { tournaments, games, referees, gameReports, addTournament, updateTournament, deleteTournament, assignRefereeToGame, unassignRefereeFromGame } = useData();
 
   if (user?.role !== 'manager') {
     return <Navigate to="/" replace />;
@@ -56,8 +56,9 @@ const Manager = () => {
           <TabsContent value="tournaments">
             <TournamentsTab 
               tournaments={tournaments}
-              onAddTournament={addTournament}
-              onUpdateTournament={updateTournament}
+              addTournament={addTournament}
+              updateTournament={updateTournament}
+              deleteTournament={deleteTournament}
             />
           </TabsContent>
 

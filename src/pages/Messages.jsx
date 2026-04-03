@@ -6,23 +6,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MessageSquare, 
-  Send, 
+import {
+  MessageSquare,
+  Send,
   Search,
   Plus,
-  CheckCircle
+  Reply,
+  Forward
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const Messages = () => {
-  // Hooks at the top
   const { messages, sendMessage, markMessageAsRead } = useData();
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [newSubject, setNewSubject] = useState('');
+  const [newRecipientId, setNewRecipientId] = useState(null);
+  const [newRecipientName, setNewRecipientName] = useState('League Manager');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCompose, setShowCompose] = useState(false);
+  const [composeMode, setComposeMode] = useState('new');
 
   const filteredMessages = messages.filter(message =>
     (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -40,17 +43,51 @@ const Messages = () => {
     }
   };
 
+  const openNewCompose = () => {
+    setComposeMode('new');
+    setNewSubject('');
+    setNewMessage('');
+    setNewRecipientId(null);
+    setNewRecipientName('League Manager');
+    setShowCompose(true);
+    setSelectedMessage(null);
+  };
+
+  const handleReply = () => {
+    if (!selectedMessage) return;
+    setComposeMode('reply');
+    setNewSubject(`Re: ${selectedMessage.subject}`);
+    setNewMessage('');
+    setNewRecipientId(selectedMessage.sender_id);
+    setNewRecipientName(selectedMessage.from);
+    setShowCompose(true);
+  };
+
+  const handleForward = () => {
+    if (!selectedMessage) return;
+    setComposeMode('forward');
+    setNewSubject(`Fwd: ${selectedMessage.subject}`);
+    setNewMessage(
+      `\n\n--- Forwarded Message ---\nFrom: ${selectedMessage.from}\nDate: ${new Date(selectedMessage.timestamp).toLocaleString()}\n\n${selectedMessage.content}`
+    );
+    setNewRecipientId(null);
+    setNewRecipientName('League Manager');
+    setShowCompose(true);
+  };
+
   const handleSendMessage = () => {
     if (newMessage.trim() && newSubject.trim()) {
       sendMessage({
         subject: newSubject,
         content: newMessage,
+        recipientId: newRecipientId,
       });
       setNewMessage('');
       setNewSubject('');
+      setNewRecipientId(null);
       setShowCompose(false);
     } else {
-       toast({
+      toast({
         title: "Missing Information",
         description: "Please provide a subject and a message.",
         variant: "destructive"
@@ -58,12 +95,7 @@ const Messages = () => {
     }
   };
 
-  const handleFeatureClick = (feature) => {
-    toast({
-      title: "🚧 Feature Coming Soon!",
-      description: "This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀",
-    });
-  };
+  const composeTitles = { new: 'Compose Message', reply: 'Reply', forward: 'Forward Message' };
 
   return (
     <>
@@ -90,14 +122,10 @@ const Messages = () => {
               )}
             </div>
           </div>
-          
-          <Button 
+          <Button
             className="basketball-gradient hover:opacity-90 text-white"
             data-testid="messages-new-message-button"
-            onClick={() => {
-              setShowCompose(true);
-              setSelectedMessage(null);
-            }}
+            onClick={openNewCompose}
           >
             <Plus className="h-4 w-4 mr-2" />
             New Message
@@ -113,13 +141,10 @@ const Messages = () => {
           >
             <Card className="glass-effect border-slate-200 h-full flex flex-col shadow-sm">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-slate-900 flex items-center space-x-2">
-                    <MessageSquare className="h-5 w-5 text-brand-blue" />
-                    <span>Inbox</span>
-                  </CardTitle>
-                </div>
-                
+                <CardTitle className="text-slate-900 flex items-center space-x-2">
+                  <MessageSquare className="h-5 w-5 text-brand-blue" />
+                  <span>Inbox</span>
+                </CardTitle>
                 <div className="relative mt-4">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 h-4 w-4" />
                   <Input
@@ -131,7 +156,6 @@ const Messages = () => {
                   />
                 </div>
               </CardHeader>
-              
               <CardContent className="p-0 flex-grow overflow-hidden">
                 <div className="h-full overflow-y-auto scrollbar-hide">
                   {filteredMessages.length > 0 ? (
@@ -149,20 +173,14 @@ const Messages = () => {
                             {message.from}
                           </h4>
                           <div className="flex items-center space-x-2">
-                            {!message.read && (
-                              <div className="w-2 h-2 bg-brand-orange rounded-full animate-pulse" />
-                            )}
-                            <span className="text-xs text-slate-500">
-                              {new Date(message.timestamp).toLocaleDateString()}
-                            </span>
+                            {!message.read && <div className="w-2 h-2 bg-brand-orange rounded-full animate-pulse" />}
+                            <span className="text-xs text-slate-500">{new Date(message.timestamp).toLocaleDateString()}</span>
                           </div>
                         </div>
                         <p className={`text-sm mb-1 font-medium ${!message.read ? 'text-slate-900' : 'text-slate-600'}`}>
                           {message.subject}
                         </p>
-                        <p className="text-xs text-slate-500 truncate">
-                          {message.content}
-                        </p>
+                        <p className="text-xs text-slate-500 truncate">{message.content}</p>
                       </div>
                     ))
                   ) : (
@@ -185,22 +203,25 @@ const Messages = () => {
             {showCompose ? (
               <Card className="glass-effect border-slate-200 h-full shadow-sm">
                 <CardHeader>
-                  <CardTitle className="text-slate-900">Compose Message</CardTitle>
+                  <CardTitle className="text-slate-900">{composeTitles[composeMode]}</CardTitle>
                   <CardDescription className="text-slate-600">
-                    Send a message to a league manager.
+                    {composeMode === 'reply'
+                      ? `Replying to ${newRecipientName}`
+                      : composeMode === 'forward'
+                      ? 'Forwarding to League Manager'
+                      : 'Send a message to a league manager.'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">To:</label>
-                     <Input
+                    <Input
                       data-testid="messages-compose-recipient-input"
-                      value="League Manager"
+                      value={newRecipientName}
                       readOnly
                       className="bg-slate-50 border-slate-200 text-slate-600 cursor-not-allowed"
                     />
                   </div>
-                  
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">Subject:</label>
                     <Input
@@ -211,7 +232,6 @@ const Messages = () => {
                       className="bg-white border-slate-300 text-slate-900 placeholder-slate-500"
                     />
                   </div>
-                  
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">Message:</label>
                     <textarea
@@ -223,9 +243,8 @@ const Messages = () => {
                       className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-blue resize-none scrollbar-hide"
                     />
                   </div>
-                  
                   <div className="flex space-x-3">
-                    <Button 
+                    <Button
                       data-testid="messages-send-button"
                       onClick={handleSendMessage}
                       className="basketball-gradient hover:opacity-90 text-white"
@@ -233,7 +252,7 @@ const Messages = () => {
                       <Send className="h-4 w-4 mr-2" />
                       Send Message
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       data-testid="messages-cancel-compose-button"
                       onClick={() => setShowCompose(false)}
@@ -247,64 +266,49 @@ const Messages = () => {
             ) : selectedMessage ? (
               <Card className="glass-effect border-slate-200 h-full flex flex-col shadow-sm">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-slate-900">{selectedMessage.subject}</CardTitle>
-                      <CardDescription className="text-slate-600 mt-1">
-                        <span className="font-medium text-slate-800">From: {selectedMessage.from}</span> • {new Date(selectedMessage.timestamp).toLocaleString()}
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        data-testid="messages-delete-message-button"
-                        onClick={() => handleFeatureClick('delete-message')}
-                        className="text-slate-500 hover:text-red-600 hover:bg-red-50"
-                      >
-                        <CheckCircle className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </div>
+                  <CardTitle className="text-slate-900">{selectedMessage.subject}</CardTitle>
+                  <CardDescription className="text-slate-600 mt-1">
+                    <span className="font-medium text-slate-800">From: {selectedMessage.from}</span> •{' '}
+                    {new Date(selectedMessage.timestamp).toLocaleString()}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow overflow-hidden">
                   <div className="prose max-w-none text-slate-800 leading-relaxed whitespace-pre-wrap h-full overflow-y-auto scrollbar-hide">
                     {selectedMessage.content}
                   </div>
                 </CardContent>
-                 <div className="p-6 mt-auto pt-6 border-t border-slate-100 bg-slate-50/50">
-                    <div className="flex space-x-3">
-                      <Button 
-                        data-testid="messages-reply-button"
-                        className="bg-brand-blue hover:bg-brand-blue-deep text-white"
-                        onClick={() => handleFeatureClick('reply-message')}
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        Reply
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        data-testid="messages-forward-button"
-                        className="border-slate-300 text-slate-700 hover:bg-slate-100"
-                        onClick={() => handleFeatureClick('forward-message')}
-                      >
-                        Forward
-                      </Button>
-                    </div>
+                <div className="p-6 mt-auto pt-6 border-t border-slate-100 bg-slate-50/50">
+                  <div className="flex space-x-3">
+                    <Button
+                      data-testid="messages-reply-button"
+                      className="bg-brand-blue hover:bg-brand-blue-deep text-white"
+                      onClick={handleReply}
+                    >
+                      <Reply className="h-4 w-4 mr-2" />
+                      Reply
+                    </Button>
+                    <Button
+                      variant="outline"
+                      data-testid="messages-forward-button"
+                      className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                      onClick={handleForward}
+                    >
+                      <Forward className="h-4 w-4 mr-2" />
+                      Forward
+                    </Button>
                   </div>
+                </div>
               </Card>
             ) : (
               <Card className="glass-effect border-slate-200 h-full shadow-sm">
                 <CardContent className="p-12 text-center flex flex-col justify-center items-center h-full">
                   <MessageSquare className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-slate-900 mb-2">Select a Message</h3>
-                  <p className="text-slate-600 mb-6">
-                    Choose a message from your inbox to read its content
-                  </p>
-                  <Button 
+                  <p className="text-slate-600 mb-6">Choose a message from your inbox to read its content</p>
+                  <Button
                     className="basketball-gradient hover:opacity-90 text-white"
                     data-testid="messages-compose-placeholder-button"
-                    onClick={() => setShowCompose(true)}
+                    onClick={openNewCompose}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Compose New Message
