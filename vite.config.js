@@ -292,6 +292,7 @@ export default defineConfig({
 		allowedHosts: true,
 		watch: {
 			followSymlinks: false,
+			ignored: ['**/node_modules/**', '/app/frontend/**'],
 		},
 	},
 	resolve: {

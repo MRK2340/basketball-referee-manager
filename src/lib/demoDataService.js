@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'iwhistle_demo_data_v2';
+const STORAGE_KEY = 'iwhistle_demo_data_v3';
 const USER_STORAGE_KEY = 'iwhistle_users';
 
 const parseJson = (value, fallback) => {
@@ -175,12 +175,27 @@ const createSeedStore = () => ({
       home_score: 58,
       away_score: 54,
     },
+    {
+      id: 'game-5',
+      tournament_id: 'tournament-summer',
+      home_team: 'River City Bulls',
+      away_team: 'Eastside Thunder',
+      game_date: toDateOnly(4),
+      game_time: '16:30:00',
+      venue: 'Court 2',
+      status: 'scheduled',
+      payment_amount: 70,
+      division: 'U15 Boys',
+      level: 'Varsity',
+      required_certifications: ['Certified Official Level 2'],
+    },
   ],
   gameAssignments: [
     { id: 'assignment-1', game_id: 'game-1', referee_id: 'demo-referee', status: 'assigned', decline_reason: null },
     { id: 'assignment-2', game_id: 'game-3', referee_id: 'ref-olivia', status: 'accepted', decline_reason: null },
     { id: 'assignment-3', game_id: 'game-3', referee_id: 'ref-jordan', status: 'assigned', decline_reason: null },
     { id: 'assignment-4', game_id: 'game-4', referee_id: 'demo-referee', status: 'accepted', decline_reason: null },
+    { id: 'assignment-5', game_id: 'game-5', referee_id: 'ref-jordan', status: 'accepted', decline_reason: null },
   ],
   payments: [
     {
@@ -219,6 +234,12 @@ const createSeedStore = () => ({
       referee_id: 'demo-referee',
       start_time: toIsoFromToday(1, 8, 0),
       end_time: toIsoFromToday(2, 22, 0),
+    },
+    {
+      id: 'availability-2',
+      referee_id: 'ref-olivia',
+      start_time: toIsoFromToday(3, 8, 0),
+      end_time: toIsoFromToday(5, 22, 0),
     },
   ],
   gameReports: [
