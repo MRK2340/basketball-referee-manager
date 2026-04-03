@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/customSupabaseClient';
 import { toast } from '@/components/ui/use-toast';
+import { addAvailabilityRecord } from '@/lib/demoDataService';
 
 export const useAvailabilityActions = (user, fetchData) => {
   const addAvailability = async (startDate, endDate) => {
@@ -11,13 +11,7 @@ export const useAvailabilityActions = (user, fetchData) => {
     const endOfDay = new Date(endDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const { error } = await supabase
-        .from('referee_availability')
-        .insert([{
-            referee_id: user.id,
-            start_time: startOfDay.toISOString(),
-            end_time: endOfDay.toISOString()
-        }]);
+    const { error } = addAvailabilityRecord(user, startOfDay.toISOString(), endOfDay.toISOString());
 
     if (error) {
         toast({

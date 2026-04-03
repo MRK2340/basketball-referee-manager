@@ -1,10 +1,10 @@
-import { supabase } from '@/lib/customSupabaseClient';
 import { toast } from '@/components/ui/use-toast';
+import { addGameRecord, markGameCompleted } from '@/lib/demoDataService';
 
 export const useGameActions = (user, fetchData) => {
   const addGame = async (gameData) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = await supabase.from('games').insert([gameData]);
+    const { error } = addGameRecord(user, gameData);
 
     if (error) {
       toast({
@@ -23,7 +23,7 @@ export const useGameActions = (user, fetchData) => {
 
   const markGameAsCompleted = async (gameId) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = await supabase.rpc('mark_game_completed', { game_id_param: gameId });
+    const { error } = markGameCompleted(user, gameId);
     if (error) {
       toast({ title: "Action Failed", description: error.message, variant: "destructive" });
     } else {

@@ -49,6 +49,13 @@ const setStoredUsers = (users) => {
     }
 };
 
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Could not read the selected image.'));
+    reader.readAsDataURL(file);
+});
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -199,7 +206,19 @@ export const AuthProvider = ({ children }) => {
 
     const uploadAvatar = async (file) => {
         if (!user) return;
-        toast({ title: "Simulator Notice", description: "File upload is simulated." });
+        setLoading(true);
+        try {
+            const avatarUrl = await readFileAsDataUrl(file);
+            await updateProfile({ avatar_url: avatarUrl });
+        } catch (error) {
+            toast({
+                title: "Upload failed",
+                description: error.message || "Could not update your profile photo.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const createDemoAccounts = async () => {

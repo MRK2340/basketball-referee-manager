@@ -16,6 +16,12 @@ const Schedule = () => {
   const { user } = useAuth();
   const [addGameOpen, setAddGameOpen] = useState(false);
   const [courtScheduleOpen, setCourtScheduleOpen] = useState(false);
+  const openGames = games.filter((game) => {
+    if (game.status === 'completed') return false;
+    return game.assignments.length === 0 || game.assignments.some(
+      (assignment) => assignment.referee.id === user?.id && assignment.status === 'requested'
+    );
+  });
 
   return (
     <>
@@ -44,7 +50,7 @@ const Schedule = () => {
               <MyScheduleTab games={games.filter(g => g.assignments.some(a => a.referee.id === user.id))} referees={referees} />
             </TabsContent>
             <TabsContent value="open-games">
-              <OpenGamesTab games={games.filter(g => g.assignments.length === 0)} />
+              <OpenGamesTab games={openGames} />
             </TabsContent>
           </Tabs>
         ) : (

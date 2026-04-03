@@ -1,20 +1,13 @@
-import { supabase } from '@/lib/customSupabaseClient';
 import { toast } from '@/components/ui/use-toast';
+import {
+  addTournament as addTournamentRecord,
+  updateTournamentRecord,
+} from '@/lib/demoDataService';
 
 export const useTournamentActions = (user, fetchData) => {
   const addTournament = async (tournamentData) => {
     if (!user) return;
-    const { data, error } = await supabase
-      .from('tournaments')
-      .insert([{
-        name: tournamentData.name,
-        start_date: tournamentData.startDate,
-        end_date: tournamentData.endDate,
-        location: tournamentData.location,
-        number_of_courts: tournamentData.numberOfCourts,
-        manager_id: user.id
-      }])
-      .select();
+    const { error } = addTournamentRecord(user, tournamentData);
 
     if (error) {
       toast({
@@ -33,16 +26,7 @@ export const useTournamentActions = (user, fetchData) => {
 
   const updateTournament = async (tournamentId, tournamentData) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = await supabase
-      .from('tournaments')
-      .update({
-        name: tournamentData.name,
-        start_date: tournamentData.startDate,
-        end_date: tournamentData.endDate,
-        location: tournamentData.location,
-        number_of_courts: tournamentData.numberOfCourts,
-      })
-      .eq('id', tournamentId);
+    const { error } = updateTournamentRecord(user, tournamentId, tournamentData);
 
     if (error) {
       toast({

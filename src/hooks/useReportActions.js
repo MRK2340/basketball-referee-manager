@@ -1,10 +1,10 @@
-import { supabase } from '@/lib/customSupabaseClient';
 import { toast } from '@/components/ui/use-toast';
+import { submitGameReportRecord } from '@/lib/demoDataService';
 
 export const useReportActions = (user, fetchData) => {
   const submitGameReport = async (reportData) => {
     if (!user || user.role !== 'referee') return false;
-    const { error } = await supabase.from('game_reports').insert([reportData]);
+    const { error } = submitGameReportRecord(user, reportData);
     if (error) {
       toast({ title: "Report Submission Failed", description: error.message, variant: "destructive" });
       return false;
