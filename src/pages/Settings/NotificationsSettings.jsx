@@ -11,7 +11,7 @@ import {
 
 const NotificationsSettings = ({ notifications, onNotificationChange }) => {
   return (
-    <Card className="glass-effect border-slate-200 shadow-sm">
+    <Card className="glass-effect border-slate-200 shadow-sm" data-testid="settings-notifications-card">
       <CardHeader>
         <CardTitle className="text-slate-900 flex items-center space-x-2">
           <Bell className="h-5 w-5 text-brand-blue" />

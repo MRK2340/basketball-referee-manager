@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useData } from '@/contexts/DataContext';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -25,20 +25,18 @@ const AddGameDialog = ({ open, setOpen }) => {
   const [level, setLevel] = useState('');
   const [requiredCerts, setRequiredCerts] = useState('');
 
-  useEffect(() => {
-    if (!open) {
-      setTournamentId('');
-      setHomeTeam('');
-      setAwayTeam('');
-      setDate(null);
-      setTime('');
-      setVenue('');
-      setDivision('');
-      setPayment('');
-      setLevel('');
-      setRequiredCerts('');
-    }
-  }, [open]);
+  const resetForm = () => {
+    setTournamentId('');
+    setHomeTeam('');
+    setAwayTeam('');
+    setDate(null);
+    setTime('');
+    setVenue('');
+    setDivision('');
+    setPayment('');
+    setLevel('');
+    setRequiredCerts('');
+  };
 
   const handleSubmit = async () => {
     if (!tournamentId || !homeTeam || !awayTeam || !date || !time || !venue || !division || !payment || !level) {
@@ -62,11 +60,15 @@ const AddGameDialog = ({ open, setOpen }) => {
       required_certifications: requiredCerts.split(',').map(c => c.trim()).filter(Boolean),
       status: 'scheduled',
     });
+    resetForm();
     setOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(nextOpen) => {
+      setOpen(nextOpen);
+      if (!nextOpen) resetForm();
+    }}>
       <DialogContent className="sm:max-w-lg bg-white border-slate-200 text-slate-900" data-testid="schedule-add-game-dialog">
         <DialogHeader>
           <DialogTitle>Schedule New Game</DialogTitle>
@@ -85,11 +87,11 @@ const AddGameDialog = ({ open, setOpen }) => {
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="homeTeam" className="text-right text-slate-300">Home Team</Label>
+            <Label htmlFor="homeTeam" className="text-right text-slate-700">Home Team</Label>
             <Input id="homeTeam" data-testid="schedule-add-game-home-team-input" value={homeTeam} onChange={(e) => setHomeTeam(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="awayTeam" className="text-right text-slate-300">Away Team</Label>
+            <Label htmlFor="awayTeam" className="text-right text-slate-700">Away Team</Label>
             <Input id="awayTeam" data-testid="schedule-add-game-away-team-input" value={awayTeam} onChange={(e) => setAwayTeam(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -107,27 +109,27 @@ const AddGameDialog = ({ open, setOpen }) => {
             </Popover>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="time" className="text-right text-slate-300">Time</Label>
+            <Label htmlFor="time" className="text-right text-slate-700">Time</Label>
             <Input id="time" data-testid="schedule-add-game-time-input" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="venue" className="text-right text-slate-300">Venue</Label>
+            <Label htmlFor="venue" className="text-right text-slate-700">Venue</Label>
             <Input id="venue" data-testid="schedule-add-game-venue-input" value={venue} onChange={(e) => setVenue(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="division" className="text-right text-slate-300">Division</Label>
+            <Label htmlFor="division" className="text-right text-slate-700">Division</Label>
             <Input id="division" data-testid="schedule-add-game-division-input" value={division} onChange={(e) => setDivision(e.target.value)} className="col-span-3 bg-white border-slate-300" placeholder="e.g., U14 Boys" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="payment" className="text-right text-slate-300">Payment ($)</Label>
+            <Label htmlFor="payment" className="text-right text-slate-700">Payment ($)</Label>
             <Input id="payment" data-testid="schedule-add-game-payment-input" type="number" value={payment} onChange={(e) => setPayment(e.target.value)} className="col-span-3 bg-white border-slate-300" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="level" className="text-right text-slate-300">Game Level</Label>
+            <Label htmlFor="level" className="text-right text-slate-700">Game Level</Label>
             <Input id="level" data-testid="schedule-add-game-level-input" value={level} onChange={(e) => setLevel(e.target.value)} className="col-span-3 bg-white border-slate-300" placeholder="e.g., Varsity, JV" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="requiredCerts" className="text-right text-slate-300">Certs</Label>
+            <Label htmlFor="requiredCerts" className="text-right text-slate-700">Certs</Label>
             <Input id="requiredCerts" data-testid="schedule-add-game-certs-input" value={requiredCerts} onChange={(e) => setRequiredCerts(e.target.value)} className="col-span-3 bg-white border-slate-300" placeholder="e.g., State, Certified (comma-sep)" />
           </div>
         </div>

@@ -6,7 +6,6 @@
 - [Dashboard - Basketball Referee Manager](/dashboard): View your referee dashboard with upcoming games, earnings, and performance statistics.
 - [Games - Basketball Referee Manager](/games): Track your game history, performance statistics, and manage game reports as a basketball referee.
 - [Login - Basketball Referee Manager](/login): Log in to your Basketball Referee Manager account to access your schedule, games, and management tools.
-- [Management - Basketball Referee Manager](/manager): Manage tournaments, assign games, and oversee referees for your league.
 - [Messages - Basketball Referee Manager](/messages): Communicate with league managers and other referees through the messaging system.
 - [Payments - Basketball Referee Manager](/payments): Track your referee payments, earnings, and payment history for basketball games.
 - [Performance Analytics - Basketball Referee Manager](/performanceanalytics): Detailed performance analytics for basketball referees, including earnings, game history, and ratings.
