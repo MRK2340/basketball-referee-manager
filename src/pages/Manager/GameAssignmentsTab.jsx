@@ -86,6 +86,8 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
   };
 
   const getConflictBadge = (assignment, game) => {
+    // Don't show conflict badges on completed games — history is read-only
+    if (game.status === 'completed') return null;
     const referee = referees?.find((r) => r.id === assignment.referee_id);
     if (!referee) return null;
     const { status } = getRefereeStatus(referee, game, games);
@@ -113,8 +115,9 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
   };
 
   // Check if ANY assignment in a game has a conflict or issue (for row highlight)
+  // Only show conflict indicators for active (non-completed) games
   const getGameConflictLevel = (game) => {
-    if (!game.game_assignments || !referees) return null;
+    if (!game.game_assignments || !referees || game.status === 'completed') return null;
     const statuses = game.game_assignments.map((a) => {
       const ref = referees.find((r) => r.id === a.referee_id);
       if (!ref) return 'no-data';
