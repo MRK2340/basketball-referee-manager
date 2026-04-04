@@ -58,6 +58,58 @@ const createSeedStore = () => ({
       phone: '+1 555 0199',
       certifications: ['Tournament Director'],
       games_officiated: 0,
+      location: 'Atlanta, GA',
+      league_name: 'Metro AAU League',
+      bio: 'Experienced tournament director running competitive AAU youth programs across the Southeast region.',
+      active_tournaments: 2,
+    },
+    {
+      id: 'mgr-thomas',
+      email: 'thomas@demo.com',
+      name: 'Thomas Washington',
+      role: 'manager',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=thomas',
+      rating: 4.9,
+      experience: '8 years',
+      phone: '+1 555 0211',
+      certifications: ['Tournament Director', 'NFHS Level 3'],
+      games_officiated: 0,
+      location: 'Washington, D.C.',
+      league_name: 'Capitol Hoops Association',
+      bio: 'Building the next generation of officials in the DMV area. We run year-round youth basketball programs across 6 courts.',
+      active_tournaments: 3,
+    },
+    {
+      id: 'mgr-sarah',
+      email: 'sarah@demo.com',
+      name: 'Sarah Chen',
+      role: 'manager',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah',
+      rating: 4.7,
+      experience: '5 years',
+      phone: '+1 555 0355',
+      certifications: ['Tournament Director'],
+      games_officiated: 0,
+      location: 'San Francisco, CA',
+      league_name: 'Bay Area Youth Basketball',
+      bio: 'West Coast AAU organization focused on developing elite officiating talent. Great pay, flexible scheduling.',
+      active_tournaments: 2,
+    },
+    {
+      id: 'mgr-marcus',
+      email: 'marcus@demo.com',
+      name: 'Marcus Johnson',
+      role: 'manager',
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=marcus',
+      rating: 4.8,
+      experience: '12 years',
+      phone: '+1 555 0488',
+      certifications: ['Tournament Director', 'AAU Certified Director'],
+      games_officiated: 0,
+      location: 'Chicago, IL',
+      league_name: 'Midwest AAU League',
+      bio: 'Largest AAU operation in the Midwest. We consistently pay above-market rates and offer mentorship for newer officials.',
+      active_tournaments: 4,
     },
     {
       id: 'demo-referee',
@@ -398,6 +450,18 @@ const createSeedStore = () => ({
       recipient_id: 'demo-manager',
     },
   ],
+  manager_connections: [
+    // demo-referee is already connected to demo-manager
+    { id: 'conn-1', referee_id: 'demo-referee', manager_id: 'demo-manager', status: 'connected', created_at: toIsoFromToday(-30), note: 'Looking forward to working with your league!' },
+    // demo-referee sent a pending request to mgr-thomas
+    { id: 'conn-2', referee_id: 'demo-referee', manager_id: 'mgr-thomas', status: 'pending', created_at: toIsoFromToday(-2), note: 'I referee U14 and U16 divisions and have 3 years of AAU experience.' },
+    // ref-olivia connected to demo-manager and mgr-thomas
+    { id: 'conn-3', referee_id: 'ref-olivia', manager_id: 'demo-manager', status: 'connected', created_at: toIsoFromToday(-60), note: '' },
+    { id: 'conn-4', referee_id: 'ref-olivia', manager_id: 'mgr-thomas', status: 'connected', created_at: toIsoFromToday(-45), note: 'Love working DMV tournaments.' },
+    // ref-jordan connected to demo-manager, pending with mgr-sarah
+    { id: 'conn-5', referee_id: 'ref-jordan', manager_id: 'demo-manager', status: 'connected', created_at: toIsoFromToday(-20), note: '' },
+    { id: 'conn-6', referee_id: 'ref-jordan', manager_id: 'mgr-sarah', status: 'pending', created_at: toIsoFromToday(-1), note: 'Interested in West Coast opportunities.' },
+  ],
 });
 
 const syncProfiles = (store) => {
@@ -447,6 +511,15 @@ const loadStore = () => {
   }
   if (!base.refereeAvailability || base.refereeAvailability.length === 0) {
     base.refereeAvailability = createSeedStore().refereeAvailability;
+  }
+  if (!base.manager_connections) {
+    base.manager_connections = createSeedStore().manager_connections;
+  }
+  // Backfill extra manager profiles if missing
+  const existingIds = base.profiles.map(p => p.id);
+  const seedManagers = createSeedStore().profiles.filter(p => p.role === 'manager' && !existingIds.includes(p.id));
+  if (seedManagers.length > 0) {
+    base.profiles = [...base.profiles, ...seedManagers];
   }
   const synced = syncProfiles(base);
   saveStore(synced);
@@ -689,6 +762,14 @@ export const fetchAppData = (user, page = 1, pageSize = 20) => {
       pushNotifications: true,
       smsNotifications: false,
     },
+    // Manager–Referee Connections
+    connections: (store.manager_connections || []).filter(c =>
+      user.role === 'manager' ? c.manager_id === user.id : c.referee_id === user.id
+    ),
+    // All manager profiles (for referee discovery)
+    managerProfiles: store.profiles
+      .filter(p => p.role === 'manager')
+      .map(p => ({ ...p })),
   };
 };
 
@@ -1158,5 +1239,72 @@ export const addReportResolutionRecord = (user, reportId, note) => updateStore((
   report.resolved_by = user.id;
   report.resolved_at = new Date().toISOString();
   report.status = 'reviewed';
+  return { data: true };
+});
+
+
+// ── Manager–Referee Connection Service ──────────────────────────────────────
+
+export const requestManagerConnectionRecord = (user, managerId, note) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can request to join a roster.') };
+  }
+  if (!store.manager_connections) store.manager_connections = [];
+  const existing = store.manager_connections.find(
+    c => c.referee_id === user.id && c.manager_id === managerId
+  );
+  if (existing) {
+    return { error: createError('You already have a connection with this manager.') };
+  }
+  const manager = store.profiles.find(p => p.id === managerId);
+  store.manager_connections.push({
+    id: createId('conn'),
+    referee_id: user.id,
+    manager_id: managerId,
+    status: 'pending',
+    created_at: new Date().toISOString(),
+    note: note || '',
+  });
+  // Notify the manager
+  createNotification(
+    store, managerId, 'assignment',
+    'New roster request',
+    `${user.name} has requested to join your referee roster.`,
+    '/manager'
+  );
+  return { data: true };
+});
+
+export const respondToConnectionRecord = (user, connectionId, newStatus) => updateStore((store) => {
+  if (!user || user.role !== 'manager') {
+    return { error: createError('Only managers can respond to requests.') };
+  }
+  if (!store.manager_connections) store.manager_connections = [];
+  const conn = store.manager_connections.find(c => c.id === connectionId && c.manager_id === user.id);
+  if (!conn) return { error: createError('Connection request not found.') };
+  conn.status = newStatus;
+  conn.responded_at = new Date().toISOString();
+  // Notify the referee
+  const verb = newStatus === 'connected' ? 'accepted' : 'declined';
+  const manager = store.profiles.find(p => p.id === user.id);
+  createNotification(
+    store, conn.referee_id, 'assignment',
+    `Roster request ${verb}`,
+    `${user.name} has ${verb} your request to join their referee roster.`,
+    '/find-managers'
+  );
+  return { data: true };
+});
+
+export const withdrawConnectionRecord = (user, managerId) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can withdraw requests.') };
+  }
+  if (!store.manager_connections) store.manager_connections = [];
+  const idx = store.manager_connections.findIndex(
+    c => c.referee_id === user.id && c.manager_id === managerId
+  );
+  if (idx === -1) return { error: createError('Connection not found.') };
+  store.manager_connections.splice(idx, 1);
   return { data: true };
 });

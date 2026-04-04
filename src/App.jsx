@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import Layout from '@/components/Layout';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import FindManagersPage from '@/pages/FindManagers';
 import PublicRoute from '@/components/PublicRoute';
 
 // Pages
@@ -108,6 +109,12 @@ function App() {
                 <Route path="/manager" element={
                   <ProtectedRoute roles={['manager']}>
                     <Layout><Manager /></Layout>
+                  </ProtectedRoute>
+                } />
+
+                <Route path="/find-managers" element={
+                  <ProtectedRoute roles={['referee']}>
+                    <Layout><FindManagersPage /></Layout>
                   </ProtectedRoute>
                 } />
 

@@ -7,7 +7,7 @@ import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 import { useMessageActions } from '@/hooks/useMessageActions';
 import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
-import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord } from '@/lib/demoDataService';
+import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord, requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord } from '@/lib/demoDataService';
 import { toast } from '@/components/ui/use-toast';
 
 const DataContext = createContext();
@@ -34,6 +34,8 @@ export const DataProvider = ({ children }) => {
     gameReports,
     refereeRatings,
     notificationPreferences,
+    connections,
+    managerProfiles,
     fetchData
   } = useDataFetching(user);
 
@@ -108,6 +110,40 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  const requestManagerConnection = (managerId, note) => {
+    if (!user || user.role !== 'referee') return;
+    const { error } = requestManagerConnectionRecord(user, managerId, note);
+    if (error) {
+      toast({ title: 'Request failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Request sent!', description: 'Your roster request has been sent to the manager.' });
+      fetchData();
+    }
+  };
+
+  const respondToConnection = (connectionId, status) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = respondToConnectionRecord(user, connectionId, status);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      const label = status === 'connected' ? 'accepted' : 'declined';
+      toast({ title: `Request ${label}`, description: `Referee roster request has been ${label}.` });
+      fetchData();
+    }
+  };
+
+  const withdrawConnection = (managerId) => {
+    if (!user || user.role !== 'referee') return;
+    const { error } = withdrawConnectionRecord(user, managerId);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Request withdrawn', description: 'Your connection request has been withdrawn.' });
+      fetchData();
+    }
+  };
+
   const value = {
     loading,
     games,
@@ -120,6 +156,8 @@ export const DataProvider = ({ children }) => {
     gameReports,
     refereeRatings,
     notificationPreferences,
+    connections,
+    managerProfiles,
     fetchData,
     markNotificationRead,
     markAllNotificationsRead,
@@ -128,6 +166,9 @@ export const DataProvider = ({ children }) => {
     rateReferee,
     saveNotificationPreferences,
     addReportResolution,
+    requestManagerConnection,
+    respondToConnection,
+    withdrawConnection,
     ...tournamentActions,
     ...gameActions,
     ...assignmentActions,

@@ -5,7 +5,7 @@ import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck } from 'lucide-react';
+import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck, UserCheck } from 'lucide-react';
 import TournamentsTab from './TournamentsTab';
 import GameAssignmentsTab from './GameAssignmentsTab';
 import RefereeManagementTab from './RefereeManagementTab';
@@ -13,10 +13,11 @@ import GameReportsTab from './GameReportsTab';
 import StandingsTab from './StandingsTab';
 import LeaderboardTab from './LeaderboardTab';
 import AvailabilityCalendarTab from './AvailabilityCalendarTab';
+import RosterTab from './RosterTab';
 
 const Manager = () => {
   const { user } = useAuth();
-  const { tournaments, games, referees, gameReports, addTournament, updateTournament, deleteTournament, assignRefereeToGame, unassignRefereeFromGame } = useData();
+  const { tournaments, games, referees, gameReports, connections, addTournament, updateTournament, deleteTournament, assignRefereeToGame, unassignRefereeFromGame, respondToConnection } = useData();
 
   if (user?.role !== 'manager') {
     return <Navigate to="/" replace />;
@@ -47,6 +48,14 @@ const Manager = () => {
             </TabsTrigger>
             <TabsTrigger value="assignments" data-testid="manager-tab-assignments" className="flex-1 min-w-[100px]">
               <ClipboardList className="h-4 w-4 mr-1.5" /> Assignments
+            </TabsTrigger>
+            <TabsTrigger value="roster" data-testid="manager-tab-roster" className="flex-1 min-w-[90px] relative">
+              <UserCheck className="h-4 w-4 mr-1.5" /> Roster
+              {connections?.filter(c => c.status === 'pending').length > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: '#FF8C00' }}>
+                  {connections.filter(c => c.status === 'pending').length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="referees" data-testid="manager-tab-referees" className="flex-1 min-w-[80px]">
               <Users className="h-4 w-4 mr-1.5" /> Referees
@@ -80,6 +89,14 @@ const Manager = () => {
               referees={referees} 
               assignRefereeToGame={assignRefereeToGame} 
               unassignRefereeFromGame={unassignRefereeFromGame} 
+            />
+          </TabsContent>
+
+          <TabsContent value="roster">
+            <RosterTab
+              connections={connections || []}
+              referees={referees}
+              respondToConnection={respondToConnection}
             />
           </TabsContent>
 

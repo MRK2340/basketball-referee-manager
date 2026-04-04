@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   Home, User, Calendar, Trophy, DollarSign, MessageSquare,
-  CalendarDays, Settings, LogOut, X, ClipboardList
+  CalendarDays, Settings, LogOut, X, ClipboardList, UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -33,6 +33,7 @@ const Sidebar = ({ onClose }) => {
     { path: '/messages', icon: MessageSquare, label: 'Messages' },
     { path: '/calendar', icon: CalendarDays, label: 'Calendar' },
     { path: '/settings', icon: Settings, label: 'Settings' },
+    ...(user?.role === 'referee' ? [{ path: '/find-managers', icon: UserPlus, label: 'Find Managers' }] : []),
   ];
 
   const managerNavigation = [
