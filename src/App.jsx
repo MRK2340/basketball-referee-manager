@@ -42,7 +42,7 @@ function App() {
         
         <AuthProvider>
           <DataProvider>
-            <div className="min-h-screen bg-slate-900 text-slate-100">
+            <div className="min-h-screen">
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />

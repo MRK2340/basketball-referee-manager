@@ -89,6 +89,15 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
   - Tailwind config updated (brand-blue, brand-orange, brand-blue-deep, brand-blue-light)
 - Testing: 24/24 brand checks passed (iteration_7.json)
 
+### Phase 4 - Dark Mode Toggle (Complete — Apr 2026)
+- ThemeContext.jsx with localStorage persistence ('iwhistle-theme')
+- Sun/Moon toggle button in TopBar (data-testid='theme-toggle-button')
+- Dark theme: Deep Blue palette — body #001829, surfaces rgba(0,28,60,0.95), text light blue/white
+- Smooth CSS transitions on theme switch (0.25s ease)
+- Active nav in dark mode: amber/orange accent highlighting
+- Sidebar, TopBar, BottomNavigation all fully dark-mode aware
+- Testing: 14/14 dark mode checks passed (iteration_8.json)
+
 ## Upcoming Tasks
 - Add real-time conflict warnings in Availability grid (P1)
 
