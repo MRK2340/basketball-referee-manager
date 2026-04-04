@@ -1,55 +1,107 @@
-# PRD - Basketball Referee Manager Recreation
+# PRD - Basketball Referee Manager App
 
-## Original Problem Statement
-Recreate `https://github.com/MRK2340/basketball-referee-manager`. Build an AAU youth basketball league manager app where Referees can view their schedule, log availability, and communicate with managers, while Managers can assign referees and manage tournaments.
+## Problem Statement
+Recreate `MRK2340/basketball-referee-manager` — an AAU youth basketball league manager app where:
+- **Referees**: view schedule, log availability, communicate with managers
+- **Managers**: assign referees, manage tournaments, track performance
+
+**Critical Note**: All features are built with a mocked localStorage backend (Supabase will be connected at the final phase, per user request).
+
+## User Personas
+- **Manager** (league admin): manages tournaments, assigns referees, reviews reports, tracks payments
+- **Referee** (officials): checks schedule, sets availability, accepts/declines games, submits reports
+
+## Core Requirements
+- Role-based auth: Manager vs Referee views
+- Tournaments: create, edit, delete
+- Games: schedule, assign referees, mark complete
+- Calendar: availability logging, month/week/day views
+- Schedule: open games with smart filtering, my schedule with conflict detection
+- Messages: threaded communication between roles
+- Payments: tracking, CSV export, bulk mark-as-paid
+- Game Reports: submit post-game reports, manager resolution notes
+- Notifications: bell icon panel, in-app activity feed
+
+---
 
 ## Architecture
-- React + Vite + Tailwind CSS + Framer Motion + Shadcn UI
-- Browser localStorage as data layer (no backend — Supabase replaced)
-- Storage key: `iwhistle_demo_data_v3`
-- Supervisor: `/app/frontend` launcher → `cd /app && yarn start` → Vite on port 3000
-- vite.config.js: `watch: { followSymlinks: false, ignored: [...] }`
+```
+/app (React + Vite + Tailwind + Shadcn UI)
+├── src/
+│   ├── App.jsx
+│   ├── components/ (Layout, Sidebar, BottomNavigation, TopBar, NotificationPanel, GameDetailSheet, SkeletonCard)
+│   ├── contexts/ (AuthContext, DataContext)
+│   ├── hooks/ (useDataFetching, useTournamentActions, useAssignmentActions, useGameActions, etc.)
+│   ├── lib/ (demoDataService.js — CORE mocked DB, conflictUtils.js)
+│   ├── pages/
+│   │   ├── Manager/ (index.jsx — 6 tabs, TournamentsTab, GameAssignmentsTab, RefereeManagementTab, GameReportsTab, StandingsTab, LeaderboardTab, RatingDialog)
+│   │   ├── Schedule/ (tabs: MyScheduleTab, OpenGamesTab [smart sorting])
+│   │   ├── Settings/ (NotificationsSettings, PreferencesSettings, AccountSecuritySettings)
+│   │   ├── Dashboard.jsx, Profile.jsx, Calendar.jsx, Games.jsx, Messages.jsx, Payments.jsx, GameReport.jsx
+```
 
-## What Has Been Implemented
+---
 
-### Phase 1 — UI Polish (Session 1, DONE)
-- Role-based flows: Manager and Referee with demo accounts
-- Full UI cleanup across shell, dashboard, profile, calendar, games, payments, settings, manager views
-- Comprehensive data-testid coverage
+## What's Been Implemented
 
-### Phase 2 — Manager Actions (Session 2, DONE)
-- Delete Tournament with AlertDialog + cascade delete
-- Reply/Forward Messages with pre-filled subject/recipient/body
-- Export Payments CSV + Export Schedule CSV dropdown
-- Notification Center: bell → Sheet panel, 5 types, mark read, badge count
+### Phase 1 — UI/UX Polish (Complete ✅)
+- High-contrast light theme (Swiss design aesthetic)
+- Shadcn UI components throughout
+- data-testid coverage
+- Design guidelines generated (`/app/design_guidelines.json`)
 
-### Phase 3 — Assignment-Conflict Assistant (Session 3, DONE)
-- `conflictUtils.js`: schedule overlap, availability check, cert check, fit scoring, rankReferees()
-- Live conflict badges per referee chip in Game Assignments table
-- Orange left-border + conflict indicator on game rows
-- Enhanced AssignRefereeDialog: ranked cards, best-fit banner, conflict detail text, cert badges
+### Phase 2 — Manager Actions (Complete ✅)
+- Delete tournament confirm dialog
+- Reply/Forward message actions
+- Export Payments (CSV) dropdown
+- Notification Center (bell icon panel)
 
-### Phase 4 — Advanced Flows (Session 4, DONE)
-- **Referee Accept with Conflict Warning**: AcceptConflictWarningDialog — detects conflict/unavailable before accepting, lets referee override
-- **Decline dialog restyled**: light theme (white bg, slate text)
-- **Calendar Availability Overlay in Assign Dialog**: WeekCalendarStrip — 7-day strip centered on game date, green=available / orange=assigned / grey=no data
-- **Bulk Assignment Actions**: Select All/individual checkboxes on game rows, bulk toolbar — "Unassign All Referees" + "Mark as Complete"
-- **Payment Batch Processing**: Checkboxes on pending payments, "Select All Pending", bulk "Mark as Paid" toolbar
-- `batchUnassignRefereesRecord` + `batchMarkPaymentsPaidRecord` added to demoDataService.js
-- Accept/Decline creates notification to manager
+### Phase 3 — Assignment-Conflict Assistant (Complete ✅)
+- `conflictUtils.js` for conflict detection
+- Live conflict badges/traffic-light status in GameAssignmentsTab
+- Conflict-aware Referee Accept/Decline Warning dialog
+- Calendar Availability Strip in Assign Dialog and Referee Cards
 
-## Credentials
-- Manager: `manager@demo.com` / `password` (via Try Demo Account)
-- Referee: `referee@demo.com` / `password` (via Try Demo Account)
+### Phase 4 — Bulk Actions & Polish (Complete ✅)
+- Bulk select & actions for Game Assignments
+- Bulk mark-as-paid for Payments
+- Referee accept conflict warning dialog
 
-## Prioritized Backlog
+### Phase 5 — Top-Notch Rich Features (Complete ✅, April 2026)
+1. **Referee Post-Game Rating System** — RatingDialog.jsx, star ratings + feedback per referee, profile rating history
+2. **Tournament Standings Tab** — StandingsTab.jsx, W/L records per team computed from scores
+3. **Referee Leaderboard Tab** — LeaderboardTab.jsx, sort by rating/games/acceptance, Assign shortcut
+4. **Live Activity Feed** — Dashboard.jsx bottom section, role-personalized timeline from notifications
+5. **Game Detail Slide-out Panel** — GameDetailSheet.jsx, shared component for all views
+6. **Enhanced Game Reports** — Technical Fouls, Personal Fouls, Ejections, MVP Player fields
+7. **Working Notification Preferences** — localStorage persisted, syncs after hard reload via useEffect
+8. **Calendar Week View** — hourly slots (7am–10pm), game blocks placed by time, prev/next navigation
+9. **Open Games Smart Sorting** — search, sort (Date/Pay/Best Match), filter panel (Division/Date Range/Min Pay)
+10. **Empty States & Loading States** — SkeletonCard.jsx, rich empty states with icons and context
 
-### P1 — Next
-- Replace browser localStorage with real Supabase/FastAPI backend when credentials available
-- Push notifications (web push or Resend email)
-- Tournament bracket / standings view
+---
 
-### P2 — Future
-- Mobile PWA wrapper
-- Referee rating system (post-game feedback)
-- Multi-season archive / reporting
+## Upcoming/Backlog
+
+### P0 — Supabase Connection (Final Phase)
+- Remove demoDataService.js mock layer
+- Implement real Supabase API calls for auth, games, assignments, reports, payments, messages
+- Migration: connect all existing UI flows to Supabase tables
+
+### P1 — Future Polish
+- Push notification service integration (real-time updates)
+- Email digest integration
+- Mobile-responsive improvements for small screens
+
+---
+
+## Data Model (mocked via localStorage)
+- `tournaments`, `games`, `game_assignments`, `game_reports`
+- `profiles`, `messages`, `notifications`
+- `refereeRatings` — post-game referee performance ratings
+- `notificationPreferences` — per-user notification preference map
+- `refereeAvailability` — calendar availability slots
+
+## Test Credentials
+- Manager: `manager@demo.com` / `password` (or use "Try Demo Account" → "Log in as Manager")
+- Referee: `referee@demo.com` / `password` (or use "Try Demo Account" → "Log in as Referee")

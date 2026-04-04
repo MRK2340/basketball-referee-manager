@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { toast } from '@/components/ui/use-toast';
@@ -21,6 +21,14 @@ const Settings = () => {
     smsNotifications: false,
     ...(notificationPreferences || {}),
   }));
+
+  // Sync from context after async fetchData resolves (handles hard reload)
+  useEffect(() => {
+    if (notificationPreferences && Object.keys(notificationPreferences).length > 0) {
+      setNotifications((prev) => ({ ...prev, ...notificationPreferences }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(notificationPreferences)]);
 
   const [preferences, setPreferences] = useState({
     darkMode: false,
