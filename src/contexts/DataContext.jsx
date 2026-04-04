@@ -48,7 +48,7 @@ export const DataProvider = ({ children }) => {
   const tournamentActions = useTournamentActions(user, fetchData);
   const gameActions = useGameActions(user, fetchData);
   const messageActions = useMessageActions(user, fetchData);
-  const assignmentActions = useAssignmentActions(user, fetchData, messageActions.sendMessage, games);
+  const assignmentActions = useAssignmentActions(user, fetchData);
   const availabilityActions = useAvailabilityActions(user, fetchData);
   const reportActions = useReportActions(user, fetchData);
 

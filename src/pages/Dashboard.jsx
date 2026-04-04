@@ -54,7 +54,7 @@ const Dashboard = () => {
   const stats = [
     {
       title: 'Games This Month',
-      value: games.length,
+      value: games.filter(g => { const d = new Date(g.date); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear(); }).length,
       icon: Trophy,
       color: 'text-brand-blue',
       bgColor: 'bg-brand-blue/10'

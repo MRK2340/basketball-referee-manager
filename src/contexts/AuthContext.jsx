@@ -18,13 +18,8 @@ const STORAGE_KEYS = {
 };
 
 // Base64 encoding provides basic obfuscation to avoid accidental plaintext exposure in developer tools — not cryptographic security
-const obfuscate = (str) => {
-    try {
-        return btoa(str);
-    } catch (e) {
-        return str;
-    }
-};
+const obfuscate = (str) => btoa(encodeURIComponent(str));
+const deobfuscate = (str) => { try { return decodeURIComponent(atob(str)); } catch { return str; } };
 
 const getStoredUsers = () => {
     try {
@@ -91,10 +86,10 @@ export const AuthProvider = ({ children }) => {
         try {
             const users = getStoredUsers();
             const obfuscatedPassword = obfuscate(password);
-            // Check obfuscated password first, fall back to plaintext for legacy accounts
+            // Check new encoding, legacy btoa encoding, and plaintext for backward compat
             const foundUser = users.find(u =>
                 u.email.toLowerCase() === email.toLowerCase() &&
-                (u.password === obfuscatedPassword || u.password === password)
+                (u.password === obfuscatedPassword || u.password === btoa(password) || u.password === password)
             );
 
             if (foundUser) {
@@ -128,7 +123,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             const newUser = {
-                id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
                 ...userData,
                 password: obfuscate(userData.password),
                 role: userData.role || 'referee',
@@ -206,10 +201,24 @@ export const AuthProvider = ({ children }) => {
 
     const uploadAvatar = async (file) => {
         if (!user) return;
+        if (file.size > 1_000_000) {
+            toast({
+                title: "Image too large",
+                description: "Please upload a photo under 1 MB.",
+                variant: "destructive",
+            });
+            return;
+        }
         setLoading(true);
         try {
             const avatarUrl = await readFileAsDataUrl(file);
-            await updateProfile({ avatar_url: avatarUrl });
+            const users = getStoredUsers();
+            const updatedUsers = users.map(u => u.id === user.id ? { ...u, avatar_url: avatarUrl } : u);
+            setStoredUsers(updatedUsers);
+            const updatedUser = { ...user, avatar_url: avatarUrl };
+            setUser(updatedUser);
+            localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(updatedUser));
+            toast({ title: "Profile photo updated! ✅", description: "Your new photo has been saved." });
         } catch (error) {
             toast({
                 title: "Upload failed",

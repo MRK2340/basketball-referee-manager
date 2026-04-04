@@ -1,0 +1,56 @@
+{
+  "summary": "Regression testing after code-review bug fixes from commit f6c2c62. All 11 feature scenarios PASS. Lazy-loaded Suspense, manager/referee login, dashboard stats, conflict warnings, dark mode, profile, and roster tab all confirmed working. One minor discrepancy found: Dashboard.jsx line 44 null guard (a.referee?.id) listed as applied in the commit but code still shows a.referee.id — however no crash occurs in practice because mock data always provides a referee object.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "landing_page_suspense": "PASS — iWhistle landing page loads correctly, no blank page, LoadingSpinner resolves, title correct",
+    "manager_login_backward_compat": "PASS — Try Demo Account → Log in as Manager → redirects to /manager. obfuscate fix (btoa(encodeURIComponent)) with backward-compat btoa/plaintext fallback working",
+    "referee_login": "PASS — Try Demo Account → Log in as Referee → redirects to /dashboard",
+    "dashboard_null_guard": "PASS — Dashboard loads for referee, no null dereference crash. Note: a.referee.id (without ?.) is still in the code but doesn't crash because mapAssignment always returns a referee object",
+    "games_this_month_filter": "PASS — Shows 5 (all 5 demo games are in April 2026: Apr 1-8). Filter correctly uses getMonth() === now.getMonth() && getFullYear() === now.getFullYear()",
+    "upcoming_games_section": "PASS — Renders without error. Demo Referee shows 'No upcoming games scheduled' (assignment-1 is 'assigned' not 'accepted', assignment-4 is a past game)",
+    "manager_panel_8_tabs": "PASS — All 8 tabs present: Tournaments, Assignments, Roster, Referees, Availability, Leaderboard, Standings, Reports",
+    "availability_conflict_warnings": "PASS — conflict-summary-panel shows '2 Scheduling Conflicts Detected This Week', conflict-count-badge shows '2 conflicts', stat-conflicts shows '2'. Conflicts on Apr 8 (Olivia Brooks + Jordan Ellis). Navigate to next week to see them.",
+    "profile_avatar_upload": "PASS — Profile page loads, 'Change Photo' button visible (file size guard 1MB applied in AuthContext)",
+    "dark_mode_toggle": "PASS — theme-toggle-button adds 'dark' class to html element",
+    "roster_tab": "PASS — pending-section (No pending requests), connected-section (My Referee Roster with 3 referees: Demo Referee, Olivia Brooks, Jordan Ellis)"
+  },
+  "code_review_findings": {
+    "null_guard_discrepancy": "Dashboard.jsx line 44 still has a.referee.id (no ?.optional chaining). Commit description says fix was applied but it wasn't. Not causing a crash with current mock data since mapAssignment always provides referee:{id:...} object.",
+    "obfuscate_fix": "APPLIED — btoa(encodeURIComponent(str)) with backward-compat in login",
+    "file_size_guard": "APPLIED — file.size > 1_000_000 check in uploadAvatar",
+    "double_setLoading_fix": "APPLIED — uploadAvatar only calls setLoading(true) once, setLoading(false) in finally",
+    "games_this_month_filter": "APPLIED — getMonth() && getFullYear() filter on Dashboard line 57",
+    "substring_fix": "APPLIED — .substring(2, 11) in AuthContext line 126",
+    "dead_params_useAssignmentActions": "APPLIED — only (user, fetchData) params",
+    "lazy_suspense": "APPLIED — All 13 page components lazy-loaded with React.lazy+Suspense in App.jsx"
+  },
+  "test_report_links": ["/app/test_reports/iteration_11.json"],
+  "action_items": [
+    "Minor: Apply null guard fix to Dashboard.jsx line 44 — change a.referee.id to a.referee?.id for defensive coding (listed in commit but not applied)"
+  ],
+  "critical_code_review_comments": [
+    "Dashboard.jsx line 44: a.referee.id should be a.referee?.id — the null guard was listed as applied in commit f6c2c62 but is NOT in the code. No crash with current mock data, but defensive fix is recommended."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (pure frontend localStorage app)",
+    "frontend": "100% (11/11 features passing)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / password (via Try Demo Account → Log in as Manager)",
+    "referee": "referee@demo.com / password (via Try Demo Account → Log in as Referee)"
+  },
+  "seed_data_creation": "No seed data created. Used existing localStorage seed data via createDemoAccounts(). Today=April 4 2026, all 5 games in April (Apr 1-8). Conflicts on Apr 8 visible on next week view (Apr 6-12).",
+  "mocked_apis": "ALL data MOCKED via localStorage (demoDataService.js)",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Pure frontend Vite React app at port 3000. All data mocked via localStorage. All 11 features from code-review commit f6c2c62 passing. Minor: Dashboard.jsx line 44 still has a.referee.id without optional chaining. Login via Try Demo Account dialog. Conflicts visible on next week (Apr 6-12) after clicking avail-next-week button. Today=April 4 2026."
+}

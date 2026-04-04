@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { Toaster } from '@/components/ui/toaster';
@@ -8,27 +8,28 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import Layout from '@/components/Layout';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import FindManagersPage from '@/pages/FindManagers';
 import PublicRoute from '@/components/PublicRoute';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
-// Pages
-import Dashboard from '@/pages/Dashboard';
-import Profile from '@/pages/Profile';
-import Schedule from '@/pages/Schedule';
-import Games from '@/pages/Games';
-import Payments from '@/pages/Payments';
-import Messages from '@/pages/Messages';
-import Calendar from '@/pages/Calendar';
-import Settings from '@/pages/Settings';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import Manager from '@/pages/Manager';
-import GameReport from '@/pages/GameReport';
-import PerformanceAnalytics from '@/pages/PerformanceAnalytics';
-import LandingPage from '@/pages/LandingPage';
-import AboutPage from '@/pages/AboutPage';
-import ContactPage from '@/pages/ContactPage';
-import NotFound from '@/pages/NotFound';
+// Lazy-loaded pages — improves initial bundle size
+const Dashboard          = lazy(() => import('@/pages/Dashboard'));
+const Profile            = lazy(() => import('@/pages/Profile'));
+const Schedule           = lazy(() => import('@/pages/Schedule'));
+const Games              = lazy(() => import('@/pages/Games'));
+const Payments           = lazy(() => import('@/pages/Payments'));
+const Messages           = lazy(() => import('@/pages/Messages'));
+const Calendar           = lazy(() => import('@/pages/Calendar'));
+const Settings           = lazy(() => import('@/pages/Settings'));
+const Login              = lazy(() => import('@/pages/Login'));
+const Register           = lazy(() => import('@/pages/Register'));
+const Manager            = lazy(() => import('@/pages/Manager'));
+const GameReport         = lazy(() => import('@/pages/GameReport'));
+const PerformanceAnalytics = lazy(() => import('@/pages/PerformanceAnalytics'));
+const LandingPage        = lazy(() => import('@/pages/LandingPage'));
+const AboutPage          = lazy(() => import('@/pages/AboutPage'));
+const ContactPage        = lazy(() => import('@/pages/ContactPage'));
+const NotFound           = lazy(() => import('@/pages/NotFound'));
+const FindManagersPage   = lazy(() => import('@/pages/FindManagers'));
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
         <AuthProvider>
           <DataProvider>
             <div className="min-h-screen">
+              <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
@@ -121,6 +123,7 @@ function App() {
                 {/* 404 Handler */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
             </div>
             <Toaster />
           </DataProvider>
