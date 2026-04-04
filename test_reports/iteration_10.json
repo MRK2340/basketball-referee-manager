@@ -1,0 +1,56 @@
+{
+  "summary": "Comprehensive frontend testing of iWhistle P1 Real-time Conflict Warnings in AvailabilityCalendarTab, plus all 14 feature scenarios. All tests passing. Today is Saturday Apr 4, 2026 — conflicts are on next week (Apr 6-12) because game assignments are offset +4 days from today (Apr 8). All conflict warning features confirmed working end-to-end.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Availability Calendar — popover trigger button",
+        "issues": [
+          "Trigger button (data-testid='avail-assign-trigger-{ref}-{date}') has CSS opacity-0 by default, only visible on group hover. Playwright wait_for_selector (which checks visibility) fails to find it; must use JS evaluation or force:True. The element IS in the DOM always. This is an intentional design choice but note it affects testability."
+        ]
+      }
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_10.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AvailabilityCalendarTab.jsx: Trigger button opacity-0 default — only visible on CSS group hover. Works at runtime but can be tricky to automate tests. Consider adding data-testid also to the popover trigger in a way that remains accessible.",
+    "demoDataService.js: Conflicts only visible when game date (toDateOnly(4) = today+4) falls within current calendar week. On Saturdays/Sundays, conflicts appear on NEXT week view. This is expected behavior from dynamic seed data."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only app)",
+    "frontend": "100% (14/14 features passing)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / password (via Try Demo Account → Log in as Manager)",
+    "referee": "referee@demo.com / password (via Try Demo Account → Log in as Referee)"
+  },
+  "seed_data_creation": "No seed data created. Used existing localStorage seed data. Conflicts appear on Apr 8, 2026 (today+4 days from Apr 4) when viewing next week (Apr 6-12).",
+  "features_tested": {
+    "landing_page_loads": "PASS — iWhistle branding, 'Leadership Under Pressure' heading, blue/orange colors",
+    "manager_login": "PASS — Demo Account → Log in as Manager → redirects to /manager",
+    "manager_8_tabs": "PASS — All 8 tabs found: Tournaments, Assignments, Roster, Referees, Availability, Leaderboard, Standings, Reports",
+    "availability_tab_heading": "PASS — 'Referee Availability Calendar' heading rendered correctly",
+    "conflict_summary_panel": "PASS — data-testid='conflict-summary-panel' shows '2 Scheduling Conflicts Detected This Week' with animated ping dot (animate-ping class), collapses/expands",
+    "conflict_count_badge": "PASS — data-testid='conflict-count-badge' shows '2 conflicts' in week label area",
+    "stat_conflicts_card": "PASS — data-testid='stat-conflicts' shows '2' with text-red-600 color when conflicts > 0",
+    "day_conflict_badge": "PASS — data-testid='day-conflict-badge-2026-04-08' shows '2' on Wednesday Apr 8 column",
+    "individual_conflict_cells": "PASS — avail-cell-ref-olivia-2026-04-08 shows 'Conflict' with red bg, pulsing animation (animate-pulse), ring-red-400 ring. Jordan Ellis cell also shows double conflict (2 games).",
+    "popover_conflict_warning": "PASS — data-testid='popover-conflict-warning-ref-olivia' confirmed in DOM via JS evaluation after clicking trigger. Shows 'Scheduling Conflict', 'Already assigned to: Lake City Panthers vs Harbor Heat at 16:00', 'No open games to assign'",
+    "dark_mode_toggle": "PASS — data-testid='theme-toggle-button' adds 'dark' class to html element on click",
+    "roster_tab": "PASS — data-testid='pending-section' (Incoming Requests, empty state), data-testid='connected-section' (My Referee Roster, 3 referees: Demo Referee, Olivia Brooks, Jordan Ellis)",
+    "find_managers_page": "PASS — /find-managers accessible for referee. Shows My Current Rosters (Demo Manager), Pending Requests (Thomas Washington), Available Managers sections. Sidebar link visible.",
+    "referee_login": "PASS — Demo Account → Log in as Referee → redirects to /dashboard"
+  },
+  "conflict_data_note": "Conflicts are on April 8, 2026 (today April 4 + 4 offset days). Ref-Olivia: game-3 (Lake City Panthers vs Harbor Heat, 16:00). Ref-Jordan: game-3 + game-5 (River City Bulls vs Eastside Thunder 16:30 + Lake City Panthers vs Harbor Heat 16:00). Visible only on NEXT WEEK view (Apr 6-12).",
+  "mocked_apis": "ALL data is MOCKED via localStorage (refereeAvailability, game_assignments, manager_connections, all CRUD ops)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Pure frontend React/Vite app using localStorage for all data. All conflict warning P1 features fully tested and passing as of iteration_10. Key: today=Saturday Apr 4, 2026, so conflicts show on NEXT week (Apr 6-12) in calendar view. Navigate with 'avail-next-week' button to see conflicts. Conflict date is Apr 8 (today+4). Previous iterations 1-9 all passed. Login via Try Demo Account dialog, not direct email/password (demo accounts only created in localStorage when createDemoAccounts() is called via the dialog)."
+}
