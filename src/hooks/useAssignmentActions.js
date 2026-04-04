@@ -7,7 +7,7 @@ import {
   updateAssignment,
 } from '@/lib/demoDataService';
 
-export const useAssignmentActions = (user, fetchData, sendMessage, games) => {
+export const useAssignmentActions = (user, fetchData) => {
   const assignRefereeToGame = async (gameId, refereeId) => {
     if (!user || user.role !== 'manager') return;
     const { error } = assignReferee(user, gameId, refereeId);

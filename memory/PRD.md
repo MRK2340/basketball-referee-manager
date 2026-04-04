@@ -117,7 +117,19 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Quick-assign popover warns of double-booking with conflict details before assigning
 - Testing: 14/14 checks passed (iteration_10.json)
 
-## Future/Backlog
+### Phase 7 - Code Review Fixes (Complete — Apr 2026)
+Applied all fixes from CODE_REVIEW.md (commit f6c2c62):
+- **Bug**: Null guard `a.referee?.id` in Dashboard.jsx (crash prevention)
+- **Bug**: "Games This Month" stat now filters by actual current month
+- **Security**: `obfuscate` fixed to `btoa(encodeURIComponent(str))` — handles Unicode passwords safely; login check backward-compatible
+- **Security**: 1 MB file size guard on avatar upload before localStorage write
+- **Bug**: Removed double `setLoading(false)` in `uploadAvatar` — loading state owned by single caller
+- **Quality**: Deprecated `.substr()` → `.substring()` in AuthContext
+- **Quality**: Removed dead `sendMessage`/`games` params from `useAssignmentActions`
+- **Performance**: React.lazy + Suspense for all 13 page routes in App.jsx — reduces initial bundle size
+- Testing: 11/11 regression checks passed (iteration_11.json)
+
+
 - **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages
 
 ## Test Credentials
