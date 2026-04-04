@@ -79,6 +79,15 @@ Recreate `MRK2340/basketball-referee-manager` — an AAU youth basketball league
 9. **Open Games Smart Sorting** — search, sort (Date/Pay/Best Match), filter panel (Division/Date Range/Min Pay)
 10. **Empty States & Loading States** — SkeletonCard.jsx, rich empty states with icons and context
 
+### Phase 6 — Referee Availability Calendar (Complete ✅, April 2026)
+- **AvailabilityCalendarTab.jsx** — New 4th tab in Manager page (7 total tabs)
+- Color-coded week grid: Green (Available), Blue (Available Today), Orange (Has Game), Gray (Unavailable)
+- Week navigation (prev/next/Today), certification filter dropdown
+- Summary stat cards: Referees, Available Slots, Open Games, Top Rated
+- Day header badges showing open game count per day
+- Quick-assign popover on hover over available cells (shows game list, assigns with one click)
+- Rich seed data for 3 referees with staggered availability across the week
+
 ---
 
 ## Upcoming/Backlog

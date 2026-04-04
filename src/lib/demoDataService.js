@@ -445,6 +445,9 @@ const loadStore = () => {
   if (!base.notificationPreferences) {
     base.notificationPreferences = {};
   }
+  if (!base.refereeAvailability || base.refereeAvailability.length === 0) {
+    base.refereeAvailability = createSeedStore().refereeAvailability;
+  }
   const synced = syncProfiles(base);
   saveStore(synced);
   return synced;
