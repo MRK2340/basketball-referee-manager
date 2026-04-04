@@ -229,17 +229,86 @@ const createSeedStore = () => ({
     },
   ],
   refereeAvailability: [
+    // demo-referee: Mon, Wed, Fri, Sat this week
     {
       id: 'availability-1',
       referee_id: 'demo-referee',
-      start_time: toIsoFromToday(1, 8, 0),
+      start_time: toIsoFromToday(0, 8, 0),
+      end_time: toIsoFromToday(0, 22, 0),
+    },
+    {
+      id: 'availability-1b',
+      referee_id: 'demo-referee',
+      start_time: toIsoFromToday(2, 8, 0),
       end_time: toIsoFromToday(2, 22, 0),
     },
     {
+      id: 'availability-1c',
+      referee_id: 'demo-referee',
+      start_time: toIsoFromToday(4, 8, 0),
+      end_time: toIsoFromToday(4, 22, 0),
+    },
+    {
+      id: 'availability-1d',
+      referee_id: 'demo-referee',
+      start_time: toIsoFromToday(5, 8, 0),
+      end_time: toIsoFromToday(5, 22, 0),
+    },
+    // ref-olivia: Mon, Tue, Thu, Fri, Sat
+    {
       id: 'availability-2',
       referee_id: 'ref-olivia',
+      start_time: toIsoFromToday(0, 8, 0),
+      end_time: toIsoFromToday(0, 22, 0),
+    },
+    {
+      id: 'availability-2b',
+      referee_id: 'ref-olivia',
+      start_time: toIsoFromToday(1, 8, 0),
+      end_time: toIsoFromToday(1, 22, 0),
+    },
+    {
+      id: 'availability-2c',
+      referee_id: 'ref-olivia',
       start_time: toIsoFromToday(3, 8, 0),
+      end_time: toIsoFromToday(3, 22, 0),
+    },
+    {
+      id: 'availability-2d',
+      referee_id: 'ref-olivia',
+      start_time: toIsoFromToday(4, 8, 0),
+      end_time: toIsoFromToday(4, 22, 0),
+    },
+    {
+      id: 'availability-2e',
+      referee_id: 'ref-olivia',
+      start_time: toIsoFromToday(5, 8, 0),
       end_time: toIsoFromToday(5, 22, 0),
+    },
+    // ref-jordan: Tue, Wed, Fri, Sun
+    {
+      id: 'availability-3',
+      referee_id: 'ref-jordan',
+      start_time: toIsoFromToday(1, 8, 0),
+      end_time: toIsoFromToday(1, 22, 0),
+    },
+    {
+      id: 'availability-3b',
+      referee_id: 'ref-jordan',
+      start_time: toIsoFromToday(2, 8, 0),
+      end_time: toIsoFromToday(2, 22, 0),
+    },
+    {
+      id: 'availability-3c',
+      referee_id: 'ref-jordan',
+      start_time: toIsoFromToday(4, 8, 0),
+      end_time: toIsoFromToday(4, 22, 0),
+    },
+    {
+      id: 'availability-3d',
+      referee_id: 'ref-jordan',
+      start_time: toIsoFromToday(6, 8, 0),
+      end_time: toIsoFromToday(6, 22, 0),
     },
   ],
   gameReports: [

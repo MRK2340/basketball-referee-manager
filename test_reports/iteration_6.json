@@ -1,0 +1,59 @@
+{
+  "summary": "Tested Availability Calendar feature (new 4th tab in Manager page) and full regression of previous 10 features. All new features are fully working including grid layout, week navigation, stat cards, color-coded cells, legend, day-header badges, certification filter, and quick-assign popover with toast feedback.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_6.json"],
+  "action_items": [
+    "IMPORTANT - Fix loadStore() in demoDataService.js: Missing backfill for 'refereeAvailability' when loading existing v3 localStorage. Add `if (!base.refereeAvailability) { base.refereeAvailability = createSeedStore().refereeAvailability; }` after existing checks (line ~447). Without this, users with old v3 localStorage (before the Availability feature was added) will crash with TypeError: Cannot read properties of undefined (reading 'filter') in mapReferee()."
+  ],
+  "critical_code_review_comments": [
+    "demoDataService.js loadStore(): Missing `if (!base.refereeAvailability) { base.refereeAvailability = createSeedStore().refereeAvailability; }` guard. The checks for 'notifications', 'refereeRatings', 'notificationPreferences' exist but 'refereeAvailability' is skipped. If old v3 data is present in localStorage (stored before this feature was added), store.refereeAvailability will be undefined, causing mapReferee() to crash with TypeError when AvailabilityCalendarTab renders.",
+    "AvailabilityCalendarTab: Popover trigger button opacity-0/group-hover:opacity-100 — correctly works in browser hover tests. Quick-assign flow is end-to-end functional."
+  ],
+  "updated_files": [],
+  "feature_results": {
+    "Feature 1 - Availability Tab Exists": "PASS - 4th tab 'Availability' exists, total 7 tabs (Tournaments, Assignments, Referees, Availability, Leaderboard, Standings, Reports)",
+    "Feature 2 - Calendar Grid": "PASS - Grid shows referee names with avatars + star ratings in left column, 7 day columns (Mon-Sun) with date numbers",
+    "Feature 3 - Week Navigation": "PASS - prev/next week buttons work, Today button returns to current week. Current week: Mar 30 – Apr 5, 2026. Next week: Apr 6 – Apr 12, 2026",
+    "Feature 4 - Summary Stat Cards": "PASS - REFEREES: 3, AVAILABLE SLOTS: 4/9, OPEN GAMES: 0/1, TOP RATED: Olivia (highest rated at 4.9)",
+    "Feature 5 - Color-coded Cells": "PASS - Green for Available, Blue-green for Available Today (SAT Apr 4), Orange for Has Game, Gray for Unavailable. Correct CSS classes applied.",
+    "Feature 6 - Legend Row": "PASS - Shows Available, Has Game, Unavailable, Available Today + hover lightning bolt hint",
+    "Feature 7 - Day Header Badges": "PASS - Mon Apr 6 shows '1 open' badge (game-2 unassigned). Wed Apr 8 shows no badge (game-3 has assignments). Badge updates to no badge after quick-assign.",
+    "Feature 8 - Certification Filter": "PASS - Selecting 'AAU Elite' shows only Olivia Brooks (1 referee). Stat cards update to REFEREES:1, AVAILABLE SLOTS:3. Reset to 'All Certifications' shows all 3 referees.",
+    "Feature 9 - Next Week Availability Data": "PASS - Demo Referee: Mon/Wed/Thu (offsets 2,4,5 = Apr 6,8,9). Olivia Brooks: Tue/Thu + Has Game Wed (offsets 3,5 = Apr 7,9 available; offset 4 = Apr 8 Has Game with 1 game badge). Jordan Ellis: Mon/Fri + Has Game Wed (offsets 2,6 = Apr 6,10 available; offset 4 = Apr 8 Has Game with 2 games badge).",
+    "Feature 10 - Quick-Assign Popover Hover": "PASS - Hovering over Demo Referee's Mon Apr 6 green Available cell shows lightning bolt trigger (data-testid avail-assign-trigger-demo-referee-2026-04-06). Popover shows 'Assign Demo Referee — Apr 6' with game details.",
+    "Feature 11 - Quick-Assign Game Confirm": "PASS - Clicking 'Central Storm vs Westview Falcons (19:30 · Court 2)' in popover calls assignRefereeToGame, shows 'Referee Assigned! ✅' success toast. Demo Referee Mon Apr 6 cell updates from Available to Has Game with '1 game' badge. OPEN GAMES stat updates from 1 to 0.",
+    "Regression - All 7 Manager Tabs": "PASS - All tabs clickable and load without errors",
+    "Regression - Dashboard Activity Feed": "PASS",
+    "Regression - Calendar Week View": "PASS",
+    "Regression - Reports Tab": "PASS - Capital Cougars vs Southside Rockets game report visible",
+    "Regression - Leaderboard Tab": "PASS",
+    "Regression - Standings Tab": "PASS"
+  },
+  "success_rate": {
+    "backend": "N/A - localStorage mock only",
+    "frontend": "100% (all new features + regression passing)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com via 'Try Demo Account' > 'Log in as Manager'",
+    "referee": "referee@demo.com via 'Try Demo Account' > 'Log in as Referee'"
+  },
+  "seed_data_creation": "Used fresh localStorage seed from createSeedStore(). Tested quick-assign which creates new gameAssignment for game-2 (Central Storm vs Westview Falcons) + Demo Referee.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Availability Calendar (AvailabilityCalendarTab.jsx) fully functional. Today is Saturday Apr 4, 2026. Current week (Mar 30 – Apr 5): Demo Referee + Olivia have 'Available Today' on SAT 4; Jordan has Available on SUN 5. Next week (Apr 6-12): Demo Mon/Wed/Thu, Olivia Tue/Thu (Has Game Wed), Jordan Mon/Fri (Has Game Wed with 2 games). Quick-assign popover on hover works for Available cells when open games exist on that day. CRITICAL CODE BUG to fix in loadStore() for refereeAvailability backfill. All previous 10 features (Ratings, Standings, Leaderboard, Activity Feed, Game Detail Sheet, Enhanced Reports, Notification Prefs, Calendar Week View, Open Games Sort, Empty States) still working.",
+  "rca_of_issues": {
+    "loadStore refereeAvailability missing guard": {
+      "root_cause": "loadStore() in demoDataService.js has guards for 'notifications', 'refereeRatings', and 'notificationPreferences' fields but NOT for the new 'refereeAvailability' field added in this iteration. If a user has existing STORAGE_KEY='iwhistle_demo_data_v3' data stored before this feature was added, the parsed base object will have refereeAvailability=undefined.",
+      "reproduction": "1. Have old v3 localStorage saved (without refereeAvailability key). 2. Navigate to Manager page. 3. mapReferee() is called for each referee profile: store.refereeAvailability.filter(...) throws TypeError: Cannot read properties of undefined (reading 'filter').",
+      "mitigation": "Add guard in loadStore() after line 447: `if (!base.refereeAvailability) { base.refereeAvailability = createSeedStore().refereeAvailability; }`"
+    }
+  }
+}
