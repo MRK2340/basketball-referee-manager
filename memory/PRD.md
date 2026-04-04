@@ -108,8 +108,14 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Sidebar, TopBar, BottomNavigation all fully dark-mode aware
 - Testing: 14/14 dark mode checks passed (iteration_8.json)
 
-## Upcoming Tasks
-- Add real-time conflict warnings in Availability grid (P1)
+### Phase 6 - Real-time Conflict Warnings (Complete — Apr 2026)
+- ConflictSummaryPanel at top of Availability tab: collapsible, shows all conflicts this week with animated ping dot
+- Per-day conflict badges in column headers (data-testid='day-conflict-badge-{date}')
+- Individual conflict cells: red background, pulsing animation ring, game tags shown inline
+- Conflict stat card with animated ping dot (data-testid='stat-conflicts')
+- Conflict count badge in week label area (data-testid='conflict-count-badge')
+- Quick-assign popover warns of double-booking with conflict details before assigning
+- Testing: 14/14 checks passed (iteration_10.json)
 
 ## Future/Backlog
 - **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages
