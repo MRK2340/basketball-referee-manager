@@ -33,8 +33,8 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Helmet>
-          <title>Basketball Referee Manager - AAU Youth League Management</title>
-          <meta name="description" content="Professional basketball referee management system for AAU youth leagues. Schedule games, track performance, process payments, and communicate seamlessly." />
+          <title>iWhistle - Leadership Under Pressure</title>
+          <meta name="description" content="iWhistle — Professional AAU youth basketball officiating platform. Schedule games, track performance, manage payments, and elevate your officiating." />
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         </Helmet>
         

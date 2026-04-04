@@ -59,7 +59,7 @@ const Payments = () => {
       title: 'Paid Amount',
       value: `$${paidAmount}`,
       icon: CheckCircle,
-      color: 'text-blue-600',
+      color: 'text-brand-blue',
       bgColor: 'bg-blue-100'
     },
     {
@@ -163,7 +163,7 @@ const Payments = () => {
   return (
     <>
       <Helmet>
-        <title>Payments - Basketball Referee Manager</title>
+        <title>Payments - iWhistle</title>
         <meta name="description" content="Track your referee payments, earnings, and payment history for basketball games." />
       </Helmet>
 

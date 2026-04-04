@@ -79,7 +79,7 @@ const GameReport = () => {
   return (
     <>
       <Helmet>
-        <title>Submit Game Report - Basketball Referee Manager</title>
+        <title>Submit Game Report - iWhistle</title>
         <meta name="description" content="Submit your post-game report including final score, incidents, and notes." />
       </Helmet>
 

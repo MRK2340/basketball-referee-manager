@@ -74,7 +74,7 @@ const PerformanceAnalytics = () => {
   return (
     <>
       <Helmet>
-        <title>Performance Analytics - Basketball Referee Manager</title>
+        <title>Performance Analytics - iWhistle</title>
         <meta name="description" content="Detailed performance analytics for basketball referees, including earnings, game history, and ratings." />
       </Helmet>
       <div className="space-y-6">

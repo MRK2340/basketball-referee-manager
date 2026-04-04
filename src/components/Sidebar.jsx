@@ -20,8 +20,8 @@ import { Button } from '@/components/ui/button';
 const navLinkClass = ({ isActive }) =>
   `flex items-center space-x-3 rounded-xl px-4 py-3 text-sm transition-all duration-200 ${
     isActive
-      ? 'border border-slate-200 bg-white text-slate-950 shadow-sm'
-      : 'text-slate-600 hover:bg-white hover:text-slate-950'
+      ? 'border bg-[#E6F2F8] text-[#0080C8] shadow-sm font-semibold'
+      : 'text-slate-600 hover:bg-[#E6F2F8] hover:text-[#0080C8]'
   }`;
 
 const NavItem = ({ item, onClose }) => {
@@ -72,11 +72,11 @@ const Sidebar = ({ onClose }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
-              <img alt="Basketball Reff logo" className="h-7 w-7" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
+              <img alt="iWhistle logo" className="h-7 w-7" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
             </div>
             <div>
-              <p className="app-kicker">League desk</p>
-              <h2 className="text-lg font-bold text-slate-950">Basketball Reff</h2>
+              <p className="app-kicker">League Desk</p>
+              <h2 className="text-lg font-bold" style={{color: '#003D7A'}}>iWhistle</h2>
               <p className="text-sm text-slate-500">AAU Youth League</p>
             </div>
           </div>
@@ -106,7 +106,7 @@ const Sidebar = ({ onClose }) => {
             <p className="text-sm capitalize text-slate-500">{user?.role}</p>
             {user?.rating && (
               <div className="flex items-center space-x-1 mt-1">
-                <span className="text-blue-600">★</span>
+                <span style={{color: '#0080C8'}}>★</span>
                 <span className="text-xs text-slate-700">{user.rating}/5.0</span>
               </div>
             )}

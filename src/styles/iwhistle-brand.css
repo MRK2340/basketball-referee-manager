@@ -1,25 +1,35 @@
-/* iWhistle Brand Colors */
+/* iWhistle Brand Style Guide v2.0 */
 :root {
   /* Primary Colors */
   --iwhistle-blue-primary: #0080C8;
   --iwhistle-orange-primary: #FF8C00;
-  
+
   /* Secondary Colors */
   --iwhistle-blue-deep: #003D7A;
   --iwhistle-blue-light: #4DB8E8;
   --iwhistle-orange-burnt: #E67300;
-  
+
   /* Neutral Colors */
   --iwhistle-white: #FFFFFF;
   --iwhistle-gray: #666666;
-  
+  --iwhistle-light-bg: #E6F2F8;
+
   /* Gradients */
   --iwhistle-gradient-primary: linear-gradient(90deg, #0080C8 0%, #FF8C00 100%);
   --iwhistle-gradient-reverse: linear-gradient(90deg, #FF8C00 0%, #0080C8 100%);
-  
-  /* Semantic Colors with iWhistle Brand */
+  --iwhistle-gradient-evolution: linear-gradient(90deg, #003D7A 0%, #0080C8 33%, #4DB8E8 66%, #FF8C00 100%);
+
+  /* Semantic Colors */
   --iwhistle-success: #10B981;
   --iwhistle-warning: #FF8C00;
   --iwhistle-error: #EF4444;
   --iwhistle-info: #4DB8E8;
 }
+
+.iwhistle-gradient { background: var(--iwhistle-gradient-primary); }
+.iwhistle-gradient-reverse { background: var(--iwhistle-gradient-reverse); }
+.iwhistle-bg-primary { background-color: var(--iwhistle-blue-primary); }
+.iwhistle-bg-orange { background-color: var(--iwhistle-orange-primary); }
+.iwhistle-text-primary { color: var(--iwhistle-blue-primary); }
+.iwhistle-text-orange { color: var(--iwhistle-orange-primary); }
+.iwhistle-text-deep { color: var(--iwhistle-blue-deep); }

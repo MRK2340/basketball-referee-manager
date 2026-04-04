@@ -50,7 +50,7 @@ const STATUS = {
   available:     { bg: 'bg-emerald-50 hover:bg-emerald-100 border-emerald-300',  icon: CheckCircle, iconColor: 'text-emerald-600', label: 'Available',       dot: 'bg-emerald-500' },
   busy:          { bg: 'bg-amber-50 hover:bg-amber-100 border-amber-300',         icon: Trophy,      iconColor: 'text-amber-600',   label: 'Has Game',        dot: 'bg-amber-500' },
   unavailable:   { bg: 'bg-slate-50 hover:bg-slate-100 border-slate-200',         icon: XCircle,     iconColor: 'text-slate-400',   label: 'Unavailable',     dot: 'bg-slate-400' },
-  today_avail:   { bg: 'bg-blue-50 hover:bg-blue-100 border-blue-300',            icon: CheckCircle, iconColor: 'text-blue-600',    label: 'Available Today', dot: 'bg-blue-500' },
+  today_avail:   { bg: 'bg-blue-50 hover:bg-blue-100 border-blue-300',            icon: CheckCircle, iconColor: 'text-brand-blue',    label: 'Available Today', dot: 'bg-blue-500' },
 };
 
 // ── Quick-assign popover ─────────────────────────────────────────────────────
@@ -228,7 +228,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
       {/* Summary stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Referees', value: filteredReferees.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
+          { label: 'Referees', value: filteredReferees.length, icon: Users, color: 'text-brand-blue', bg: 'bg-blue-100' },
           { label: 'Available Slots', value: totalAvailable, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-100' },
           { label: 'Open Games', value: totalOpenGames, icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-100' },
           { label: 'Top Rated', value: filteredReferees.reduce((best, r) => !best || (r.rating || 0) > (best.rating || 0) ? r : best, null)?.name?.split(' ')[0] || '—', icon: Star, color: 'text-yellow-600', bg: 'bg-yellow-100' },
@@ -283,10 +283,10 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
                     className={`p-3 text-center border-r border-slate-200 ${isToday ? 'bg-blue-50' : 'bg-slate-50'}`}
                     data-testid={`avail-day-header-${format(day, 'yyyy-MM-dd')}`}
                   >
-                    <p className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-blue-600' : 'text-slate-500'}`}>
+                    <p className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-brand-blue' : 'text-slate-500'}`}>
                       {format(day, 'EEE')}
                     </p>
-                    <p className={`text-lg font-black mt-0.5 ${isToday ? 'text-blue-600' : 'text-slate-900'}`}>
+                    <p className={`text-lg font-black mt-0.5 ${isToday ? 'text-brand-blue' : 'text-slate-900'}`}>
                       {format(day, 'd')}
                     </p>
                     {openCount > 0 && (

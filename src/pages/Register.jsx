@@ -88,7 +88,7 @@ const Register = () => {
   return (
     <>
       <Helmet>
-        <title>Register - Basketball Referee Manager</title>
+        <title>Register - iWhistle</title>
         <meta name="description" content="Create your secure account." />
       </Helmet>
       
@@ -102,15 +102,17 @@ const Register = () => {
         >
           <Card className="bg-white border-slate-200 shadow-xl">
             <CardHeader className="text-center space-y-2">
-              <div className="mx-auto w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-md">
-                 <img  alt="Basketball Reff logo" className="w-8 h-8" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
+              <div className="mx-auto w-14 h-14 rounded-full flex items-center justify-center shadow-md" style={{background: 'linear-gradient(135deg, #0080C8 0%, #FF8C00 100%)'}}>
+                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center">
+                   <img alt="iWhistle logo" className="w-8 h-8" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
+                 </div>
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold text-slate-900">
-                  Create Account
+                <CardTitle className="text-2xl font-bold" style={{color: '#003D7A'}}>
+                  Join iWhistle
                 </CardTitle>
                 <CardDescription className="text-slate-600">
-                  Join the official officiating platform
+                  Your journey to officiating excellence starts here
                 </CardDescription>
               </div>
             </CardHeader>
@@ -242,17 +244,18 @@ const Register = () => {
                 
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 mt-2 shadow-md transition-all"
+                  className="w-full text-white font-bold py-3 mt-2 shadow-md transition-all"
+                  style={{backgroundColor: '#0080C8'}}
                   disabled={loading}
                 >
-                  {loading ? 'Creating Account...' : 'Create Secure Account'}
+                  {loading ? 'Creating Account...' : 'Start Your Journey'}
                 </Button>
               </form>
               
               <div className="mt-6 text-center">
                 <p className="text-slate-600 font-medium">
                   Already have an account?{' '}
-                  <Link to="/login" className="text-orange-600 hover:text-orange-700 font-bold transition-colors">
+                  <Link to="/login" className="font-bold transition-colors hover:underline" style={{color: '#0080C8'}}>
                     Sign in here
                   </Link>
                 </p>

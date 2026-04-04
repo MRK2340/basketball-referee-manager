@@ -26,7 +26,7 @@ const Schedule = () => {
   return (
     <>
       <Helmet>
-        <title>Schedule - Basketball Referee Manager</title>
+        <title>Schedule - iWhistle</title>
         <meta name="description" content="View and manage your game schedule, assignments, and availability as a basketball referee." />
       </Helmet>
 

@@ -100,7 +100,7 @@ const Messages = () => {
   return (
     <>
       <Helmet>
-        <title>Messages - Basketball Referee Manager</title>
+        <title>Messages - iWhistle</title>
         <meta name="description" content="Communicate with league managers and other referees through the messaging system." />
       </Helmet>
 

@@ -28,7 +28,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 const ACTIVITY_ICONS = {
   assignment: { icon: Trophy, color: 'text-brand-orange', bg: 'bg-orange-100' },
-  message:    { icon: MessageCircle, color: 'text-blue-600', bg: 'bg-blue-100' },
+  message:    { icon: MessageCircle, color: 'text-brand-blue', bg: 'bg-blue-100' },
   payment:    { icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
   conflict:   { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100' },
   default:    { icon: Bell, color: 'text-slate-600', bg: 'bg-slate-100' },
@@ -97,7 +97,7 @@ const Dashboard = () => {
   return (
     <>
       <Helmet>
-        <title>Dashboard - Basketball Referee Manager</title>
+        <title>Dashboard - iWhistle</title>
         <meta name="description" content="View your referee dashboard with upcoming games, earnings, and performance statistics." />
       </Helmet>
 

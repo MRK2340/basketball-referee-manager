@@ -9,7 +9,7 @@ const NotFound = () => {
   return (
     <>
       <Helmet>
-        <title>404 - Page Not Found | Basketball Referee Manager</title>
+        <title>404 - Page Not Found | iWhistle</title>
       </Helmet>
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="text-center max-w-lg">

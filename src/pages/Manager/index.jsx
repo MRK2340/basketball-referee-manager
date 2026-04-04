@@ -25,7 +25,7 @@ const Manager = () => {
   return (
     <>
       <Helmet>
-        <title>Management - Basketball Referee Manager</title>
+        <title>Management - iWhistle</title>
         <meta name="description" content="Manage tournaments, assign games, and oversee referees for your league." />
       </Helmet>
 

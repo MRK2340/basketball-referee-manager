@@ -46,12 +46,12 @@ const TopBar = ({ onMenuClick }) => {
             
             <div className="flex items-center space-x-2">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
-                <img alt="Basketball Reff logo" className="h-7 w-7" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
+                <img alt="iWhistle logo" className="h-7 w-7" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
               </div>
               <div className="hidden sm:block">
-                <p className="app-kicker">Operations</p>
-                <span className="block text-lg font-bold tracking-tight text-slate-950">
-                Basketball Reff
+                <p className="app-kicker">League Desk</p>
+                <span className="block text-lg font-bold tracking-tight" style={{color: '#003D7A'}}>
+                iWhistle
                 </span>
               </div>
             </div>
@@ -85,7 +85,7 @@ const TopBar = ({ onMenuClick }) => {
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 p-0 text-xs text-white">
+                <Badge className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white p-0 text-xs text-white" style={{backgroundColor: '#0080C8'}}>
                   {unreadCount}
                 </Badge>
               )}

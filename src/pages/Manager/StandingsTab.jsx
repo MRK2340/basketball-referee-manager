@@ -75,7 +75,7 @@ const StandingsTab = ({ tournaments, games }) => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="glass-effect border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100"><Trophy className="h-5 w-5 text-blue-600" /></div>
+            <div className="p-2 rounded-lg bg-blue-100"><Trophy className="h-5 w-5 text-brand-blue" /></div>
             <div>
               <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Total Games</p>
               <p className="text-2xl font-bold text-slate-900">{totalGames.length}</p>

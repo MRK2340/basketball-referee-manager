@@ -98,7 +98,7 @@ const Profile = () => {
   return (
     <>
       <Helmet>
-        <title>Profile - Basketball Referee Manager</title>
+        <title>Profile - iWhistle</title>
         <meta name="description" content="Manage your referee profile, view statistics, and update your personal information." />
       </Helmet>
 

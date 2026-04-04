@@ -69,8 +69,8 @@ const Settings = () => {
   return (
     <>
       <Helmet>
-        <title>Settings - Basketball Referee Manager</title>
-        <meta name="description" content="Manage your account settings, notifications, and preferences for the Basketball Referee Manager app." />
+        <title>Settings - iWhistle</title>
+        <meta name="description" content="Manage your account settings, notifications, and preferences for the iWhistle app." />
       </Helmet>
 
       <div className="space-y-8" data-testid="settings-page">

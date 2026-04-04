@@ -50,8 +50,11 @@ module.exports = {
     				DEFAULT: 'hsl(var(--card))',
     				foreground: 'hsl(var(--card-foreground))'
     			},
-    			'brand-orange': '#ff6b35',
-    			'brand-blue': '#1e90ff',
+    			'brand-orange': '#FF8C00',
+				'brand-orange-burnt': '#E67300',
+				'brand-blue-deep': '#003D7A',
+				'brand-blue-light': '#4DB8E8',
+				'brand-blue': '#0080C8',
     			chart: {
     				'1': 'hsl(var(--chart-1))',
     				'2': 'hsl(var(--chart-2))',

@@ -99,7 +99,7 @@ const Calendar = () => {
   return (
     <>
       <Helmet>
-        <title>Calendar - Basketball Referee Manager</title>
+        <title>Calendar - iWhistle</title>
         <meta name="description" content="View your game schedule and manage your availability." />
       </Helmet>
       <div className="space-y-6">

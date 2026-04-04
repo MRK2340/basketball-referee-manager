@@ -10,16 +10,16 @@ const AboutPage = () => {
   return (
     <>
       <Helmet>
-        <title>About Us - Basketball Reff</title>
-        <meta name="description" content="Learn about the mission and vision behind Basketball Reff, the leading platform for basketball officiating." />
+        <title>About Us - iWhistle</title>
+        <meta name="description" content="Learn about the mission and vision behind iWhistle, the leading platform for basketball officiating." />
       </Helmet>
       <div className="min-h-screen text-white animated-background">
         <header className="container mx-auto px-6 py-4 flex justify-between items-center backdrop-blur-sm bg-black/20 sticky top-0 z-50">
           <Link to="/" className="text-2xl font-bold flex items-center">
             <div className="w-8 h-8 mr-2">
-              <img  alt="Basketball Reff logo" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 5px rgba(255,107,53,0.7))' }} src="https://images.unsplash.com/photo-1633335380138-a64bcef84efe" />
+              <img  alt="iWhistle logo" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 5px rgba(255,107,53,0.7))' }} src="https://images.unsplash.com/photo-1633335380138-a64bcef84efe" />
             </div>
-            <span className="bg-clip-text text-transparent basketball-gradient" style={{ textShadow: '0 2px 5px rgba(247, 147, 30, 0.4)' }}>Basketball Reff</span>
+            <span className="bg-clip-text text-transparent basketball-gradient" style={{ textShadow: '0 2px 5px rgba(247, 147, 30, 0.4)' }}>iWhistle</span>
           </Link>
           <div>
             <Link to="/login">
@@ -41,7 +41,7 @@ const AboutPage = () => {
               We're Passionate About the Game
             </h1>
             <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto">
-              Basketball Reff was born from a simple idea: to make life easier for the unsung heroes of the court—the referees—and the dedicated managers who keep leagues running.
+              iWhistle was born from a simple idea: to make life easier for the unsung heroes of the court—the referees—and the dedicated managers who keep leagues running.
             </p>
           </motion.div>
 
@@ -80,7 +80,7 @@ const AboutPage = () => {
             <div className="container mx-auto px-6">
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="text-left">
-                  <h4 className="font-bold text-lg mb-4 text-white">Basketball Reff</h4>
+                  <h4 className="font-bold text-lg mb-4 text-white">iWhistle</h4>
                   <p className="text-slate-400">The ultimate platform for connecting referees and league managers.</p>
                 </div>
                 <div className="text-left md:text-center">
@@ -102,7 +102,7 @@ const AboutPage = () => {
                 </div>
               </div>
               <div className="border-t border-slate-700/50 mt-8 pt-8">
-                <p className="text-slate-500">&copy; {new Date().getFullYear()} Basketball Reff. All rights reserved. The court is yours.</p>
+                <p className="text-slate-500">&copy; {new Date().getFullYear()} iWhistle. All rights reserved. The court is yours.</p>
               </div>
             </div>
           </footer>

@@ -56,7 +56,7 @@ const Games = () => {
   return (
     <>
       <Helmet>
-        <title>Games - Basketball Referee Manager</title>
+        <title>Games - iWhistle</title>
         <meta name="description" content="Track your game history, performance statistics, and manage game reports as a basketball referee." />
       </Helmet>
 

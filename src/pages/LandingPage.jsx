@@ -77,23 +77,23 @@ const TestimonialCard = ({ avatar, name, role, quote, delay }) => (
 
 const LandingPage = () => {
   const testimonials = [
-    { avatar: 'A smiling female referee', name: 'Sarah Chen', role: 'Certified Referee', quote: 'Basketball Reff revolutionized how I get games. The scheduling is seamless, and I get paid on time, every time. A total game-changer!', delay: 0.2 },
+    { avatar: 'A smiling female referee', name: 'Sarah Chen', role: 'Certified Referee', quote: 'iWhistle revolutionized how I get games. The scheduling is seamless, and I get paid on time, every time. A total game-changer!', delay: 0.2 },
     { avatar: 'A confident male league manager', name: 'David Rodriguez', role: 'Youth League Manager', quote: 'Managing referees used to be a nightmare of spreadsheets and phone calls. Now, I can staff an entire tournament in minutes. I can\'t imagine running my league without it.', delay: 0.4 },
     { avatar: 'A young male referee looking at his phone', name: 'Mike Thompson', role: 'High School Referee', quote: 'As someone new to officiating, the performance feedback has been invaluable. It\'s helped me improve my skills and get higher-level assignments.', delay: 0.6 },
   ];
 
   const faqs = [
-    { q: 'Is Basketball Reff free to use for referees?', a: 'Yes! Creating a profile, setting your availability, and getting assigned to games is completely free for referees. Our goal is to get you on the court.' },
+    { q: 'Is iWhistle free to use for officials?', a: 'Yes! Creating a profile, setting your availability, and getting assigned to games is completely free for referees. Our goal is to get you on the court.' },
     { q: 'How does payment processing work?', a: 'League managers handle payments through the platform. Once a game is marked as completed, your payment is processed. You can track all your earnings right from your dashboard.' },
     { q: 'What kind of leagues use this platform?', a: 'Our platform is perfect for all levels of basketball, from youth leagues like AAU and recreational leagues to semi-pro and adult tournaments.' },
-    { q: 'Can I use this on my mobile device?', a: 'Absolutely! Basketball Reff is fully responsive and designed to work beautifully on your phone, so you can manage your schedule and assignments on the go.' },
+    { q: 'Can I use this on my mobile device?', a: 'Absolutely! iWhistle is fully responsive and designed to work beautifully on your phone, so you can manage your schedule and assignments on the go.' },
   ];
 
   return (
     <>
       <Helmet>
-        <title>Welcome to Basketball Reff - Elevate Your Game</title>
-        <meta name="description" content="The ultimate platform for basketball referees and league managers. Streamline scheduling, payments, and performance tracking." />
+        <title>iWhistle - Leadership Under Pressure</title>
+        <meta name="description" content="iWhistle — Leadership Under Pressure. The professional platform for basketball officials to manage schedules, track performance, and elevate their officiating." />
       </Helmet>
       <div className="min-h-screen text-slate-900 overflow-hidden bg-slate-900 relative">
         {/* Background elements for dark theme */}
@@ -106,9 +106,9 @@ const LandingPage = () => {
           <header className="container mx-auto px-6 py-4 flex justify-between items-center backdrop-blur-md bg-slate-900/80 sticky top-0 z-50 border-b border-slate-800">
             <Link to="/" className="text-2xl font-bold flex items-center">
               <div className="w-8 h-8 mr-2 bg-white rounded-full p-1 shadow-sm flex items-center justify-center">
-                <img  alt="Basketball Reff logo" className="w-full h-full object-contain" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
+                <img  alt="iWhistle logo" className="w-full h-full object-contain" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
               </div>
-              <span className="text-white font-black tracking-tight">Basketball<span className="text-brand-orange">Reff</span></span>
+              <span className="font-black tracking-tight" style={{color: '#0080C8'}}>i<span style={{color: '#FF8C00'}}>Whistle</span></span>
             </Link>
             <nav className="hidden md:flex items-center space-x-8">
               <a href="/#features" className="text-slate-300 hover:text-white font-medium transition-colors">Features</a>
@@ -139,10 +139,13 @@ const LandingPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-amber-400">Level Up</span> Your Officiating Game
+                <span className="text-transparent bg-clip-text" style={{backgroundImage: 'linear-gradient(90deg, #0080C8 0%, #FF8C00 100%)'}}>Leadership Under</span> Pressure
               </motion.h1>
-              <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto mb-10 font-medium">
-                The all-in-one platform for referees to find games, manage schedules, and track earnings, and for managers to streamline league operations.
+              <p className="text-lg md:text-2xl text-slate-300 max-w-3xl mx-auto mb-4 font-medium">
+                The all-in-one platform for officials to find games, manage schedules, and track earnings — built for the world of basketball officiating.
+              </p>
+              <p className="text-sm text-slate-400 max-w-2xl mx-auto mb-10 font-medium tracking-wide uppercase">
+                Master the Moment. Lead with Confidence.
               </p>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -150,15 +153,15 @@ const LandingPage = () => {
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
                 <Link to="/register">
-                  <Button size="lg" className="bg-brand-orange hover:bg-orange-600 text-white text-lg font-bold px-10 py-7 shadow-xl shadow-brand-orange/20 rounded-full transition-all hover:scale-105">
-                    Become a Pro Referee Today <ArrowRight className="ml-2 h-6 w-6" />
+                  <Button size="lg" className="text-white text-lg font-bold px-10 py-7 shadow-xl rounded-full transition-all hover:scale-105" style={{backgroundColor: '#FF8C00'}}>
+                    Start Your Journey <ArrowRight className="ml-2 h-6 w-6" />
                   </Button>
                 </Link>
               </motion.div>
             </motion.div>
 
             <section id="features" className="py-24 relative">
-              <h2 className="text-3xl md:text-5xl font-bold mb-16 text-white tracking-tight">Why You'll Love Basketball Reff</h2>
+              <h2 className="text-3xl md:text-5xl font-bold mb-16 text-white tracking-tight">Why Officials Choose iWhistle</h2>
               <div className="grid md:grid-cols-3 gap-8">
                 <FeatureCard
                   icon={<CheckCircle className="h-8 w-8 text-brand-blue" />}
@@ -290,12 +293,12 @@ const LandingPage = () => {
                 <div className="md:col-span-2">
                   <Link to="/" className="text-2xl font-bold flex items-center mb-6">
                     <div className="w-8 h-8 mr-2 bg-white rounded-full p-1 flex items-center justify-center">
-                        <img  alt="Basketball Reff logo" className="w-full h-full object-contain" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
+                        <img  alt="iWhistle logo" className="w-full h-full object-contain" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
                     </div>
-                    <span className="text-white font-black">Basketball<span className="text-brand-orange">Reff</span></span>
+                    <span className="font-black text-white">i<span style={{color:'#FF8C00'}}>Whistle</span></span>
                   </Link>
                   <p className="text-slate-400 max-w-md leading-relaxed">
-                    The ultimate platform connecting certified basketball referees with local leagues and competitive tournaments. Streamline your officiating journey today.
+                    The professional officiating platform elevating basketball officials through education, scheduling, and community. Your whistle. Your journey. Your excellence.
                   </p>
                 </div>
                 
@@ -331,7 +334,7 @@ const LandingPage = () => {
               
               <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
                 <p className="text-slate-500 font-medium mb-4 md:mb-0">
-                    &copy; {new Date().getFullYear()} Basketball Reff. All rights reserved.
+                    &copy; {new Date().getFullYear()} iWhistle. All rights reserved.
                 </p>
                 <div className="flex space-x-6 text-sm font-medium">
                     <a href="#" className="text-slate-500 hover:text-white transition-colors">Privacy Policy</a>

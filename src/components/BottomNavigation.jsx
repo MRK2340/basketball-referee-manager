@@ -37,17 +37,18 @@ const BottomNavigation = () => {
               to={item.path}
               data-testid={`bottom-nav-${item.label.toLowerCase()}`}
               className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[60px] ${
-                isActive ? 'text-blue-600' : 'text-slate-500'
+                isActive ? 'text-[#0080C8]' : 'text-slate-500'
               }`}
             >
-              <div className={`p-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-blue-50' : ''}`}>
+              <div className={`p-2 rounded-lg transition-all duration-200 ${isActive ? 'bg-[#E6F2F8]' : ''}`}>
                 <Icon className="h-5 w-5" />
               </div>
               <span className="text-xs font-medium mt-1">{item.label}</span>
               {isActive && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 rounded-full"
+                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full"
+                  style={{backgroundColor: '#0080C8'}}
                 />
               )}
             </NavLink>

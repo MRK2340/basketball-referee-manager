@@ -122,7 +122,7 @@ const LeaderboardTab = ({ referees, games }) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Total Referees', value: referees.length, icon: Trophy, color: 'text-blue-600', bg: 'bg-blue-100' },
+          { label: 'Total Referees', value: referees.length, icon: Trophy, color: 'text-brand-blue', bg: 'bg-blue-100' },
           { label: 'Avg Rating', value: referees.length ? (referees.reduce((s, r) => s + (r.rating || 0), 0) / referees.length).toFixed(1) : '—', icon: Star, color: 'text-yellow-600', bg: 'bg-yellow-100' },
           { label: 'Avg Games', value: referees.length ? Math.round(referees.reduce((s, r) => s + (r.games_officiated || 0), 0) / referees.length) : 0, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
         ].map((stat) => {
