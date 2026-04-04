@@ -1,116 +1,101 @@
-# PRD - Basketball Referee Manager App
+# PRD - iWhistle Basketball Referee Manager
 
-## Problem Statement
-Recreate `MRK2340/basketball-referee-manager` — an AAU youth basketball league manager app where:
-- **Referees**: view schedule, log availability, communicate with managers
-- **Managers**: assign referees, manage tournaments, track performance
+## Original Problem Statement
+Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AAU youth basketball league manager app where:
+- **Referees** can view their schedule, log availability, and communicate with managers
+- **Managers** can assign referees and manage tournaments
 
-**Critical Note**: All features are built with a mocked localStorage backend (Supabase will be connected at the final phase, per user request).
+**User Decision**: Build all rich frontend UI/UX features FIRST using mocked local storage backend, then connect Supabase at the very end.
 
-## User Personas
-- **Manager** (league admin): manages tournaments, assigns referees, reviews reports, tracks payments
-- **Referee** (officials): checks schedule, sets availability, accepts/declines games, submits reports
+## App Overview
+**Brand**: iWhistle — "Leadership Under Pressure"  
+**Tagline**: "Master the Moment. Lead with Confidence."  
+**URL**: Pure Vite/React frontend at port 3000, no backend  
+**Data**: Fully mocked via localStorage (`demoDataService.js`)
 
-## Core Requirements
-- Role-based auth: Manager vs Referee views
-- Tournaments: create, edit, delete
-- Games: schedule, assign referees, mark complete
-- Calendar: availability logging, month/week/day views
-- Schedule: open games with smart filtering, my schedule with conflict detection
-- Messages: threaded communication between roles
-- Payments: tracking, CSV export, bulk mark-as-paid
-- Game Reports: submit post-game reports, manager resolution notes
-- Notifications: bell icon panel, in-app activity feed
+## Tech Stack
+- React (Vite)
+- Tailwind CSS + Shadcn/UI  
+- Framer Motion
+- Local Storage mock data layer
+- iWhistle Brand Style Guide v2.0 (Dec 2025)
 
----
+## Brand Specification (iWhistle v2.0)
+- **Primary Blue**: #0080C8
+- **Deep Blue**: #003D7A
+- **Light Blue**: #4DB8E8
+- **Primary Orange**: #FF8C00
+- **Burnt Orange**: #E67300
+- **Font**: Arial, Helvetica, sans-serif
+- **Color Balance**: 60% White, 30% Blue, 10% Orange
 
 ## Architecture
 ```
-/app (React + Vite + Tailwind + Shadcn UI)
-├── src/
-│   ├── App.jsx
-│   ├── components/ (Layout, Sidebar, BottomNavigation, TopBar, NotificationPanel, GameDetailSheet, SkeletonCard)
-│   ├── contexts/ (AuthContext, DataContext)
-│   ├── hooks/ (useDataFetching, useTournamentActions, useAssignmentActions, useGameActions, etc.)
-│   ├── lib/ (demoDataService.js — CORE mocked DB, conflictUtils.js)
-│   ├── pages/
-│   │   ├── Manager/ (index.jsx — 6 tabs, TournamentsTab, GameAssignmentsTab, RefereeManagementTab, GameReportsTab, StandingsTab, LeaderboardTab, RatingDialog)
-│   │   ├── Schedule/ (tabs: MyScheduleTab, OpenGamesTab [smart sorting])
-│   │   ├── Settings/ (NotificationsSettings, PreferencesSettings, AccountSecuritySettings)
-│   │   ├── Dashboard.jsx, Profile.jsx, Calendar.jsx, Games.jsx, Messages.jsx, Payments.jsx, GameReport.jsx
+/app/src/
+├── App.jsx
+├── index.css (brand colors, Arial font)
+├── styles/iwhistle-brand.css (CSS variables)
+├── tailwind.config.js (brand-blue #0080C8, brand-orange #FF8C00)
+├── contexts/ (AuthContext.jsx, DataContext.jsx)
+├── hooks/ (useDataFetching.js, useAvailabilityActions.js, etc.)
+├── lib/ (demoDataService.js — core mock data layer)
+├── components/ (Layout, Sidebar, TopBar, BottomNavigation, GameDetailSheet, etc.)
+└── pages/
+    ├── LandingPage.jsx, Login.jsx, Register.jsx
+    ├── Dashboard.jsx, Profile.jsx, Calendar/, Schedule/, Games.jsx
+    ├── Payments.jsx, Messages.jsx, Settings.jsx
+    ├── PerformanceAnalytics.jsx, GameReport.jsx
+    ├── AboutPage.jsx, ContactPage.jsx
+    └── Manager/
+        ├── index.jsx (7-tab manager hub)
+        ├── AvailabilityCalendarTab.jsx
+        ├── LeaderboardTab.jsx
+        ├── StandingsTab.jsx
+        ├── TournamentsTab.jsx
+        └── ... (more tabs)
 ```
-
----
 
 ## What's Been Implemented
 
-### Phase 1 — UI/UX Polish (Complete ✅)
-- High-contrast light theme (Swiss design aesthetic)
-- Shadcn UI components throughout
-- data-testid coverage
-- Design guidelines generated (`/app/design_guidelines.json`)
+### Phase 1 - Core App (Complete)
+- Auth flow (login/register/demo accounts)
+- Manager dashboard with 7 tabs
+- Referee dashboard with schedule/games/payments/messages/calendar
+- Full mock data layer (demoDataService.js) with all CRUD operations
 
-### Phase 2 — Manager Actions (Complete ✅)
-- Delete tournament confirm dialog
-- Reply/Forward message actions
-- Export Payments (CSV) dropdown
-- Notification Center (bell icon panel)
+### Phase 2 - Top-Notch UI Features (Complete — 2025)
+- Referee Post-Game Rating System
+- Tournament Standings Tab
+- Referee Leaderboard
+- Live Activity Feed on Dashboard
+- Game Detail Slide-out Panel (GameDetailSheet.jsx)
+- Enhanced Game Reports
+- Working Notification Preferences (persisted to localStorage)
+- Calendar Week View
+- Open Games Smart Sorting
+- Empty States & Skeleton Loading States (SkeletonCard.jsx)
+- Referee Availability Calendar Tab (AvailabilityCalendarTab.jsx)
 
-### Phase 3 — Assignment-Conflict Assistant (Complete ✅)
-- `conflictUtils.js` for conflict detection
-- Live conflict badges/traffic-light status in GameAssignmentsTab
-- Conflict-aware Referee Accept/Decline Warning dialog
-- Calendar Availability Strip in Assign Dialog and Referee Cards
+### Phase 3 - iWhistle Brand Redesign (Complete — Apr 2026)
+- Updated all "Basketball Reff" → "iWhistle" across entire app
+- Applied iWhistle Brand Style Guide v2.0:
+  - Font: Arial (replaced IBM Plex Sans + Cabinet Grotesk)
+  - Colors: #0080C8 blue, #003D7A deep blue, #FF8C00 orange
+  - "Leadership Under Pressure" tagline on login/landing
+  - iWhistle logo with gradient border (blue → orange)
+  - Active nav states: #E6F2F8 background, #0080C8 text
+  - Notification badges, buttons, CTAs: brand colors
+  - CSS variables updated (iwhistle-brand.css)
+  - Tailwind config updated (brand-blue, brand-orange, brand-blue-deep, brand-blue-light)
+- Testing: 24/24 brand checks passed (iteration_7.json)
 
-### Phase 4 — Bulk Actions & Polish (Complete ✅)
-- Bulk select & actions for Game Assignments
-- Bulk mark-as-paid for Payments
-- Referee accept conflict warning dialog
+## Upcoming Tasks
+- Add real-time conflict warnings in Availability grid (P1)
 
-### Phase 5 — Top-Notch Rich Features (Complete ✅, April 2026)
-1. **Referee Post-Game Rating System** — RatingDialog.jsx, star ratings + feedback per referee, profile rating history
-2. **Tournament Standings Tab** — StandingsTab.jsx, W/L records per team computed from scores
-3. **Referee Leaderboard Tab** — LeaderboardTab.jsx, sort by rating/games/acceptance, Assign shortcut
-4. **Live Activity Feed** — Dashboard.jsx bottom section, role-personalized timeline from notifications
-5. **Game Detail Slide-out Panel** — GameDetailSheet.jsx, shared component for all views
-6. **Enhanced Game Reports** — Technical Fouls, Personal Fouls, Ejections, MVP Player fields
-7. **Working Notification Preferences** — localStorage persisted, syncs after hard reload via useEffect
-8. **Calendar Week View** — hourly slots (7am–10pm), game blocks placed by time, prev/next navigation
-9. **Open Games Smart Sorting** — search, sort (Date/Pay/Best Match), filter panel (Division/Date Range/Min Pay)
-10. **Empty States & Loading States** — SkeletonCard.jsx, rich empty states with icons and context
-
-### Phase 6 — Referee Availability Calendar (Complete ✅, April 2026)
-- **AvailabilityCalendarTab.jsx** — New 4th tab in Manager page (7 total tabs)
-- Color-coded week grid: Green (Available), Blue (Available Today), Orange (Has Game), Gray (Unavailable)
-- Week navigation (prev/next/Today), certification filter dropdown
-- Summary stat cards: Referees, Available Slots, Open Games, Top Rated
-- Day header badges showing open game count per day
-- Quick-assign popover on hover over available cells (shows game list, assigns with one click)
-- Rich seed data for 3 referees with staggered availability across the week
-
----
-
-## Upcoming/Backlog
-
-### P0 — Supabase Connection (Final Phase)
-- Remove demoDataService.js mock layer
-- Implement real Supabase API calls for auth, games, assignments, reports, payments, messages
-- Migration: connect all existing UI flows to Supabase tables
-
-### P1 — Future Polish
-- Push notification service integration (real-time updates)
-- Email digest integration
-- Mobile-responsive improvements for small screens
-
----
-
-## Data Model (mocked via localStorage)
-- `tournaments`, `games`, `game_assignments`, `game_reports`
-- `profiles`, `messages`, `notifications`
-- `refereeRatings` — post-game referee performance ratings
-- `notificationPreferences` — per-user notification preference map
-- `refereeAvailability` — calendar availability slots
+## Future/Backlog
+- **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages
 
 ## Test Credentials
-- Manager: `manager@demo.com` / `password` (or use "Try Demo Account" → "Log in as Manager")
-- Referee: `referee@demo.com` / `password` (or use "Try Demo Account" → "Log in as Referee")
+- Manager: `manager@demo.com` / `password`
+- Referee: `referee@demo.com` / `password`
+- Demo button: "Try Demo Account" on login page
