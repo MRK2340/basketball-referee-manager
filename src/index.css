@@ -40,8 +40,46 @@ html {
   --app-accent-soft: #E6F2F8;
 }
 
+/* ── Dark Mode Variables (iWhistle Deep Blue Theme) ── */
+.dark {
+  --background: 215 100% 8%;
+  --foreground: 0 0% 96%;
+  --card: 215 70% 16%;
+  --card-foreground: 0 0% 96%;
+  --popover: 215 70% 16%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 202 100% 39%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 215 50% 20%;
+  --secondary-foreground: 0 0% 90%;
+  --muted: 215 50% 20%;
+  --muted-foreground: 210 20% 65%;
+  --accent: 215 50% 20%;
+  --accent-foreground: 0 0% 96%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 0 0% 96%;
+  --border: 215 40% 22%;
+  --input: 215 40% 22%;
+  --ring: 202 100% 39%;
+
+  --app-bg: #001829;
+  --app-surface: #002849;
+  --app-panel: #003060;
+  --app-border: rgba(255,255,255,0.1);
+  --app-text: #e8f4fd;
+  --app-muted: #7badc9;
+  --app-accent: #0080C8;
+  --app-accent-dark: #4DB8E8;
+  --app-accent-soft: rgba(0,128,200,0.2);
+}
+
 * {
   border-color: hsl(var(--border));
+}
+
+/* Smooth theme transitions on interactive/surface elements */
+body, header, nav, aside, main, input, textarea, button, a {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 body {
@@ -51,7 +89,90 @@ body {
   color: var(--app-text);
   font-family: Arial, sans-serif;
   min-height: 100vh;
+  transition: background 0.3s ease, color 0.3s ease;
 }
+
+.dark body {
+  background:
+    radial-gradient(circle at top right, rgba(0, 128, 200, 0.15), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(255, 140, 0, 0.08), transparent 35%),
+    linear-gradient(180deg, #001829 0%, #00101e 100%);
+}
+
+/* Dark mode heading overrides */
+.dark h1 { color: #4DB8E8; }
+.dark h2 { color: #e8f4fd; }
+.dark h3, .dark h4, .dark h5, .dark h6 { color: #c5dff0; }
+
+/* Dark mode card/panel overrides */
+.dark [class*="rounded"][class*="border"],
+.dark [class*="card"] {
+  border-color: rgba(255,255,255,0.08);
+}
+
+/* Dark main content area */
+.dark .app-page-shell {
+  background: transparent;
+}
+
+/* Override for specific white/light elements in dark mode */
+.dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+
+/* Dividers */
+.dark hr,
+.dark .divide-y > * + * { border-color: rgba(255,255,255,0.08) !important; }
+
+/* Override text in tables */
+.dark td, .dark th { color: #c5dff0; border-color: rgba(255,255,255,0.08) !important; }
+
+/* Ensure scrollbar is dark */
+.dark ::-webkit-scrollbar { background: #001829; }
+.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+/* Card backgrounds */
+.dark .bg-white,
+.dark .bg-white\/92,
+.dark .bg-white\/88,
+.dark .bg-white\/95 {
+  background-color: var(--app-surface) !important;
+}
+
+/* Slate backgrounds → dark navy */
+.dark .bg-slate-50 { background-color: var(--app-panel) !important; }
+.dark .bg-slate-100 { background-color: rgba(0,48,96,0.6) !important; }
+
+/* Borders */
+.dark .border-slate-200,
+.dark .border-slate-200\/80 {
+  border-color: rgba(255,255,255,0.08) !important;
+}
+.dark .border-slate-100 { border-color: rgba(255,255,255,0.06) !important; }
+
+/* Text colors */
+.dark .text-slate-950 { color: #f0f8ff !important; }
+.dark .text-slate-900 { color: #e8f4fd !important; }
+.dark .text-slate-700 { color: #b8d4e8 !important; }
+.dark .text-slate-600 { color: #94b8d4 !important; }
+.dark .text-slate-500 { color: #7badc9 !important; }
+.dark .text-slate-400 { color: #5e9ab8 !important; }
+
+/* Input field */
+.dark input,
+.dark textarea {
+  background-color: var(--app-panel) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: #e8f4fd !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgba(184,212,232,0.5) !important;
+}
+
+/* Focus ring */
+.dark input:focus { box-shadow: 0 0 0 2px rgba(0,128,200,0.3) !important; }
+
+/* Badge/notification */
+.dark .border-white { border-color: var(--app-surface) !important; }
 
 h1 {
   color: #0080C8;

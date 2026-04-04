@@ -1,0 +1,54 @@
+{
+  "summary": "Tested dark mode toggle feature for iWhistle app. All 10 specified dark mode requirements verified via Playwright browser automation on both Manager and Referee accounts. Dark mode is fully functional with correct colors, persistence, icon switching, and amber active nav accents.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "App.jsx wrapper div",
+        "issues": ["Line 45: <div className='min-h-screen bg-slate-900 text-slate-100'> - hardcoded dark slate background applies in BOTH light and dark mode. In light mode inner components cover it, but edges could show dark if content doesn't fill. Minor: consider removing or using conditional class based on isDark from ThemeContext."]
+      }
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_8.json"],
+  "action_items": [
+    "Minor: App.jsx line 45 has hardcoded bg-slate-900 div wrapper that doesn't respond to dark mode toggle - in light mode inner content covers it, but this is a code smell. Consider using ThemeProvider-aware background or removing hardcoded slate class."
+  ],
+  "critical_code_review_comments": [
+    "index.css has two .dark {} blocks - one at lines 44-74 (iWhistle custom variables) and one at lines 341-368 under @layer base. Since regular CSS has higher priority than @layer base, the iWhistle variables win correctly. No functional issue but could confuse future developers.",
+    "App.jsx line 45: <div className='min-h-screen bg-slate-900 text-slate-100'> - static dark background persists in light mode; covered by child elements so not visually broken but semantically wrong."
+  ],
+  "updated_files": [],
+  "feature_results": {
+    "Theme toggle button visible (Moon icon) in light mode": "PASS - data-testid='theme-toggle-button' present, visible=true, title='Switch to Dark Mode'",
+    "Toggle switches to dark mode (html.dark class applied)": "PASS - document.documentElement.className includes 'dark' after click",
+    "TopBar turns dark navy in dark mode": "PASS - computed background-color rgba(0,28,60,0.95)",
+    "Sidebar turns dark navy in dark mode": "PASS - computed background-color rgba(0,28,60,0.95)",
+    "Dark mode persists on page reload (localStorage)": "PASS - localStorage 'iwhistle-theme'='dark', html class 'dark' after reload",
+    "Active nav shows amber accent in dark mode": "PASS - computed color rgb(252,211,77) = amber-300, Manager 'Management' nav and Referee 'Dashboard' nav both amber",
+    "Sun icon visible in dark mode (toggle title = 'Switch to Light Mode')": "PASS - verified title attribute change",
+    "Toggle back to light mode (html loses dark class)": "PASS - html.className='' after second toggle, localStorage='light'",
+    "Light mode works correctly (sidebar white, active nav blue)": "PASS - active Dashboard nav color rgb(0,128,200)=#0080C8",
+    "All 7 Manager tabs in dark mode": "PASS - Tournaments(default), Assignments, Referees, Availability, Leaderboard, Standings, Reports - all clickable, dark class persists",
+    "Referee dashboard in dark mode": "PASS - stat cards visible, heading text visible (aliceblue rgb(240,248,255)), sidebar dark navy",
+    "BottomNavigation dark mode (mobile)": "PASS - bg rgba(0,28,60,0.95), border-top rgba(255,255,255,0.1), active Home icon amber rgb(252,211,77)",
+    "Dark mode toggle on Referee account": "PASS - toggle works, html.dark applied",
+    "Stat card numbers visible in dark mode": "PASS - JS confirms color rgb(240,248,255) aliceblue (visible on dark bg)"
+  },
+  "success_rate": {
+    "backend": "N/A - localStorage mock only",
+    "frontend": "100% - All 10 dark mode requirements verified and passing"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com via 'Try Demo Account' > 'Log in as Manager' (data-testid='login-demo-manager-button')",
+    "referee": "referee@demo.com via 'Try Demo Account' > 'Log in as Referee' (data-testid='login-demo-referee-button')"
+  },
+  "seed_data_creation": "No seed data created - used existing demo data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Dark mode feature fully implemented and passing. ThemeContext.jsx stores in localStorage 'iwhistle-theme', toggleTheme adds/removes .dark class on html. Toggle button at data-testid='theme-toggle-button' in TopBar. Dark palette: body #001829, sidebar/topbar rgba(0,28,60,0.95), active nav amber rgb(252,211,77). Light palette: sidebar white, active nav #0080C8 blue. Persistence confirmed. Minor code smell: App.jsx line 45 has static bg-slate-900 wrapper. Double .dark CSS block in index.css (lines 44-74 and 341-368) - no functional issue, custom vars win. Carry-over from iteration_7: demoDataService.js loadStore() missing refereeAvailability backfill guard."
+}

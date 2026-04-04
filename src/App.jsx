@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import Layout from '@/components/Layout';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -31,6 +32,7 @@ import NotFound from '@/pages/NotFound';
 function App() {
   return (
     <ErrorBoundary>
+      <ThemeProvider>
       <Router>
         <Helmet>
           <title>iWhistle - Leadership Under Pressure</title>
@@ -117,6 +119,7 @@ function App() {
           </DataProvider>
         </AuthProvider>
       </Router>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
