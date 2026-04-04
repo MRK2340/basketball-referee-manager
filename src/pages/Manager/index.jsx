@@ -37,8 +37,8 @@ const Manager = () => {
           data-testid="manager-page-header"
         >
           <p className="app-kicker mb-3">Manager tools</p>
-          <h1 className="app-heading mb-3 text-4xl text-slate-950">League Management</h1>
-          <p className="max-w-2xl text-slate-600">Oversee tournaments, games, and referees from one central hub with cleaner workflows and faster tab access.</p>
+          <h1 className="app-heading mb-3 text-4xl" style={{ color: '#0080C8' }}>League Management</h1>
+          <p className="max-w-2xl text-slate-600 dark:text-blue-200/70">Oversee tournaments, games, and referees from one central hub with cleaner workflows and faster tab access.</p>
         </motion.div>
 
         <Tabs defaultValue="tournaments" className="w-full" data-testid="manager-tabs-root">

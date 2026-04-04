@@ -89,6 +89,16 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
   - Tailwind config updated (brand-blue, brand-orange, brand-blue-deep, brand-blue-light)
 - Testing: 24/24 brand checks passed (iteration_7.json)
 
+### Phase 5 - Referee–Manager Connection System (Complete — Apr 2026)
+- New data model: manager_connections {id, referee_id, manager_id, status: pending|connected|declined, note, created_at}
+- 3 additional manager profiles seeded: Thomas Washington (Capitol Hoops D.C.), Sarah Chen (Bay Area Youth Basketball), Marcus Johnson (Midwest AAU)
+- /find-managers route (referee-only): browse managers, filter by name/league/location, send roster requests with note, withdraw pending requests
+- Roster tab in Manager panel: incoming requests (Accept/Decline), connected referee roster with expandable contact info
+- Pending request badge on Roster tab in Manager nav
+- Multi-manager support: referees can be on unlimited rosters simultaneously
+- service functions: requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord
+- Testing: 17/17 checks passed (iteration_9.json)
+
 ### Phase 4 - Dark Mode Toggle (Complete — Apr 2026)
 - ThemeContext.jsx with localStorage persistence ('iwhistle-theme')
 - Sun/Moon toggle button in TopBar (data-testid='theme-toggle-button')

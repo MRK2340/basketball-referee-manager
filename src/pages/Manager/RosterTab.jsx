@@ -3,11 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   UserCheck, UserX, Clock, CheckCircle2, Users, Star,
-  Trophy, Shield, Phone, Mail, MessageSquare, ChevronDown, ChevronUp
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar } from '@/components/ui/avatar';
+  Trophy, Shield, Phone, Mail, ChevronDown, ChevronUp
+} from 'lucide-react';
 
 const RefereeProfileCard = ({ referee, connection, isDark }) => {
   const [expanded, setExpanded] = useState(false);
