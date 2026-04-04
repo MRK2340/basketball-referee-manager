@@ -7,7 +7,7 @@ import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 import { useMessageActions } from '@/hooks/useMessageActions';
 import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
-import { markNotificationReadRecord, markAllNotificationsReadRecord } from '@/lib/demoDataService';
+import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord } from '@/lib/demoDataService';
 import { toast } from '@/components/ui/use-toast';
 
 const DataContext = createContext();
@@ -60,6 +60,24 @@ export const DataProvider = ({ children }) => {
     fetchData();
   };
 
+  const batchUnassignReferees = (gameIds) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = batchUnassignRefereesRecord(user, gameIds);
+    if (error) {
+      toast({ title: 'Batch unassign failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Referees Unassigned', description: `Removed all referee assignments from ${gameIds.length} game(s).` });
+      fetchData();
+    }
+  };
+
+  const batchMarkPaymentsPaid = (paymentIds) => {
+    if (!user) return;
+    batchMarkPaymentsPaidRecord(user, paymentIds);
+    toast({ title: 'Payments Updated', description: `${paymentIds.length} payment(s) marked as paid.` });
+    fetchData();
+  };
+
   const value = {
     loading,
     games,
@@ -73,6 +91,8 @@ export const DataProvider = ({ children }) => {
     fetchData,
     markNotificationRead,
     markAllNotificationsRead,
+    batchUnassignReferees,
+    batchMarkPaymentsPaid,
     ...tournamentActions,
     ...gameActions,
     ...assignmentActions,

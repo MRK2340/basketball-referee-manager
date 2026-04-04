@@ -5,6 +5,7 @@ import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,10 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Clock, 
+import {
+  DollarSign,
+  TrendingUp,
+  Clock,
   CheckCircle,
   Calendar,
   Download,
@@ -28,8 +29,9 @@ import { toast } from '@/components/ui/use-toast';
 
 const Payments = () => {
   // Hooks at the top
-  const { payments, games } = useData();
+  const { payments, games, batchMarkPaymentsPaid } = useData();
   const [filter, setFilter] = useState('all');
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState(new Set());
 
   const filteredPayments = payments.filter(payment => {
     if (filter === 'all') return true;
@@ -130,6 +132,32 @@ const Payments = () => {
       title: "Feature Coming Soon",
       description: "This feature isn't implemented yet.",
     });
+  };
+
+  const pendingPayments = filteredPayments.filter((p) => p.status === 'pending');
+  const allPendingSelected =
+    pendingPayments.length > 0 && pendingPayments.every((p) => selectedPaymentIds.has(p.id));
+
+  const toggleSelectAll = () => {
+    if (allPendingSelected) {
+      setSelectedPaymentIds(new Set());
+    } else {
+      setSelectedPaymentIds(new Set(pendingPayments.map((p) => p.id)));
+    }
+  };
+
+  const togglePayment = (id) => {
+    setSelectedPaymentIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkMarkPaid = () => {
+    batchMarkPaymentsPaid([...selectedPaymentIds]);
+    setSelectedPaymentIds(new Set());
   };
 
   return (
@@ -259,9 +287,55 @@ const Payments = () => {
         </motion.div>
 
         <div className="space-y-4">
+          {/* Bulk Actions Toolbar for Payments */}
+          {selectedPaymentIds.size > 0 && (
+            <div
+              data-testid="payments-bulk-actions-toolbar"
+              className="flex items-center gap-3 px-4 py-3 bg-brand-blue/5 border border-brand-blue/20 rounded-xl"
+            >
+              <span className="text-sm font-semibold text-brand-blue">
+                {selectedPaymentIds.size} payment{selectedPaymentIds.size > 1 ? 's' : ''} selected
+              </span>
+              <div className="flex gap-2 ml-auto">
+                <Button
+                  size="sm"
+                  data-testid="payments-bulk-mark-paid-button"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={handleBulkMarkPaid}
+                >
+                  <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                  Mark as Paid
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSelectedPaymentIds(new Set())}
+                  className="text-slate-500 hover:text-slate-700"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Select All for pending */}
+          {pendingPayments.length > 0 && (
+            <div className="flex items-center gap-2 px-1">
+              <Checkbox
+                data-testid="select-all-pending-payments-checkbox"
+                checked={allPendingSelected}
+                onCheckedChange={toggleSelectAll}
+                className="border-slate-400"
+              />
+              <span className="text-sm text-slate-600 font-medium">Select all pending payments</span>
+            </div>
+          )}
+
           {filteredPayments.length > 0 ? (
             filteredPayments.map((payment, index) => {
               const game = games.find(g => g.id === payment.gameId);
+              const isPending = payment.status === 'pending';
+              const isChecked = selectedPaymentIds.has(payment.id);
               return (
                 <motion.div
                   key={payment.id}
@@ -269,46 +343,59 @@ const Payments = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * (index + 4) }}
                 >
-                  <Card className="glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-sm" data-testid={`payment-row-${payment.id}`}>
+                  <Card
+                    className={`glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-sm ${isChecked ? 'border-brand-blue/40 bg-blue-50/20' : ''}`}
+                    data-testid={`payment-row-${payment.id}`}
+                  >
                     <CardContent className="p-6">
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <h3 className="text-lg font-bold text-slate-900">
-                              {game ? `${game.homeTeam} vs ${game.awayTeam}` : 'Game Payment'}
-                            </h3>
-                            <Badge className={`border ${getStatusColor(payment.status)}`}>
-                              {payment.status}
-                            </Badge>
-                          </div>
+                        <div className="flex items-start gap-3 flex-1">
+                          {isPending && (
+                            <Checkbox
+                              data-testid={`payment-checkbox-${payment.id}`}
+                              checked={isChecked}
+                              onCheckedChange={() => togglePayment(payment.id)}
+                              className="border-slate-400 mt-1"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <h3 className="text-lg font-bold text-slate-900">
+                                {game ? `${game.homeTeam} vs ${game.awayTeam}` : 'Game Payment'}
+                              </h3>
+                              <Badge className={`border ${getStatusColor(payment.status)}`}>
+                                {payment.status}
+                              </Badge>
+                            </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                            <div className="flex items-center space-x-2 text-slate-700">
-                              <Calendar className="h-4 w-4 text-brand-blue" />
-                              <span>{payment.date}</span>
-                            </div>
-                            <div className="flex items-center space-x-2 text-slate-700">
-                              <CreditCard className="h-4 w-4 text-green-600" />
-                              <span>{payment.method}</span>
-                            </div>
-                            {game && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                               <div className="flex items-center space-x-2 text-slate-700">
-                                <span className="text-slate-500 font-medium">Division:</span>
-                                <span>{game.division}</span>
+                                <Calendar className="h-4 w-4 text-brand-blue" />
+                                <span>{payment.date}</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-slate-700">
+                                <CreditCard className="h-4 w-4 text-green-600" />
+                                <span>{payment.method}</span>
+                              </div>
+                              {game && (
+                                <div className="flex items-center space-x-2 text-slate-700">
+                                  <span className="text-slate-500 font-medium">Division:</span>
+                                  <span>{game.division}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {payment.status === 'pending' && (
+                              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <div className="flex items-center space-x-2">
+                                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                                  <p className="text-yellow-700 text-sm font-medium">
+                                    Payment processing — Expected within 2-3 business days
+                                  </p>
+                                </div>
                               </div>
                             )}
                           </div>
-
-                          {payment.status === 'pending' && (
-                            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                              <div className="flex items-center space-x-2">
-                                <AlertCircle className="h-4 w-4 text-yellow-600" />
-                                <p className="text-yellow-700 text-sm font-medium">
-                                  Payment processing - Expected within 2-3 business days
-                                </p>
-                              </div>
-                            </div>
-                          )}
                         </div>
 
                         <div className="flex flex-col items-end space-y-3 lg:ml-6">

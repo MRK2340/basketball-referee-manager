@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, addDays, subDays, startOfDay } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -68,7 +68,72 @@ const STATUS_CONFIG = {
   },
 };
 
-const RefereeCard = ({ referee, game, isSelected, onSelect }) => {
+const WeekCalendarStrip = ({ referee, game, allGames }) => {
+  if (!game?.game_date) return null;
+  const gameDate = parseISO(game.game_date);
+  const days = Array.from({ length: 7 }, (_, i) => addDays(subDays(gameDate, 3), i));
+
+  const getDay = (day) => {
+    const dayStr = format(day, 'yyyy-MM-dd');
+    const isGameDay = dayStr === game.game_date;
+    const slots = referee.referee_availability || [];
+    const dayStart = startOfDay(day);
+    const dayEnd = addDays(dayStart, 1);
+    const hasAvail = slots.some((s) => {
+      const sStart = new Date(s.start_time);
+      const sEnd = new Date(s.end_time);
+      return sStart < dayEnd && sEnd > dayStart;
+    });
+    const hasConflict = (allGames || []).some((g) => {
+      if (!g.game_date || g.game_date !== dayStr) return false;
+      return (g.game_assignments || []).some((a) => a.referee_id === referee.id);
+    });
+    return { isGameDay, hasAvail, hasConflict };
+  };
+
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-100">
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+        Referee schedule this week
+      </p>
+      <div className="flex gap-1.5 justify-between">
+        {days.map((day, i) => {
+          const { isGameDay, hasAvail, hasConflict } = getDay(day);
+          return (
+            <div key={i} className="flex flex-col items-center gap-0.5 flex-1">
+              <span className="text-[10px] text-slate-400 font-medium leading-none">
+                {format(day, 'EEE')}
+              </span>
+              <div
+                className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                  isGameDay ? 'ring-2 ring-brand-blue ring-offset-1 scale-110' : ''
+                } ${
+                  hasConflict
+                    ? 'bg-orange-100 text-orange-700'
+                    : hasAvail
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+                title={
+                  hasConflict ? 'Assigned to a game' : hasAvail ? 'Available' : 'No availability logged'
+                }
+              >
+                {format(day, 'd')}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-4 mt-2 text-[10px] text-slate-400">
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-green-200 inline-block" />Available</span>
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-orange-200 inline-block" />Assigned</span>
+        <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-slate-200 inline-block" />No data</span>
+      </div>
+    </div>
+  );
+};
+
+const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
   const cfg = STATUS_CONFIG[referee.fitStatus?.status] || STATUS_CONFIG['no-data'];
   const StatusIcon = cfg.icon;
   const isIssue = ['conflict', 'unavailable', 'missing-certs'].includes(referee.fitStatus?.status);
@@ -136,6 +201,11 @@ const RefereeCard = ({ referee, game, isSelected, onSelect }) => {
             </p>
           )}
         </div>
+      )}
+
+      {/* Weekly calendar strip when card is selected */}
+      {isSelected && (
+        <WeekCalendarStrip referee={referee} game={game} allGames={allGames} />
       )}
     </button>
   );
@@ -246,6 +316,7 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
                       key={referee.id}
                       referee={referee}
                       game={game}
+                      allGames={games}
                       isSelected={selectedReferee?.id === referee.id}
                       onSelect={setSelectedReferee}
                     />

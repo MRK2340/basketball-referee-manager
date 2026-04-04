@@ -731,14 +731,23 @@ export const updateAssignment = (user, assignmentId, status, reason = null) => u
   const game = store.games.find((item) => item.id === assignment.game_id);
   const tournament = game ? store.tournaments.find((item) => item.id === game.tournament_id) : null;
   if (game && tournament?.manager_id) {
+    const msgBody = status === 'declined'
+      ? `${user.name} declined the assignment. Reason: ${reason || 'No reason provided.'}`
+      : `${user.name} accepted the assignment.`;
     createMessage(
       store,
       user.id,
       tournament.manager_id,
       `Assignment ${status}: ${game.home_team} vs ${game.away_team}`,
-      status === 'declined'
-        ? `${user.name} declined the assignment. Reason: ${reason || 'No reason provided.'}`
-        : `${user.name} accepted the assignment.`
+      msgBody
+    );
+    createNotification(
+      store,
+      tournament.manager_id,
+      'assignment',
+      `${user.name} ${status === 'declined' ? 'declined' : 'accepted'}: ${game.home_team} vs ${game.away_team}`,
+      msgBody,
+      '/manager'
     );
   }
 
@@ -949,6 +958,23 @@ export const markNotificationReadRecord = (user, notificationId) => updateStore(
   if (notif) notif.read = true;
   return { data: true };
 });
+
+export const batchUnassignRefereesRecord = (user, gameIds) => updateStore((store) => {
+  if (!user || user.role !== 'manager') {
+    return { error: createError('Only managers can unassign referees.') };
+  }
+  store.gameAssignments = store.gameAssignments.filter((a) => !gameIds.includes(a.game_id));
+  return { data: true };
+});
+
+export const batchMarkPaymentsPaidRecord = (user, paymentIds) => updateStore((store) => {
+  paymentIds.forEach((id) => {
+    const payment = store.payments.find((p) => p.id === id);
+    if (payment) payment.status = 'paid';
+  });
+  return { data: true };
+});
+
 
 export const markAllNotificationsReadRecord = (user) => updateStore((store) => {
   if (!store.notifications) return { data: null };

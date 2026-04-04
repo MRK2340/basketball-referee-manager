@@ -4,18 +4,25 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Clock, MapPin, Users, X, Check, XCircle } from 'lucide-react';
+import { useData } from '@/contexts/DataContext';
 import DeclineAssignmentDialog from './DeclineAssignmentDialog';
+import AcceptConflictWarningDialog from './AcceptConflictWarningDialog';
+import { getRefereeStatus } from '@/lib/conflictUtils';
 
 const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee, onUpdateAssignmentStatus }) => {
+  const { referees, games } = useData();
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+  const [conflictInfo, setConflictInfo] = useState(null);
+  const [pendingAcceptAssignment, setPendingAcceptAssignment] = useState(null);
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'scheduled': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'in-progress': return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'completed': return 'bg-green-100 text-green-700 border-green-200';
-      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+      case 'scheduled':    return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'in-progress':  return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'completed':    return 'bg-green-100 text-green-700 border-green-200';
+      default:             return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
 
@@ -35,7 +42,34 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
     setDeclineDialogOpen(true);
   };
 
-  const userAssignment = user.role === 'referee' ? game.assignments.find(a => a.referee.id === user.id) : null;
+  const handleAcceptClick = (assignment) => {
+    const refereeProfile = referees?.find((r) => r.id === user.id);
+    if (!refereeProfile) {
+      onUpdateAssignmentStatus(assignment.id, 'accepted');
+      return;
+    }
+    const fitStatus = getRefereeStatus(refereeProfile, game, games || []);
+    if (fitStatus.status === 'conflict' || fitStatus.status === 'unavailable') {
+      setConflictInfo(fitStatus);
+      setPendingAcceptAssignment(assignment);
+      setConflictDialogOpen(true);
+    } else {
+      onUpdateAssignmentStatus(assignment.id, 'accepted');
+    }
+  };
+
+  const handleAcceptAnyway = () => {
+    if (pendingAcceptAssignment) {
+      onUpdateAssignmentStatus(pendingAcceptAssignment.id, 'accepted');
+    }
+    setConflictDialogOpen(false);
+    setPendingAcceptAssignment(null);
+    setConflictInfo(null);
+  };
+
+  const userAssignment = user.role === 'referee'
+    ? game.assignments.find((a) => a.referee.id === user.id)
+    : null;
 
   return (
     <>
@@ -43,7 +77,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-3">
+              <div className="flex items-center space-x-3 mb-3 flex-wrap gap-y-1">
                 <h3 className="text-xl font-bold text-slate-900">
                   {game.homeTeam} vs {game.awayTeam}
                 </h3>
@@ -76,17 +110,22 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                   <span className="text-slate-800 text-sm font-semibold">Assigned Referees:</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {game.assignments.length > 0 ? game.assignments.map(assignment => (
-                    <Badge key={assignment.id} variant="secondary" className="bg-slate-100 text-slate-800 border border-slate-200">
-                      {assignment.referee.name}
-                      {getAssignmentStatusBadge(assignment.status)}
-                      {user?.role === 'manager' && (
-                        <button onClick={() => onUnassignReferee(assignment.id)} className="ml-2 rounded-full hover:bg-slate-200 p-0.5">
-                          <X className="h-3 w-3" />
-                        </button>
-                      )}
-                    </Badge>
-                  )) : <span className="text-slate-500 text-sm">None</span>}
+                  {game.assignments.length > 0
+                    ? game.assignments.map((assignment) => (
+                        <Badge key={assignment.id} variant="secondary" className="bg-slate-100 text-slate-800 border border-slate-200">
+                          {assignment.referee.name}
+                          {getAssignmentStatusBadge(assignment.status)}
+                          {user?.role === 'manager' && (
+                            <button
+                              onClick={() => onUnassignReferee(assignment.id)}
+                              className="ml-2 rounded-full hover:bg-slate-200 p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </Badge>
+                      ))
+                    : <span className="text-slate-500 text-sm">None</span>}
                 </div>
               </div>
 
@@ -104,10 +143,10 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                 <p className="text-2xl font-bold text-green-600">${game.payment}</p>
                 <p className="text-slate-600 text-sm">Payment</p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   data-testid={`game-card-view-details-${game.id}`}
                   className="border-slate-300 text-slate-800 hover:bg-slate-100 w-full"
@@ -117,7 +156,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                 </Button>
                 {user?.role === 'referee' && userAssignment && userAssignment.status === 'assigned' && (
                   <div className="flex gap-2 w-full">
-                    <Button 
+                    <Button
                       size="sm"
                       data-testid={`game-card-decline-${game.id}`}
                       className="bg-red-600 hover:bg-red-700 text-white flex-1"
@@ -126,11 +165,11 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                       <XCircle className="h-4 w-4 mr-2" />
                       Decline
                     </Button>
-                    <Button 
+                    <Button
                       size="sm"
                       data-testid={`game-card-accept-${game.id}`}
                       className="bg-green-600 hover:bg-green-700 text-white flex-1"
-                      onClick={() => onUpdateAssignmentStatus(userAssignment.id, 'accepted')}
+                      onClick={() => handleAcceptClick(userAssignment)}
                     >
                       <Check className="h-4 w-4 mr-2" />
                       Accept
@@ -138,7 +177,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                   </div>
                 )}
                 {user?.role === 'manager' && (
-                   <Button 
+                  <Button
                     size="sm"
                     data-testid={`game-card-assign-${game.id}`}
                     className="basketball-gradient hover:opacity-90 text-white w-full"
@@ -152,6 +191,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
           </div>
         </CardContent>
       </Card>
+
       {selectedAssignment && (
         <DeclineAssignmentDialog
           open={declineDialogOpen}
@@ -160,6 +200,12 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
           onDecline={onUpdateAssignmentStatus}
         />
       )}
+      <AcceptConflictWarningDialog
+        open={conflictDialogOpen}
+        onOpenChange={setConflictDialogOpen}
+        conflictInfo={conflictInfo}
+        onAcceptAnyway={handleAcceptAnyway}
+      />
     </>
   );
 };
