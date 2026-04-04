@@ -41,7 +41,7 @@ const Dashboard = () => {
 
   const upcomingGames = games.filter(game => {
     if (user.role === 'referee') {
-      return game.assignments.some(a => a.referee.id === user.id && a.status === 'accepted') && new Date(game.date) >= new Date();
+      return game.assignments.some(a => a.referee?.id === user.id && a.status === 'accepted') && new Date(game.date) >= new Date();
     }
     return new Date(game.date) >= new Date();
   }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 3);
