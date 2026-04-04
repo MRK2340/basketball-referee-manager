@@ -5,11 +5,13 @@ import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ClipboardList, Trophy, Users, FileText } from 'lucide-react';
+import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal } from 'lucide-react';
 import TournamentsTab from './TournamentsTab';
 import GameAssignmentsTab from './GameAssignmentsTab';
 import RefereeManagementTab from './RefereeManagementTab';
 import GameReportsTab from './GameReportsTab';
+import StandingsTab from './StandingsTab';
+import LeaderboardTab from './LeaderboardTab';
 
 const Manager = () => {
   const { user } = useAuth();
@@ -38,18 +40,24 @@ const Manager = () => {
         </motion.div>
 
         <Tabs defaultValue="tournaments" className="w-full" data-testid="manager-tabs-root">
-          <TabsList className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm lg:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3 gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm lg:grid-cols-6">
             <TabsTrigger value="tournaments" data-testid="manager-tab-tournaments">
               <Trophy className="h-4 w-4 mr-2" /> Tournaments
             </TabsTrigger>
             <TabsTrigger value="assignments" data-testid="manager-tab-assignments">
-              <ClipboardList className="h-4 w-4 mr-2" /> Game Assignments
+              <ClipboardList className="h-4 w-4 mr-2" /> Assignments
             </TabsTrigger>
             <TabsTrigger value="referees" data-testid="manager-tab-referees">
               <Users className="h-4 w-4 mr-2" /> Referees
             </TabsTrigger>
+            <TabsTrigger value="leaderboard" data-testid="manager-tab-leaderboard">
+              <Medal className="h-4 w-4 mr-2" /> Leaderboard
+            </TabsTrigger>
+            <TabsTrigger value="standings" data-testid="manager-tab-standings">
+              <BarChart2 className="h-4 w-4 mr-2" /> Standings
+            </TabsTrigger>
             <TabsTrigger value="reports" data-testid="manager-tab-reports">
-              <FileText className="h-4 w-4 mr-2" /> Game Reports
+              <FileText className="h-4 w-4 mr-2" /> Reports
             </TabsTrigger>
           </TabsList>
 
@@ -73,6 +81,14 @@ const Manager = () => {
 
           <TabsContent value="referees">
             <RefereeManagementTab referees={referees} />
+          </TabsContent>
+
+          <TabsContent value="leaderboard">
+            <LeaderboardTab referees={referees} games={games} />
+          </TabsContent>
+
+          <TabsContent value="standings">
+            <StandingsTab tournaments={tournaments} games={games.map(g => ({ ...g, home_team: g.homeTeam, away_team: g.awayTeam, home_score: g.homeScore, away_score: g.awayScore, game_date: g.date, tournament_id: g.tournamentId }))} />
           </TabsContent>
           
           <TabsContent value="reports">

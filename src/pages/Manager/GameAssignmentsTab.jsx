@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { X, CheckCircle, HelpCircle, AlertTriangle, XCircle, Award, Trash2 } from 'lucide-react';
+import { X, CheckCircle, HelpCircle, AlertTriangle, XCircle, Award, Trash2, Star } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import AssignRefereeDialog from '@/pages/Manager/components/AssignRefereeDialog';
+import RatingDialog from '@/pages/Manager/RatingDialog';
 import { getRefereeStatus } from '@/lib/conflictUtils';
 
 const CONFLICT_BADGE = {
@@ -24,6 +25,8 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
   const [selectedGameIds, setSelectedGameIds] = useState(new Set());
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [gameToRate, setGameToRate] = useState(null);
 
   const scheduledGames = games.filter((g) => g.status !== 'completed');
   const allScheduledSelected =
@@ -54,6 +57,15 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
   const handleBulkComplete = () => {
     [...selectedGameIds].forEach((id) => markGameAsCompleted(id));
     setSelectedGameIds(new Set());
+  };
+
+  const handleMarkComplete = (game) => {
+    markGameAsCompleted(game.id);
+    // Prompt for rating if game has assigned referees
+    if (game.game_assignments?.length > 0) {
+      setGameToRate(game);
+      setRatingDialogOpen(true);
+    }
   };
 
   const handleOpenAssignDialog = (game) => {
@@ -300,12 +312,24 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                               variant="outline"
                               data-testid={`manager-complete-game-${game.id}`}
                               className="border-green-300 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800 font-semibold"
-                              onClick={() => markGameAsCompleted(game.id)}
+                              onClick={() => handleMarkComplete(game)}
                             >
                               <CheckCircle className="h-4 w-4 mr-1.5" />
                               Complete
                             </Button>
                           </div>
+                        )}
+                        {game.status === 'completed' && game.game_assignments?.some(a => a.status !== 'declined') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            data-testid={`manager-rate-referees-${game.id}`}
+                            className="border-yellow-300 text-yellow-700 bg-yellow-50 hover:bg-yellow-100 font-semibold"
+                            onClick={() => { setGameToRate(game); setRatingDialogOpen(true); }}
+                          >
+                            <Star className="h-4 w-4 mr-1.5 fill-yellow-400 text-yellow-400" />
+                            Rate
+                          </Button>
                         )}
                       </TableCell>
                     </TableRow>
@@ -324,6 +348,11 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
         referees={referees}
         games={games}
         onAssign={assignRefereeToGame}
+      />
+      <RatingDialog
+        open={ratingDialogOpen}
+        setOpen={setRatingDialogOpen}
+        game={gameToRate}
       />
     </>
   );

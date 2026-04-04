@@ -12,6 +12,8 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
   const [referees, setReferees] = useState([]);
   const [availability, setAvailability] = useState([]);
   const [gameReports, setGameReports] = useState([]);
+  const [refereeRatings, setRefereeRatings] = useState([]);
+  const [notificationPreferences, setNotificationPreferences] = useState({});
   const [hasMoreGames, setHasMoreGames] = useState(true);
 
   const fetchData = useCallback(async (isInitialLoad = true) => {
@@ -40,6 +42,8 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
         setReferees(data.referees);
         setAvailability(data.availability);
         setGameReports(data.gameReports);
+        setRefereeRatings(data.refereeRatings || []);
+        setNotificationPreferences(data.notificationPreferences || {});
       }
 
       setHasMoreGames(data.games.length === pageSize);
@@ -66,6 +70,8 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
     referees, setReferees,
     availability, setAvailability,
     gameReports, setGameReports,
+    refereeRatings, setRefereeRatings,
+    notificationPreferences, setNotificationPreferences,
     fetchData,
     hasMoreGames
   };

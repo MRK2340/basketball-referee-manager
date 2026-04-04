@@ -7,7 +7,7 @@ import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 import { useMessageActions } from '@/hooks/useMessageActions';
 import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
-import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord } from '@/lib/demoDataService';
+import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord } from '@/lib/demoDataService';
 import { toast } from '@/components/ui/use-toast';
 
 const DataContext = createContext();
@@ -32,6 +32,8 @@ export const DataProvider = ({ children }) => {
     referees,
     availability,
     gameReports,
+    refereeRatings,
+    notificationPreferences,
     fetchData
   } = useDataFetching(user);
 
@@ -78,6 +80,34 @@ export const DataProvider = ({ children }) => {
     fetchData();
   };
 
+  const rateReferee = (gameId, refereeId, stars, feedback) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = rateRefereeRecord(user, gameId, refereeId, stars, feedback);
+    if (error) {
+      toast({ title: 'Rating failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Rating submitted', description: `${stars}-star rating saved.` });
+      fetchData();
+    }
+  };
+
+  const saveNotificationPreferences = (prefs) => {
+    if (!user) return;
+    saveNotificationPreferencesRecord(user, prefs);
+    fetchData();
+  };
+
+  const addReportResolution = (reportId, note) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = addReportResolutionRecord(user, reportId, note);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Report resolved', description: 'Resolution note added and report marked as reviewed.' });
+      fetchData();
+    }
+  };
+
   const value = {
     loading,
     games,
@@ -88,11 +118,16 @@ export const DataProvider = ({ children }) => {
     referees,
     availability,
     gameReports,
+    refereeRatings,
+    notificationPreferences,
     fetchData,
     markNotificationRead,
     markAllNotificationsRead,
     batchUnassignReferees,
     batchMarkPaymentsPaid,
+    rateReferee,
+    saveNotificationPreferences,
+    addReportResolution,
     ...tournamentActions,
     ...gameActions,
     ...assignmentActions,

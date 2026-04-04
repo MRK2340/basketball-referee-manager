@@ -253,11 +253,30 @@ const createSeedStore = () => ({
       professionalism_rating: 5,
       incidents: 'Minor bench warning in the third quarter.',
       notes: 'Fast-paced game with excellent sportsmanship in the final period.',
+      technical_fouls: 1,
+      personal_fouls: 14,
+      ejections: 0,
+      mvp_player: 'Marcus Johnson (Capital Cougars)',
       status: 'submitted',
       created_at: toIsoFromToday(-2, 21, 10),
+      resolution_note: null,
+      resolved_by: null,
+      resolved_at: null,
     },
   ],
   courtAssignments: [],
+  refereeRatings: [
+    {
+      id: 'rating-seed-1',
+      game_id: 'game-4',
+      referee_id: 'demo-referee',
+      manager_id: 'demo-manager',
+      stars: 5,
+      feedback: 'Excellent game control and very professional throughout a tight final period. Excellent communication with players.',
+      created_at: toIsoFromToday(-2, 21, 30),
+    },
+  ],
+  notificationPreferences: {},
   notifications: [
     {
       id: 'notif-seed-1',
@@ -350,6 +369,12 @@ const loadStore = () => {
   const base = stored || createSeedStore();
   if (!base.notifications) {
     base.notifications = createSeedStore().notifications;
+  }
+  if (!base.refereeRatings) {
+    base.refereeRatings = createSeedStore().refereeRatings;
+  }
+  if (!base.notificationPreferences) {
+    base.notificationPreferences = {};
   }
   const synced = syncProfiles(base);
   saveStore(synced);
@@ -500,9 +525,16 @@ const mapGameReport = (report, store) => {
     professionalism_rating: report.professionalism_rating,
     incidents: report.incidents,
     notes: report.notes,
+    technicalFouls: report.technical_fouls ?? null,
+    personalFouls: report.personal_fouls ?? null,
+    ejections: report.ejections ?? null,
+    mvpPlayer: report.mvp_player || null,
     status: report.status,
     createdAt: report.created_at,
     created_at: report.created_at,
+    resolutionNote: report.resolution_note || null,
+    resolvedBy: report.resolved_by || null,
+    resolvedAt: report.resolved_at || null,
   };
 };
 
@@ -573,6 +605,18 @@ export const fetchAppData = (user, page = 1, pageSize = 20) => {
       .filter((slot) => slot.referee_id === user.id)
       .map(mapAvailability),
     gameReports: store.gameReports.map((report) => mapGameReport(report, store)),
+    refereeRatings: (store.refereeRatings || [])
+      .filter((r) => user.role === 'referee' ? r.referee_id === user.id : true)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at)),
+    notificationPreferences: (store.notificationPreferences || {})[user.id] || {
+      gameAssignments: true,
+      scheduleChanges: true,
+      paymentUpdates: true,
+      messages: true,
+      emailNotifications: true,
+      pushNotifications: true,
+      smsNotifications: false,
+    },
   };
 };
 
@@ -981,5 +1025,66 @@ export const markAllNotificationsReadRecord = (user) => updateStore((store) => {
   store.notifications
     .filter((n) => n.recipient_id === user?.id)
     .forEach((n) => { n.read = true; });
+  return { data: true };
+});
+
+export const rateRefereeRecord = (user, gameId, refereeId, stars, feedback) => updateStore((store) => {
+  if (!user || user.role !== 'manager') {
+    return { error: createError('Only managers can rate referees.') };
+  }
+  if (!store.refereeRatings) store.refereeRatings = [];
+
+  const existing = store.refereeRatings.find(
+    (r) => r.game_id === gameId && r.referee_id === refereeId
+  );
+  if (existing) {
+    existing.stars = stars;
+    existing.feedback = feedback;
+  } else {
+    store.refereeRatings.unshift({
+      id: createId('rating'),
+      game_id: gameId,
+      referee_id: refereeId,
+      manager_id: user.id,
+      stars,
+      feedback,
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  const referee = store.profiles.find((p) => p.id === refereeId);
+  if (referee) {
+    const refRatings = store.refereeRatings.filter((r) => r.referee_id === refereeId);
+    referee.rating = Math.round((refRatings.reduce((sum, r) => sum + r.stars, 0) / refRatings.length) * 10) / 10;
+  }
+
+  const game = store.games.find((g) => g.id === gameId);
+  if (game) {
+    createNotification(
+      store, refereeId, 'payment',
+      `Performance rating received`,
+      `You received a ${stars}-star rating for ${game.home_team} vs ${game.away_team}.`,
+      '/profile'
+    );
+  }
+  return { data: true };
+});
+
+export const saveNotificationPreferencesRecord = (user, prefs) => updateStore((store) => {
+  if (!store.notificationPreferences) store.notificationPreferences = {};
+  store.notificationPreferences[user.id] = prefs;
+  return { data: true };
+});
+
+export const addReportResolutionRecord = (user, reportId, note) => updateStore((store) => {
+  if (!user || user.role !== 'manager') {
+    return { error: createError('Only managers can resolve reports.') };
+  }
+  const report = store.gameReports.find((r) => r.id === reportId);
+  if (!report) return { error: createError('Report not found.') };
+  report.resolution_note = note;
+  report.resolved_by = user.id;
+  report.resolved_at = new Date().toISOString();
+  report.status = 'reviewed';
   return { data: true };
 });

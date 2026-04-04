@@ -7,7 +7,7 @@ import ScheduleFilter from '../components/ScheduleFilter';
 import GameCard from '../components/GameCard';
 import NoGamesFound from '../components/NoGamesFound';
 import AssignRefereeDialog from '../components/AssignRefereeDialog';
-import GameDetailsDialog from '@/pages/Manager/GameDetailsDialog';
+import GameDetailSheet from '@/components/GameDetailSheet';
 import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 
 const MyScheduleTab = ({ games, referees }) => {
@@ -99,7 +99,7 @@ const MyScheduleTab = ({ games, referees }) => {
           onAssign={assignRefereeToGame}
         />
       )}
-      <GameDetailsDialog
+      <GameDetailSheet
         open={detailDialogOpen}
         setOpen={setDetailDialogOpen}
         game={detailGame}

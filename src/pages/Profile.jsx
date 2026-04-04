@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { useAuth } from '@/contexts/AuthContext';
+import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,12 +20,15 @@ import {
   Save,
   X,
   Upload,
-  Loader2
+  Loader2,
+  Award
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { format } from 'date-fns';
 
 const Profile = () => {
   const { user, updateProfile, uploadAvatar, loading: authLoading } = useAuth();
+  const { refereeRatings } = useData();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -347,6 +351,55 @@ const Profile = () => {
               </CardContent>
             </Card>
           </motion.div>
+
+          {/* Rating History - Referee only */}
+          {user?.role === 'referee' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              <Card className="glass-effect border-slate-200 shadow-sm" data-testid="profile-rating-history">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Award className="h-5 w-5 text-yellow-500" />
+                    <CardTitle className="text-slate-900 text-lg">Performance Ratings</CardTitle>
+                  </div>
+                  <CardDescription className="text-slate-600">
+                    Ratings submitted by managers after your games.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {refereeRatings.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Star className="h-10 w-10 text-slate-300 mx-auto mb-2" />
+                      <p className="text-slate-600 font-medium">No ratings yet</p>
+                      <p className="text-slate-400 text-sm">Ratings appear after managers review your game performance.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {refereeRatings.map((rating) => (
+                        <div key={rating.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200" data-testid={`profile-rating-${rating.id}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1">
+                              {[1,2,3,4,5].map((s) => (
+                                <Star key={s} className={`h-4 w-4 ${rating.stars >= s ? 'text-yellow-400 fill-yellow-400' : 'text-slate-300'}`} />
+                              ))}
+                              <span className="text-sm font-bold text-slate-700 ml-1">{rating.stars}/5</span>
+                            </div>
+                            <span className="text-xs text-slate-400">{format(new Date(rating.created_at), 'MMM d, yyyy')}</span>
+                          </div>
+                          {rating.feedback && (
+                            <p className="text-slate-700 text-sm italic">&ldquo;{rating.feedback}&rdquo;</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
         </div>
       </div>
     </>

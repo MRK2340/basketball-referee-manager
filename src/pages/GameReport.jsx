@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
-import { Star, Trophy } from 'lucide-react';
+import { Star, Trophy, AlertTriangle, Users, Award } from 'lucide-react';
 
 const GameReport = () => {
   const { user } = useAuth();
@@ -24,6 +24,10 @@ const GameReport = () => {
   const [professionalismRating, setProfessionalismRating] = useState(0);
   const [incidents, setIncidents] = useState('');
   const [notes, setNotes] = useState('');
+  const [technicalFouls, setTechnicalFouls] = useState(0);
+  const [personalFouls, setPersonalFouls] = useState(0);
+  const [ejections, setEjections] = useState(0);
+  const [mvpPlayer, setMvpPlayer] = useState('');
 
   const reportableGames = useMemo(() => {
     const reportedGameIds = new Set(gameReports.map(r => r.gameId));
@@ -60,6 +64,10 @@ const GameReport = () => {
       professionalism_rating: professionalismRating,
       incidents,
       notes,
+      technical_fouls: technicalFouls,
+      personal_fouls: personalFouls,
+      ejections,
+      mvp_player: mvpPlayer,
     };
 
     const success = await submitGameReport(reportData);
@@ -158,6 +166,64 @@ const GameReport = () => {
                   onChange={(e) => setIncidents(e.target.value)}
                   className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 min-h-[100px]"
                   placeholder="Describe any technical fouls, ejections, or notable incidents..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="techFouls" className="text-slate-800 font-bold mb-1.5 block flex items-center gap-1">
+                    <AlertTriangle className="h-4 w-4 text-orange-500" /> Technical Fouls
+                  </Label>
+                  <Input
+                    id="techFouls"
+                    type="number"
+                    min="0"
+                    value={technicalFouls}
+                    onChange={(e) => setTechnicalFouls(Number(e.target.value))}
+                    className="bg-white border-slate-300 text-slate-900"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="personalFouls" className="text-slate-800 font-bold mb-1.5 block flex items-center gap-1">
+                    <Users className="h-4 w-4 text-slate-500" /> Personal Fouls
+                  </Label>
+                  <Input
+                    id="personalFouls"
+                    type="number"
+                    min="0"
+                    value={personalFouls}
+                    onChange={(e) => setPersonalFouls(Number(e.target.value))}
+                    className="bg-white border-slate-300 text-slate-900"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ejections" className="text-slate-800 font-bold mb-1.5 block flex items-center gap-1">
+                    <Trophy className="h-4 w-4 text-red-500" /> Ejections
+                  </Label>
+                  <Input
+                    id="ejections"
+                    type="number"
+                    min="0"
+                    value={ejections}
+                    onChange={(e) => setEjections(Number(e.target.value))}
+                    className="bg-white border-slate-300 text-slate-900"
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="mvpPlayer" className="text-slate-800 font-bold mb-1.5 block flex items-center gap-1">
+                  <Award className="h-4 w-4 text-yellow-500" /> Game MVP (Optional)
+                </Label>
+                <Input
+                  id="mvpPlayer"
+                  value={mvpPlayer}
+                  onChange={(e) => setMvpPlayer(e.target.value)}
+                  className="bg-white border-slate-300 text-slate-900"
+                  placeholder="e.g., Player Name (Team Name)"
                 />
               </div>
 

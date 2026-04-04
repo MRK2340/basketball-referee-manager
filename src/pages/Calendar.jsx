@@ -19,7 +19,7 @@ import {
   Users,
   DollarSign
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, startOfWeek, addDays, isSameDay, parse, isValid } from 'date-fns';
 
 export default function Calendar() {
   
@@ -90,9 +90,32 @@ export default function Calendar() {
   const navigateMonth = (direction) => {
     setCurrentDate(prev => {
       const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() + direction);
+      if (view === 'week') {
+        newDate.setDate(prev.getDate() + direction * 7);
+      } else if (view === 'day') {
+        newDate.setDate(prev.getDate() + direction);
+      } else {
+        newDate.setMonth(prev.getMonth() + direction);
+      }
       return newDate;
     });
+  };
+
+  // Week view helpers
+  const weekStart = useMemo(() => startOfWeek(currentDate), [currentDate]);
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
+  const HOUR_SLOTS = Array.from({ length: 16 }, (_, i) => i + 7); // 7am–10pm
+
+  const parseGameHour = (timeStr) => {
+    if (!timeStr) return null;
+    try {
+      // Try "HH:mm AM/PM" format
+      const d = parse(timeStr, 'hh:mm aa', new Date());
+      if (isValid(d)) return d.getHours() + d.getMinutes() / 60;
+      const d2 = parse(timeStr, 'H:mm', new Date());
+      if (isValid(d2)) return d2.getHours() + d2.getMinutes() / 60;
+    } catch { /* ignore */ }
+    return null;
   };
 
   const handleSaveAvailability = () => {
@@ -244,7 +267,11 @@ export default function Calendar() {
                   </Button>
                   
                   <h2 className="text-xl font-bold text-slate-900 min-w-[200px] text-center">
-                    {monthNames[currentMonth]} {currentYear}
+                    {view === 'week'
+                      ? `${format(weekStart, 'MMM d')} – ${format(addDays(weekStart, 6), 'MMM d, yyyy')}`
+                      : view === 'day'
+                      ? format(currentDate, 'EEEE, MMMM d, yyyy')
+                      : `${monthNames[currentMonth]} ${currentYear}`}
                   </h2>
                   
                   <Button
@@ -287,75 +314,140 @@ export default function Calendar() {
         >
           <Card className="glass-effect border-slate-200 shadow-sm" data-testid="calendar-grid-card">
             <CardContent className="p-6">
-              <div className="grid grid-cols-7 gap-2 mb-4">
-                {dayNames.map((day) => (
-                  <div key={day} className="text-center py-2">
-                    <span className="text-slate-600 font-bold text-sm uppercase tracking-wider">{day}</span>
+              {view === 'month' && (
+                <>
+                  <div className="grid grid-cols-7 gap-2 mb-4">
+                    {dayNames.map((day) => (
+                      <div key={day} className="text-center py-2">
+                        <span className="text-slate-600 font-bold text-sm uppercase tracking-wider">{day}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-7 gap-2">
-                {calendarDays.map((calendarDay, index) => {
-                  const dayGames = getGamesForDate(calendarDay.date);
-                  const isToday = calendarDay.date.toDateString() === new Date().toDateString();
-                  const isAvailable = isDateAvailable(calendarDay.date);
-                  
-                  return (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: index * 0.01 }}
-                      onClick={() => calendarDay.isCurrentMonth && handleDateSelect(calendarDay.date)}
-                      data-testid={calendarDay.isCurrentMonth ? `calendar-day-${format(calendarDay.date, 'yyyy-MM-dd')}` : undefined}
-                      className={`min-h-[120px] p-2 border border-slate-200 rounded-lg transition-all duration-200 relative ${
-                        !calendarDay.isCurrentMonth ? 'opacity-40 bg-slate-50' : 'cursor-pointer hover:border-brand-orange hover:shadow-md bg-white'
-                      } ${isToday ? 'ring-2 ring-brand-orange bg-orange-50' : ''} ${
-                        isAvailable && dayGames.length === 0 ? 'bg-green-50 border-green-200' : ''
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-bold ${
-                          isToday ? 'text-brand-orange' : 
-                          calendarDay.isCurrentMonth ? 'text-slate-800' : 'text-slate-400'
-                        }`}>
-                          {calendarDay.day}
-                        </span>
-                        {dayGames.length > 0 ? (
-                          <Badge className="basketball-gradient text-white text-xs border-0">
-                            {dayGames.length}
-                          </Badge>
-                        ) : isAvailable && (
-                          <div className="w-2.5 h-2.5 bg-green-500 rounded-full" title="Available"></div>
-                        )}
-                      </div>
-
-                      <div className="space-y-1.5">
-                        {dayGames.slice(0, 2).map((game) => (
-                          <div
-                            key={game.id}
-                            className={`p-1.5 rounded text-xs shadow-sm border border-transparent ${getStatusColor(game.status)}`}
-                          >
-                            <div className="font-bold truncate">
-                              {game.homeTeam} vs {game.awayTeam}
-                            </div>
-                            <div className="flex items-center space-x-1 opacity-90 font-medium">
-                              <Clock className="h-3 w-3" />
-                              <span>{game.time}</span>
-                            </div>
+                  <div className="grid grid-cols-7 gap-2">
+                    {calendarDays.map((calendarDay, index) => {
+                      const dayGames = getGamesForDate(calendarDay.date);
+                      const isToday = calendarDay.date.toDateString() === new Date().toDateString();
+                      const isAvailable = isDateAvailable(calendarDay.date);
+                      return (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: index * 0.01 }}
+                          onClick={() => calendarDay.isCurrentMonth && handleDateSelect(calendarDay.date)}
+                          data-testid={calendarDay.isCurrentMonth ? `calendar-day-${format(calendarDay.date, 'yyyy-MM-dd')}` : undefined}
+                          className={`min-h-[120px] p-2 border border-slate-200 rounded-lg transition-all duration-200 relative ${
+                            !calendarDay.isCurrentMonth ? 'opacity-40 bg-slate-50' : 'cursor-pointer hover:border-brand-orange hover:shadow-md bg-white'
+                          } ${isToday ? 'ring-2 ring-brand-orange bg-orange-50' : ''} ${
+                            isAvailable && dayGames.length === 0 ? 'bg-green-50 border-green-200' : ''
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`text-sm font-bold ${
+                              isToday ? 'text-brand-orange' : 
+                              calendarDay.isCurrentMonth ? 'text-slate-800' : 'text-slate-400'
+                            }`}>
+                              {calendarDay.day}
+                            </span>
+                            {dayGames.length > 0 ? (
+                              <Badge className="basketball-gradient text-white text-xs border-0">
+                                {dayGames.length}
+                              </Badge>
+                            ) : isAvailable && (
+                              <div className="w-2.5 h-2.5 bg-green-500 rounded-full" title="Available"></div>
+                            )}
                           </div>
-                        ))}
-                        {dayGames.length > 2 && (
-                          <div className="text-xs font-medium text-slate-500 text-center mt-1 bg-slate-100 rounded py-0.5">
-                            +{dayGames.length - 2} more
+                          <div className="space-y-1.5">
+                            {dayGames.slice(0, 2).map((game) => (
+                              <div key={game.id} className={`p-1.5 rounded text-xs shadow-sm border border-transparent ${getStatusColor(game.status)}`}>
+                                <div className="font-bold truncate">{game.homeTeam} vs {game.awayTeam}</div>
+                                <div className="flex items-center space-x-1 opacity-90 font-medium">
+                                  <Clock className="h-3 w-3" /><span>{game.time}</span>
+                                </div>
+                              </div>
+                            ))}
+                            {dayGames.length > 2 && (
+                              <div className="text-xs font-medium text-slate-500 text-center mt-1 bg-slate-100 rounded py-0.5">
+                                +{dayGames.length - 2} more
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {(view === 'week' || view === 'day') && (() => {
+                const days = view === 'week' ? weekDays : [currentDate];
+                return (
+                  <div className="overflow-x-auto">
+                    <div style={{ minWidth: view === 'week' ? 700 : 320 }}>
+                      {/* Day headers */}
+                      <div className="grid" style={{ gridTemplateColumns: `64px repeat(${days.length}, 1fr)` }}>
+                        <div className="border-r border-slate-200" />
+                        {days.map((day) => {
+                          const isToday = isSameDay(day, new Date());
+                          const isAvail = isDateAvailable(day);
+                          return (
+                            <div
+                              key={day.toISOString()}
+                              className={`text-center py-3 border-r border-b border-slate-200 ${isAvail ? 'bg-green-50' : 'bg-slate-50'} ${isToday ? 'bg-orange-50' : ''}`}
+                              data-testid={`calendar-week-header-${format(day, 'yyyy-MM-dd')}`}
+                            >
+                              <p className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-brand-orange' : 'text-slate-500'}`}>
+                                {format(day, 'EEE')}
+                              </p>
+                              <p className={`text-lg font-black ${isToday ? 'text-brand-orange' : 'text-slate-900'}`}>
+                                {format(day, 'd')}
+                              </p>
+                              {isAvail && <div className="w-2 h-2 bg-green-500 rounded-full mx-auto mt-1" title="Available" />}
+                            </div>
+                          );
+                        })}
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                      {/* Hourly slots */}
+                      <div className="relative" style={{ maxHeight: '520px', overflowY: 'auto' }}>
+                        {HOUR_SLOTS.map((hour) => {
+                          const label = hour < 12 ? `${hour}am` : hour === 12 ? '12pm' : `${hour - 12}pm`;
+                          return (
+                            <div key={hour} className="grid" style={{ gridTemplateColumns: `64px repeat(${days.length}, 1fr)`, minHeight: '60px' }}>
+                              <div className="border-r border-slate-200 pr-2 text-right pt-1">
+                                <span className="text-xs text-slate-400 font-medium">{label}</span>
+                              </div>
+                              {days.map((day) => {
+                                const dayGames = getGamesForDate(day).filter((g) => {
+                                  const h = parseGameHour(g.time);
+                                  return h !== null && Math.floor(h) === hour;
+                                });
+                                return (
+                                  <div
+                                    key={day.toISOString()}
+                                    className={`border-r border-b border-slate-100 p-1 min-h-[60px] cursor-pointer hover:bg-slate-50 transition-colors ${isSameDay(day, new Date()) ? 'bg-orange-50/40' : ''}`}
+                                    onClick={() => dayGames.length > 0 && handleDateSelect(day)}
+                                    data-testid={`calendar-week-slot-${format(day, 'yyyy-MM-dd')}-${hour}`}
+                                  >
+                                    {dayGames.map((game) => (
+                                      <div
+                                        key={game.id}
+                                        className={`text-xs rounded p-1 mb-1 font-semibold ${getStatusColor(game.status)}`}
+                                      >
+                                        <div className="truncate">{game.homeTeam} vs {game.awayTeam}</div>
+                                        <div className="opacity-90 text-[10px]">{game.time}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </motion.div>
@@ -478,7 +570,7 @@ export default function Calendar() {
                 <CheckCircle className="h-8 w-8 text-green-600 mr-4" />
                 <div>
                   <h4 className="font-bold text-slate-900">You are available!</h4>
-                  <p className="text-sm text-green-800 font-medium">You've marked this day as available for assignments.</p>
+                  <p className="text-sm text-green-800 font-medium">You&apos;ve marked this day as available for assignments.</p>
                 </div>
               </div>
             )}

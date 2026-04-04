@@ -2,37 +2,40 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { toast } from '@/components/ui/use-toast';
+import { useData } from '@/contexts/DataContext';
 import NotificationsSettings from './Settings/NotificationsSettings';
 import PreferencesSettings from './Settings/PreferencesSettings';
 import AccountSecuritySettings from './Settings/AccountSecuritySettings';
 import SupportSettings from './Settings/SupportSettings';
 
 const Settings = () => {
-  const [notifications, setNotifications] = useState({
+  const { notificationPreferences, saveNotificationPreferences } = useData();
+
+  const [notifications, setNotifications] = useState(() => ({
     gameAssignments: true,
     paymentUpdates: true,
     scheduleChanges: true,
     messages: true,
     emailNotifications: true,
     pushNotifications: true,
-    smsNotifications: false
-  });
+    smsNotifications: false,
+    ...(notificationPreferences || {}),
+  }));
 
   const [preferences, setPreferences] = useState({
-    darkMode: true,
+    darkMode: false,
+    soundEffects: false,
     language: 'en',
     timezone: 'America/New_York',
-    soundEffects: true,
-    autoRefresh: true
+    autoRefresh: true,
   });
 
   const handleNotificationChange = (key) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    const updated = { ...notifications, [key]: !notifications[key] };
+    setNotifications(updated);
+    saveNotificationPreferences(updated);
     toast({
-      title: "Settings updated! ✅",
+      title: "Settings updated",
       description: "Your notification preferences have been saved.",
     });
   };
