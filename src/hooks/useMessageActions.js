@@ -17,7 +17,7 @@ export const useMessageActions = (user, fetchData) => {
         title: 'Message Sent! ✉️',
         description: 'Your message has been sent successfully.',
       });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -32,7 +32,7 @@ export const useMessageActions = (user, fetchData) => {
         variant: 'destructive',
       });
     } else {
-      fetchData();
+      fetchData(false);
     }
   };
 

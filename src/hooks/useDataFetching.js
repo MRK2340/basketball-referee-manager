@@ -2,8 +2,9 @@ import { useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { fetchAppData } from '@/lib/demoDataService';
 
-export const useDataFetching = (user, page = 1, pageSize = 20) => {
+export const useDataFetching = (user) => {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [games, setGames] = useState([]);
   const [payments, setPayments] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -14,7 +15,6 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
   const [gameReports, setGameReports] = useState([]);
   const [refereeRatings, setRefereeRatings] = useState([]);
   const [notificationPreferences, setNotificationPreferences] = useState({});
-  const [hasMoreGames, setHasMoreGames] = useState(true);
   const [connections, setConnections] = useState([]);
   const [managerProfiles, setManagerProfiles] = useState([]);
 
@@ -33,28 +33,24 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
       setLoading(false);
       return;
     }
-    setLoading(true);
+
+    if (isInitialLoad) setLoading(true);
+    else setRefreshing(true);
 
     try {
-      const data = fetchAppData(user, page, pageSize);
-
-      if (isInitialLoad) {
-        setTournaments(data.tournaments);
-        setPayments(data.payments);
-        setMessages(data.messages);
-        setNotifications(data.notifications);
-        setReferees(data.referees);
-        setAvailability(data.availability);
-        setGameReports(data.gameReports);
-        setRefereeRatings(data.refereeRatings || []);
-        setNotificationPreferences(data.notificationPreferences || {});
-        setConnections(data.connections || []);
-        setManagerProfiles(data.managerProfiles || []);
-      }
-
-      setHasMoreGames(data.games.length === pageSize);
-      setGames((previousGames) => (isInitialLoad ? data.games : [...previousGames, ...data.games]));
-
+      const data = fetchAppData(user);
+      setGames(data.games);
+      setTournaments(data.tournaments);
+      setPayments(data.payments);
+      setMessages(data.messages);
+      setNotifications(data.notifications);
+      setReferees(data.referees);
+      setAvailability(data.availability);
+      setGameReports(data.gameReports);
+      setRefereeRatings(data.refereeRatings || []);
+      setNotificationPreferences(data.notificationPreferences || {});
+      setConnections(data.connections || []);
+      setManagerProfiles(data.managerProfiles || []);
     } catch (error) {
       toast({
         title: "Error fetching data",
@@ -63,11 +59,13 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }, [user, page, pageSize]);
+  }, [user]);
 
   return { 
     loading,
+    refreshing,
     games, setGames,
     payments, setPayments,
     messages, setMessages,
@@ -81,6 +79,5 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
     connections, setConnections,
     managerProfiles, setManagerProfiles,
     fetchData,
-    hasMoreGames
   };
 };

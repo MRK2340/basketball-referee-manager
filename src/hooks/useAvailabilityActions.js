@@ -24,7 +24,7 @@ export const useAvailabilityActions = (user, fetchData) => {
             title: "Availability Saved! ✅",
             description: "Your available dates have been updated.",
         });
-        fetchData();
+        fetchData(false);
     }
   };
 

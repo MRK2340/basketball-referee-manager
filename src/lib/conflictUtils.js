@@ -2,7 +2,8 @@ const GAME_DURATION_MINS = 90;
 
 const toDate = (dateStr, timeStr) => {
   if (!dateStr || !timeStr) return null;
-  return new Date(`${dateStr}T${timeStr}`);
+  // Append 'Z' for consistent UTC parsing and to avoid DST ambiguity
+  return new Date(`${dateStr}T${timeStr}Z`);
 };
 
 /**
@@ -14,7 +15,8 @@ export const getScheduleConflicts = (refereeId, targetGame, allGames) => {
     targetGame.game_time || targetGame.time
   );
   if (!targetStart) return [];
-  const targetEnd = new Date(targetStart.getTime() + GAME_DURATION_MINS * 60000);
+  const duration = targetGame.duration_mins ?? GAME_DURATION_MINS;
+  const targetEnd = new Date(targetStart.getTime() + duration * 60000);
 
   return allGames.filter((g) => {
     if (g.id === targetGame.id) return false;
@@ -22,7 +24,8 @@ export const getScheduleConflicts = (refereeId, targetGame, allGames) => {
     if (!assignments.some((a) => a.referee_id === refereeId)) return false;
     const gStart = toDate(g.game_date || g.date, g.game_time || g.time);
     if (!gStart) return false;
-    const gEnd = new Date(gStart.getTime() + GAME_DURATION_MINS * 60000);
+    const gDuration = g.duration_mins ?? GAME_DURATION_MINS;
+    const gEnd = new Date(gStart.getTime() + gDuration * 60000);
     return targetStart < gEnd && targetEnd > gStart;
   });
 };

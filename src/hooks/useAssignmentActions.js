@@ -8,29 +8,29 @@ import {
 } from '@/lib/demoDataService';
 
 export const useAssignmentActions = (user, fetchData) => {
-  const assignRefereeToGame = async (gameId, refereeId) => {
+  const assignRefereeToGame = (gameId, refereeId) => {
     if (!user || user.role !== 'manager') return;
     const { error } = assignReferee(user, gameId, refereeId);
     if (error) {
         toast({ title: "Assignment Failed", description: error.message, variant: "destructive" });
     } else {
         toast({ title: "Referee Assigned! ✅", description: "The referee has been assigned to the game." });
-        fetchData();
+        fetchData(false);
     }
   };
 
-  const unassignRefereeFromGame = async (assignmentId) => {
+  const unassignRefereeFromGame = (assignmentId) => {
       if (!user || user.role !== 'manager') return;
       const { error } = unassignReferee(user, assignmentId);
       if (error) {
           toast({ title: "Unassignment Failed", description: error.message, variant: "destructive" });
       } else {
           toast({ title: "Referee Unassigned", description: "The referee has been removed from the game." });
-          fetchData();
+          fetchData(false);
       }
   };
 
-  const updateAssignmentStatus = async (assignmentId, status, reason = null) => {
+  const updateAssignmentStatus = (assignmentId, status, reason = null) => {
     if (!user || user.role !== 'referee') return;
     const { error } = updateAssignment(user, assignmentId, status, reason);
 
@@ -39,11 +39,11 @@ export const useAssignmentActions = (user, fetchData) => {
     } else {
       toast({ title: "Assignment Updated!", description: `You have ${status} the game.` });
 
-      fetchData();
+      fetchData(false);
     }
   };
 
-  const assignRefereesToCourt = async (assignments) => {
+  const assignRefereesToCourt = (assignments) => {
     if (!user || user.role !== 'manager') return;
 
     const { error } = assignCourtSchedule(user, assignments);
@@ -59,11 +59,11 @@ export const useAssignmentActions = (user, fetchData) => {
         title: 'Court Schedule Saved! 🏀',
         description: 'Referees have been assigned to the court schedule.',
       });
-      fetchData();
+      fetchData(false);
     }
   };
 
-  const requestGameAssignment = async (gameId) => {
+  const requestGameAssignment = (gameId) => {
     if (!user || user.role !== 'referee') return;
 
     const { error } = requestAssignment(user, gameId);
@@ -86,7 +86,7 @@ export const useAssignmentActions = (user, fetchData) => {
       description: "Your request to officiate this game has been sent to the manager.",
     });
 
-    fetchData();
+    fetchData(false);
   };
 
 

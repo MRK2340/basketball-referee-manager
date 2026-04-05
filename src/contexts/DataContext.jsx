@@ -24,6 +24,7 @@ export const DataProvider = ({ children }) => {
   const { user } = useAuth();
   const {
     loading,
+    refreshing,
     games,
     payments,
     messages,
@@ -41,7 +42,7 @@ export const DataProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      fetchData();
+      fetchData(); // initial load — shows full loading spinner
     }
   }, [user, fetchData]);
 
@@ -54,14 +55,22 @@ export const DataProvider = ({ children }) => {
 
   const markNotificationRead = (notificationId) => {
     if (!user) return;
-    markNotificationReadRecord(user, notificationId);
-    fetchData();
+    try {
+      markNotificationReadRecord(user, notificationId);
+    } catch (e) {
+      console.error('markNotificationRead error:', e);
+    }
+    fetchData(false);
   };
 
   const markAllNotificationsRead = () => {
     if (!user) return;
-    markAllNotificationsReadRecord(user);
-    fetchData();
+    try {
+      markAllNotificationsReadRecord(user);
+    } catch (e) {
+      console.error('markAllNotificationsRead error:', e);
+    }
+    fetchData(false);
   };
 
   const batchUnassignReferees = (gameIds) => {
@@ -71,7 +80,7 @@ export const DataProvider = ({ children }) => {
       toast({ title: 'Batch unassign failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Referees Unassigned', description: `Removed all referee assignments from ${gameIds.length} game(s).` });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -79,7 +88,7 @@ export const DataProvider = ({ children }) => {
     if (!user) return;
     batchMarkPaymentsPaidRecord(user, paymentIds);
     toast({ title: 'Payments Updated', description: `${paymentIds.length} payment(s) marked as paid.` });
-    fetchData();
+    fetchData(false);
   };
 
   const rateReferee = (gameId, refereeId, stars, feedback) => {
@@ -89,14 +98,14 @@ export const DataProvider = ({ children }) => {
       toast({ title: 'Rating failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Rating submitted', description: `${stars}-star rating saved.` });
-      fetchData();
+      fetchData(false);
     }
   };
 
   const saveNotificationPreferences = (prefs) => {
     if (!user) return;
     saveNotificationPreferencesRecord(user, prefs);
-    fetchData();
+    fetchData(false);
   };
 
   const addReportResolution = (reportId, note) => {
@@ -106,7 +115,7 @@ export const DataProvider = ({ children }) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Report resolved', description: 'Resolution note added and report marked as reviewed.' });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -117,7 +126,7 @@ export const DataProvider = ({ children }) => {
       toast({ title: 'Request failed', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Request sent!', description: 'Your roster request has been sent to the manager.' });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -129,7 +138,7 @@ export const DataProvider = ({ children }) => {
     } else {
       const label = status === 'connected' ? 'accepted' : 'declined';
       toast({ title: `Request ${label}`, description: `Referee roster request has been ${label}.` });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -140,12 +149,13 @@ export const DataProvider = ({ children }) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Request withdrawn', description: 'Your connection request has been withdrawn.' });
-      fetchData();
+      fetchData(false);
     }
   };
 
   const value = {
     loading,
+    refreshing,
     games,
     payments,
     messages,

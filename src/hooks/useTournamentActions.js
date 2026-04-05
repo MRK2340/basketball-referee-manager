@@ -21,7 +21,7 @@ export const useTournamentActions = (user, fetchData) => {
         title: "Tournament Added! 🏆",
         description: "The new tournament has been created successfully.",
       });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -40,7 +40,7 @@ export const useTournamentActions = (user, fetchData) => {
         title: "Tournament Updated! 📝",
         description: "The tournament details have been saved.",
       });
-      fetchData();
+      fetchData(false);
     }
   };
 
@@ -60,7 +60,7 @@ export const useTournamentActions = (user, fetchData) => {
         description: "The tournament and all related games have been removed.",
         variant: "destructive",
       });
-      fetchData();
+      fetchData(false);
     }
   };
 

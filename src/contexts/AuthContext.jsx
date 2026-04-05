@@ -19,7 +19,6 @@ const STORAGE_KEYS = {
 
 // Base64 encoding provides basic obfuscation to avoid accidental plaintext exposure in developer tools — not cryptographic security
 const obfuscate = (str) => btoa(encodeURIComponent(str));
-const deobfuscate = (str) => { try { return decodeURIComponent(atob(str)); } catch { return str; } };
 
 const getStoredUsers = () => {
     try {

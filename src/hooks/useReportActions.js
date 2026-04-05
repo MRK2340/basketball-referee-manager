@@ -10,7 +10,7 @@ export const useReportActions = (user, fetchData) => {
       return false;
     } else {
       toast({ title: "Game Report Submitted! 📝", description: "Your report has been sent to the manager." });
-      fetchData();
+      fetchData(false);
       return true;
     }
   };

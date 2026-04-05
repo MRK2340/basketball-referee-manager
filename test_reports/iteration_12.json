@@ -1,0 +1,55 @@
+{
+  "summary": "Regression testing after second batch of code-review fixes (Issues 2, 6, 11, 13, 15, 17, 18, 19, 20). All 10 feature scenarios PASS. Key fixes verified: refreshing state (no spinner flash), fetchData(false) for background mutations, useAssignmentActions/useGameActions sync functions, ROLE_HOME map, conflictUtils UTC Z-suffix + duration_mins fallback, AuthContext btoa try/catch + removed deobfuscate.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "landing_page": "PASS — iWhistle 'Leadership Under Pressure' landing page renders correctly, no spinner stuck, no errors",
+    "manager_login": "PASS — Try Demo Account → Log in as Manager → redirects to /manager. btoa try/catch login working",
+    "referee_login": "PASS — Try Demo Account → Log in as Referee → redirects to /dashboard",
+    "referee_dashboard_no_crash": "PASS — Dashboard loads without crash, Games This Month shows 5",
+    "manager_panel_8_tabs": "PASS — All 8 tabs present: Tournaments, Assignments, Roster, Referees, Availability, Leaderboard, Standings, Reports. No spinner flash during tab navigation (fetchData(false) background refresh working)",
+    "availability_conflict_warnings": "PASS — conflict-summary-panel: '2 Scheduling Conflicts Detected This Week', conflict-count-badge: '2 conflicts', stat-conflicts: 'Conflicts 2'. Olivia Brooks + Jordan Ellis conflicts on Apr 9",
+    "game_assignment_no_spinner": "PASS — Found 5 assign buttons, clicked first, 10 referee options visible. No full-page spinner during or after assignment action. fetchData(false) confirmed working",
+    "roster_tab": "PASS — pending-section: 'No pending requests' + connected-section: 'My Referee Roster (3 referees)' with Demo Referee, Olivia Brooks, Jordan Ellis",
+    "dark_mode_toggle": "PASS — theme-toggle-button click adds 'dark' class to html element",
+    "find_managers_referee": "PASS — /find-managers accessible for referee role, shows 'My Current Rosters' (Demo Manager on roster) and 'Pending Requests' (Thomas Washington)"
+  },
+  "code_review_findings": {
+    "issue_2_pagination_removed": "VERIFIED — useDataFetching.js has no pagination state, clean implementation",
+    "issue_6_refreshing_state": "VERIFIED — refreshing state added to useDataFetching, exposed in DataContext value, all mutation calls use fetchData(false)",
+    "issue_11_async_removed": "VERIFIED — useAssignmentActions.js and useGameActions.js: all functions are synchronous (no async keywords)",
+    "issue_13_role_home_map": "VERIFIED — ProtectedRoute.jsx: ROLE_HOME = { manager: '/manager', referee: '/dashboard' } with ?? fallback",
+    "issue_15_try_catch_notifications": "VERIFIED — markNotificationRead and markAllNotificationsRead have try/catch in DataContext",
+    "issue_17_utc_z_suffix": "VERIFIED — conflictUtils.js toDate: returns new Date(`${dateStr}T${timeStr}Z`)",
+    "issue_18_duration_mins_fallback": "VERIFIED — conflictUtils.js uses targetGame.duration_mins ?? GAME_DURATION_MINS",
+    "issue_19_legacy_btoa": "VERIFIED — AuthContext login checks: obfuscatedPassword || btoa(password) || password for backward compat",
+    "issue_20_deobfuscate_removed": "VERIFIED — No deobfuscate function in AuthContext.jsx",
+    "minor_open_from_iter11": "Dashboard.jsx line 44 still has a.referee.id without optional chaining — no crash with current mock data, low priority"
+  },
+  "test_report_links": ["/app/test_reports/iteration_12.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor carryover: Dashboard.jsx line 44 a.referee.id should be a.referee?.id — listed in CODE_REVIEW.md but still not applied. Not crashing with current mock data."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (pure frontend localStorage app)",
+    "frontend": "100% (10/10 features passing)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / password (via Try Demo Account → Log in as Manager)",
+    "referee": "referee@demo.com / password (via Try Demo Account → Log in as Referee)"
+  },
+  "mocked_apis": "ALL data MOCKED via localStorage (demoDataService.js). All games/payments/messages/notifications/tournaments/referees/availability/connections mocked.",
+  "seed_data_creation": "None — used existing localStorage seed data via createDemoAccounts()",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Pure frontend Vite React app at port 3000. All data via localStorage. All 10 features from second code-review batch (Issues 2/6/11/13/15/17/18/19/20) passing 100%. Login via Try Demo Account dialog. Conflicts visible on Availability tab after clicking next week (Apr 6-12). Today=April 5 2026. Minor: Dashboard.jsx a.referee.id still lacks optional chaining but no crash."
+}
