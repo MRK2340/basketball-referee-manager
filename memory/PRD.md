@@ -149,7 +149,10 @@ Applied all fixes from CODE_REVIEW.md (commit f6c2c62):
 - Calendar event details dialog shows separate "INDEPENDENT" section for those days
 - Private to referee only — managers see no independent data
 - Service functions: addIndependentGameRecord, updateIndependentGameRecord, deleteIndependentGameRecord
-- Testing: 13/13 checks passed (iteration_13.json)
+- **Year-End Export**: Export banner in Independent Log tab — select year, download CSV or PDF
+  - CSV: native Blob/URL with headers, game rows, totals footer
+  - PDF: iWhistle-branded report (jsPDF + jspdf-autotable) with header banner, stats cards, game table, orange accents
+- Testing: 13/13 checks passed (iteration_13.json), 13/13 export tests passed (iteration_14.json)
 
 
 - **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages, independent_games
