@@ -136,14 +136,23 @@ Applied all fixes from CODE_REVIEW.md (commit f6c2c62):
 - **Quality**: Removed `async` from all sync action functions; ROLE_HOME map in ProtectedRoute; try/catch on notification reads; UTC `Z` suffix in conflictUtils.js; `duration_mins` fallback for variable game lengths
 - Testing: 10/10 regression checks passed (iteration_12.json)
 
-### Phase 9 - Demo Credentials Consolidation (Complete — Apr 2026)
-- Created `src/lib/demoAccounts.js` — single source of truth for `DEMO_MANAGER_BASE` and `DEMO_REFEREE_BASE`
-- `AuthContext.jsx` imports base profiles and spreads `password` on top at runtime
-- `demoDataService.js` imports base profiles and spreads data-layer-only fields (location, league_name, bio, etc.) on top
-- Schema changes now only need to be made in one place; silent drift between auth and data layers eliminated
+### Phase 10 - Independent Game Log (Complete — Apr 2026)
+- New data model: `independent_games` {id, referee_id, date, time, location, organization, game_type, fee, notes, created_at}
+- 5 seeded demo games for demo-referee across league/tournament/scrimmage/playoff types
+- **Games page**: 2-tab UI for referees — "Assigned Games" (existing) + "Independent Log" (new)
+  - Year-end summary: total games + total earnings for current year + top type
+  - Add/Edit game dialog with all fields (date, time, org, location, game type, fee, notes)
+  - Search by org/location, filter by game type, Edit + Delete with confirm dialog
+  - Stats row shows 4 cards: Assigned Games, Independent Games, Platform Earnings, Independent Earnings
+- **Schedule page**: Independent games section at bottom of My Schedule tab with org, type badge, date, fee
+- **Calendar page**: Independent games appear as purple events on calendar cells (month/week view)
+- Calendar event details dialog shows separate "INDEPENDENT" section for those days
+- Private to referee only — managers see no independent data
+- Service functions: addIndependentGameRecord, updateIndependentGameRecord, deleteIndependentGameRecord
+- Testing: 13/13 checks passed (iteration_13.json)
 
 
-- **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages
+- **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages, independent_games
 
 ## Test Credentials
 - Manager: `manager@demo.com` / `password`
