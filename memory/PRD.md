@@ -129,6 +129,13 @@ Applied all fixes from CODE_REVIEW.md (commit f6c2c62):
 - **Performance**: React.lazy + Suspense for all 13 page routes in App.jsx — reduces initial bundle size
 - Testing: 11/11 regression checks passed (iteration_11.json)
 
+### Phase 8 - CODE_REVIEW.md Round 2 Fixes (Complete — Apr 2026)
+- **Security**: Legacy `btoa(password)` in login wrapped in try/catch — safe for Unicode passwords
+- **Bug**: Removed dead pagination state (`page`, `pageSize`, `hasMoreGames`) from `useDataFetching.js`
+- **Performance**: `refreshing` state added — background mutations use `fetchData(false)`, no full-page spinner flash
+- **Quality**: Removed `async` from all sync action functions; ROLE_HOME map in ProtectedRoute; try/catch on notification reads; UTC `Z` suffix in conflictUtils.js; `duration_mins` fallback for variable game lengths
+- Testing: 10/10 regression checks passed (iteration_12.json)
+
 
 - **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages
 
