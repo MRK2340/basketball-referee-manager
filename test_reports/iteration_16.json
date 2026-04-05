@@ -1,0 +1,63 @@
+{
+  "summary": "Full e2e test of iWhistle Firebase/Firestore integration (iteration 16). All 12 required flows tested and passing after one critical bug fix in firestoreService.js. Firebase Auth + Firestore (named database 'refereemanager') now fully working. Seed data triggers and loads correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "bug_fixed_this_iteration": {
+    "file": "/app/src/lib/firestoreService.js",
+    "location": "lines 161-163 in fetchAppData()",
+    "issue": "Nested getDocs bug: for referee users (isManager=false), the tournaments query was `getDocs(getDocs(collection(db, 'tournaments')))` — the inner getDocs returns a Promise, and the outer getDocs received that Promise instead of a Query. This caused 'Expected type Query, but it was: a custom Promise object' error, making ALL data loading fail for referees.",
+    "fix": "Changed from `getDocs(isManager ? query(...) : getDocs(collection(...)))` to `isManager ? getDocs(query(...)) : getDocs(collection(...))` — correct ternary placement so getDocs is called with the resolved Query, not a Promise.",
+    "impact": "This bug blocked ALL Firestore data loading for referee users: games, schedules, calendar events, payments, messages — everything showed empty. After fix, all data loads correctly."
+  },
+  "test_results": {
+    "TEST_1_app_loads": "PASS — Landing page loads at / without crash, title 'iWhistle - Leadership Under Pressure'",
+    "TEST_2_referee_login": "PASS — referee@demo.com/Referee123 logs in, redirected to /dashboard",
+    "TEST_3_referee_dashboard": "PASS — Dashboard shows 'Welcome back, Demo Referee', sidebar shows 'Demo Referee / REFEREE', rating 4.7/5.0",
+    "TEST_4_logout": "PASS — Sign Out button works, redirected to /login with 'Logged out - See you next time!' toast",
+    "TEST_5_manager_login": "PASS — manager@demo.com/manager123 logs in, redirected to /manager (League Management page)",
+    "TEST_6_manager_dashboard": "PASS — Manager dashboard loads showing Tournaments table (Spring Showcase Classic, Summer Prep Jam)",
+    "TEST_7_firestore_seed_triggered": "PASS — Console shows '[iWhistle] Demo data seeded successfully' on manager login",
+    "TEST_8_games_page_with_data": "PASS (after fix) — Games page shows Assigned Games=2, Independent Games=5, Platform Earnings=$75; Metro Eagles vs Northside Lions (upcoming), Capital Cougars vs Southside Rockets (completed 58-54)",
+    "TEST_9_schedule_page": "PASS — Schedule page loads with game list, filters (All/Scheduled/In Progress/Completed), shows Capital Cougars (completed) and Metro Eagles (scheduled) with Accept/Decline buttons",
+    "TEST_10_calendar_page": "PASS — Calendar page loads April 2026 with events: Metro Playoff Series (Mar 31), Capital Cougars (Apr 2), Metro Eagles (Apr 6), Atlanta Rec Spring (Apr 9). Custom calendar component used (not browser default).",
+    "TEST_11_wrong_password_error": "PASS — Shows 'Login Failed - Invalid email or password.' toast, stays on /login, no crash",
+    "TEST_12_register_page": "PASS — /register loads with Full Name, Email, Phone Number, Role dropdown (Referee/League Manager), Password, Confirm Password, 'Start Your Journey' button"
+  },
+  "test_report_links": ["/app/test_reports/iteration_16.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "FIXED: firestoreService.js fetchAppData() had getDocs(getDocs(...)) for referee tournament query — was causing all data fetching to fail for referees.",
+    "MINOR: Register.jsx form inputs still missing data-testid attributes (name, email, phone, password, confirmPassword, submit button) — reduces testability.",
+    "MINOR: AuthContext.jsx getOrCreateProfile — returns null for non-demo new user registrations if Firestore setDoc fails silently; consider better error surfacing.",
+    "INFO: React Router v7 future flag warnings (v7_startTransition, v7_relativeSplatPath) in console — these are non-breaking warnings that should be addressed when upgrading to React Router v7."
+  ],
+  "updated_files": ["/app/src/lib/firestoreService.js (line 161-163: fixed nested getDocs bug for referee tournament query)"],
+  "success_rate": {
+    "backend": "N/A (pure frontend Firebase app)",
+    "frontend": "100% (12/12 flows passing after fix)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123 (capital R)"
+  },
+  "seed_data_creation": "Firestore seed triggered successfully during test: '[iWhistle] Demo data seeded successfully' confirmed in console. Seed guard doc (_meta/demo_seed) written to prevent re-seeding.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Firebase Auth + Firestore (named database 'refereemanager') fully working. Critical firestoreService.js bug fixed in this iteration (nested getDocs for referee tournament query). All 12 test flows pass. App is functional. Seed data is loaded. Test flow order: login as referee -> logout -> login as manager (triggers seed) -> navigate as referee to games/schedule/calendar. Minor: Register page inputs lack data-testid attributes.",
+  "rca_of_issue": {
+    "issue_nested_getDocs": {
+      "root_cause": "In firestoreService.js fetchAppData(), the tournaments parallel fetch used getDocs(isManager ? query(...) : getDocs(collection(...))). For referee users (isManager=false), the ternary resolved to getDocs(getDocs(collection(db, 'tournaments'))). The inner getDocs(collection(...)) returns a Promise<QuerySnapshot>, not a Query. Firestore SDK's getDocs() expects a Query or CollectionReference, not a Promise, so it threw 'Expected type Query, but it was: a custom Promise object'. Since this was in a Promise.all() array, the entire parallel fetch failed, leaving all data arrays empty.",
+      "evidence": "Error toast on referee dashboard: 'Error fetching data - Expected type Query, but it was: a custom Promise object'. Games, schedule, calendar all showed 0 items.",
+      "fix": "Restructured to: isManager ? getDocs(query(collection(db, 'tournaments'), where('manager_id', '==', user.id))) : getDocs(collection(db, 'tournaments')) — getDocs now receives the resolved Query/CollectionReference directly.",
+      "file": "/app/src/lib/firestoreService.js",
+      "lines": "161-163"
+    }
+  }
+}

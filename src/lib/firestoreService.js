@@ -158,9 +158,9 @@ export const fetchAppData = async (user) => {
     availabilitySnap, gameReportsSnap, ratingsSnap, connectionsSnap,
     indGamesSnap, managerProfilesSnap,
   ] = await Promise.all([
-    getDocs(isManager
-      ? query(collection(db, 'tournaments'), where('manager_id', '==', user.id))
-      : getDocs(collection(db, 'tournaments'))),
+    isManager
+      ? getDocs(query(collection(db, 'tournaments'), where('manager_id', '==', user.id)))
+      : getDocs(collection(db, 'tournaments')),
     getDocs(isManager
       ? query(collection(db, 'payments'), where('manager_id', '==', user.id))
       : query(collection(db, 'payments'), where('referee_id', '==', user.id))),
