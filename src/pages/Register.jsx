@@ -26,7 +26,7 @@ const Register = () => {
   const [errors, setErrors] = useState({});
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const validateForm = () => {

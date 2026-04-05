@@ -136,7 +136,24 @@ Applied all fixes from CODE_REVIEW.md (commit f6c2c62):
 - **Quality**: Removed `async` from all sync action functions; ROLE_HOME map in ProtectedRoute; try/catch on notification reads; UTC `Z` suffix in conflictUtils.js; `duration_mins` fallback for variable game lengths
 - Testing: 10/10 regression checks passed (iteration_12.json)
 
-### Phase 10 - Independent Game Log (Complete — Apr 2026)
+### Phase 11 - Firebase Integration (In Progress — Apr 2026)
+**Status**: Firebase Auth working. Blocked pending Firestore database creation.
+
+**Completed:**
+- Installed `firebase` SDK
+- Created `/app/src/lib/firebase.js` — initializeApp, getAuth, getFirestore from VITE_ env vars
+- Rewrote `AuthContext.jsx` — Firebase Auth (signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged)
+- Created `firestoreService.js` — async Firestore replacement for demoDataService.js (same function signatures)
+- Created `seedFirestore.js` — auto-seeds demo data when both demo users have Firestore profiles
+- Updated `useDataFetching.js` — `await fetchAppData(user)`
+- Updated all action hooks + DataContext to use `await` on async Firestore calls
+- Firestore security rules saved to `/app/memory/firestore_security_rules.txt`
+- Demo credentials: manager@demo.com/manager123, referee@demo.com/Referee123
+
+**Pending (requires user action):**
+- Create Firestore database in Firebase Console (Native mode)
+- Apply security rules from `/app/memory/firestore_security_rules.txt`
+- Retest all flows
 - New data model: `independent_games` {id, referee_id, date, time, location, organization, game_type, fee, notes, created_at}
 - 5 seeded demo games for demo-referee across league/tournament/scrimmage/playoff types
 - **Games page**: 2-tab UI for referees — "Assigned Games" (existing) + "Independent Log" (new)
