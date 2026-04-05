@@ -448,6 +448,68 @@ const createSeedStore = () => ({
     { id: 'conn-5', referee_id: 'ref-jordan', manager_id: 'demo-manager', status: 'connected', created_at: toIsoFromToday(-20), note: '' },
     { id: 'conn-6', referee_id: 'ref-jordan', manager_id: 'mgr-sarah', status: 'pending', created_at: toIsoFromToday(-1), note: 'Interested in West Coast opportunities.' },
   ],
+  independent_games: [
+    {
+      id: 'indgame-001',
+      referee_id: 'demo-referee',
+      date: toDateOnly(-60),
+      time: '10:00',
+      location: 'Riverside Community Center',
+      organization: 'Atlanta Rec Spring League',
+      game_type: 'league',
+      fee: 75,
+      notes: '',
+      created_at: new Date(Date.now() - 60 * 86400000).toISOString(),
+    },
+    {
+      id: 'indgame-002',
+      referee_id: 'demo-referee',
+      date: toDateOnly(-45),
+      time: '14:00',
+      location: 'Northside Sports Complex',
+      organization: 'Fulton County AAU',
+      game_type: 'tournament',
+      fee: 100,
+      notes: 'Double-header weekend',
+      created_at: new Date(Date.now() - 45 * 86400000).toISOString(),
+    },
+    {
+      id: 'indgame-003',
+      referee_id: 'demo-referee',
+      date: toDateOnly(-15),
+      time: '11:30',
+      location: 'Westside YMCA',
+      organization: 'Youth Hoops Academy',
+      game_type: 'scrimmage',
+      fee: 60,
+      notes: '',
+      created_at: new Date(Date.now() - 15 * 86400000).toISOString(),
+    },
+    {
+      id: 'indgame-004',
+      referee_id: 'demo-referee',
+      date: toDateOnly(-5),
+      time: '19:00',
+      location: 'Decatur Recreation Hub',
+      organization: 'Metro Playoff Series',
+      game_type: 'playoff',
+      fee: 90,
+      notes: '',
+      created_at: new Date(Date.now() - 5 * 86400000).toISOString(),
+    },
+    {
+      id: 'indgame-005',
+      referee_id: 'demo-referee',
+      date: toDateOnly(4),
+      time: '09:00',
+      location: 'Emory University Gym',
+      organization: 'Atlanta Rec Spring League',
+      game_type: 'league',
+      fee: 80,
+      notes: 'U14 division',
+      created_at: new Date().toISOString(),
+    },
+  ],
 });
 
 const syncProfiles = (store) => {
@@ -500,6 +562,9 @@ const loadStore = () => {
   }
   if (!base.manager_connections) {
     base.manager_connections = createSeedStore().manager_connections;
+  }
+  if (!base.independent_games) {
+    base.independent_games = createSeedStore().independent_games;
   }
   // Backfill extra manager profiles if missing
   const existingIds = base.profiles.map(p => p.id);
@@ -756,6 +821,12 @@ export const fetchAppData = (user, page = 1, pageSize = 20) => {
     managerProfiles: store.profiles
       .filter(p => p.role === 'manager')
       .map(p => ({ ...p })),
+    // Independent games (referee-private, not managed through platform)
+    independentGames: user.role === 'referee'
+      ? (store.independent_games || [])
+          .filter(g => g.referee_id === user.id)
+          .sort((a, b) => b.date.localeCompare(a.date))
+      : [],
   };
 };
 
@@ -1292,5 +1363,59 @@ export const withdrawConnectionRecord = (user, managerId) => updateStore((store)
   );
   if (idx === -1) return { error: createError('Connection not found.') };
   store.manager_connections.splice(idx, 1);
+  return { data: true };
+});
+
+
+// ── Independent Game Log ─────────────────────────────────────────────────────
+
+export const addIndependentGameRecord = (user, gameData) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can log independent games.') };
+  }
+  if (!store.independent_games) store.independent_games = [];
+  store.independent_games.unshift({
+    id: createId('indgame'),
+    referee_id: user.id,
+    date: gameData.date,
+    time: gameData.time || '',
+    location: gameData.location || '',
+    organization: gameData.organization || '',
+    game_type: gameData.game_type || 'other',
+    fee: Number(gameData.fee) || 0,
+    notes: gameData.notes || '',
+    created_at: new Date().toISOString(),
+  });
+  return { data: true };
+});
+
+export const updateIndependentGameRecord = (user, gameId, gameData) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can update independent games.') };
+  }
+  const game = (store.independent_games || []).find(
+    g => g.id === gameId && g.referee_id === user.id
+  );
+  if (!game) return { error: createError('Independent game not found.') };
+  game.date = gameData.date;
+  game.time = gameData.time || '';
+  game.location = gameData.location || '';
+  game.organization = gameData.organization || '';
+  game.game_type = gameData.game_type || 'other';
+  game.fee = Number(gameData.fee) || 0;
+  game.notes = gameData.notes || '';
+  return { data: true };
+});
+
+export const deleteIndependentGameRecord = (user, gameId) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can delete independent games.') };
+  }
+  if (!store.independent_games) store.independent_games = [];
+  const idx = store.independent_games.findIndex(
+    g => g.id === gameId && g.referee_id === user.id
+  );
+  if (idx === -1) return { error: createError('Independent game not found.') };
+  store.independent_games.splice(idx, 1);
   return { data: true };
 });

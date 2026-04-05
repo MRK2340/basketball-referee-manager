@@ -17,6 +17,7 @@ export const useDataFetching = (user) => {
   const [notificationPreferences, setNotificationPreferences] = useState({});
   const [connections, setConnections] = useState([]);
   const [managerProfiles, setManagerProfiles] = useState([]);
+  const [independentGames, setIndependentGames] = useState([]);
 
   const fetchData = useCallback(async (isInitialLoad = true) => {
     if (!user) {
@@ -51,6 +52,7 @@ export const useDataFetching = (user) => {
       setNotificationPreferences(data.notificationPreferences || {});
       setConnections(data.connections || []);
       setManagerProfiles(data.managerProfiles || []);
+      setIndependentGames(data.independentGames || []);
     } catch (error) {
       toast({
         title: "Error fetching data",
@@ -78,6 +80,7 @@ export const useDataFetching = (user) => {
     notificationPreferences, setNotificationPreferences,
     connections, setConnections,
     managerProfiles, setManagerProfiles,
+    independentGames, setIndependentGames,
     fetchData,
   };
 };

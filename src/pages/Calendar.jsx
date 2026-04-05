@@ -24,7 +24,7 @@ import { format, startOfWeek, addDays, isSameDay, parse, isValid } from 'date-fn
 export default function Calendar() {
   
   const { toast } = useToast();
-  const { games = [], availability = [], addAvailability } = useData();
+  const { games = [], availability = [], addAvailability, independentGames = [] } = useData();
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('month');
@@ -156,6 +156,12 @@ export default function Calendar() {
     return games.filter(game => game.date === dateString);
   };
 
+  const getIndependentGamesForDate = (date) => {
+    if (!independentGames || !date) return [];
+    const dateString = date.toISOString().split('T')[0];
+    return independentGames.filter(g => g.date === dateString);
+  };
+
   const isDateAvailable = (date) => {
     if (!availability || !date) return false;
     const checkDate = new Date(date);
@@ -204,6 +210,7 @@ export default function Calendar() {
   };
 
   const selectedDateGames = selectedDate ? getGamesForDate(selectedDate) : [];
+  const selectedDateIndGames = selectedDate ? getIndependentGamesForDate(selectedDate) : [];
   const selectedDateAvailable = selectedDate ? isDateAvailable(selectedDate) : false;
 
   return (
@@ -326,6 +333,8 @@ export default function Calendar() {
                   <div className="grid grid-cols-7 gap-2">
                     {calendarDays.map((calendarDay, index) => {
                       const dayGames = getGamesForDate(calendarDay.date);
+                      const dayIndGames = getIndependentGamesForDate(calendarDay.date);
+                      const allDayGames = dayGames.length + dayIndGames.length;
                       const isToday = calendarDay.date.toDateString() === new Date().toDateString();
                       const isAvailable = isDateAvailable(calendarDay.date);
                       return (
@@ -339,7 +348,7 @@ export default function Calendar() {
                           className={`min-h-[120px] p-2 border border-slate-200 rounded-lg transition-all duration-200 relative ${
                             !calendarDay.isCurrentMonth ? 'opacity-40 bg-slate-50' : 'cursor-pointer hover:border-brand-orange hover:shadow-md bg-white'
                           } ${isToday ? 'ring-2 ring-brand-orange bg-orange-50' : ''} ${
-                            isAvailable && dayGames.length === 0 ? 'bg-green-50 border-green-200' : ''
+                            isAvailable && allDayGames === 0 ? 'bg-green-50 border-green-200' : ''
                           }`}
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -349,9 +358,9 @@ export default function Calendar() {
                             }`}>
                               {calendarDay.day}
                             </span>
-                            {dayGames.length > 0 ? (
+                            {allDayGames > 0 ? (
                               <Badge className="basketball-gradient text-white text-xs border-0">
-                                {dayGames.length}
+                                {allDayGames}
                               </Badge>
                             ) : isAvailable && (
                               <div className="w-2.5 h-2.5 bg-green-500 rounded-full" title="Available"></div>
@@ -366,9 +375,15 @@ export default function Calendar() {
                                 </div>
                               </div>
                             ))}
-                            {dayGames.length > 2 && (
+                            {dayIndGames.slice(0, dayGames.length >= 2 ? 0 : 2 - dayGames.length).map((g) => (
+                              <div key={g.id} className="p-1.5 rounded text-xs shadow-sm border border-transparent bg-purple-600 text-white">
+                                <div className="font-bold truncate">{g.organization || 'Independent'}</div>
+                                <div className="opacity-90 text-[10px] font-medium">Indep.{g.time ? ` · ${g.time}` : ''}</div>
+                              </div>
+                            ))}
+                            {allDayGames > 2 && (
                               <div className="text-xs font-medium text-slate-500 text-center mt-1 bg-slate-100 rounded py-0.5">
-                                +{dayGames.length - 2} more
+                                +{allDayGames - 2} more
                               </div>
                             )}
                           </div>
@@ -421,11 +436,15 @@ export default function Calendar() {
                                   const h = parseGameHour(g.time);
                                   return h !== null && Math.floor(h) === hour;
                                 });
+                                const dayIndGames = getIndependentGamesForDate(day).filter((g) => {
+                                  const h = parseGameHour(g.time);
+                                  return h !== null && Math.floor(h) === hour;
+                                });
                                 return (
                                   <div
                                     key={day.toISOString()}
                                     className={`border-r border-b border-slate-100 p-1 min-h-[60px] cursor-pointer hover:bg-slate-50 transition-colors ${isSameDay(day, new Date()) ? 'bg-orange-50/40' : ''}`}
-                                    onClick={() => dayGames.length > 0 && handleDateSelect(day)}
+                                    onClick={() => (dayGames.length > 0 || dayIndGames.length > 0) && handleDateSelect(day)}
                                     data-testid={`calendar-week-slot-${format(day, 'yyyy-MM-dd')}-${hour}`}
                                   >
                                     {dayGames.map((game) => (
@@ -435,6 +454,15 @@ export default function Calendar() {
                                       >
                                         <div className="truncate">{game.homeTeam} vs {game.awayTeam}</div>
                                         <div className="opacity-90 text-[10px]">{game.time}</div>
+                                      </div>
+                                    ))}
+                                    {dayIndGames.map((g) => (
+                                      <div
+                                        key={g.id}
+                                        className="text-xs rounded p-1 mb-1 font-semibold bg-purple-600 text-white"
+                                      >
+                                        <div className="truncate">{g.organization || 'Independent'}</div>
+                                        <div className="opacity-90 text-[10px]">{g.time}</div>
                                       </div>
                                     ))}
                                   </div>
@@ -558,14 +586,14 @@ export default function Calendar() {
           </DialogHeader>
 
           <div className="py-4 space-y-6 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide">
-            {selectedDateGames.length === 0 && !selectedDateAvailable && (
+            {selectedDateGames.length === 0 && selectedDateIndGames.length === 0 && !selectedDateAvailable && (
               <div className="text-center py-8">
                 <CalendarIcon className="h-12 w-12 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-600 font-medium">No scheduled events for this day.</p>
               </div>
             )}
 
-            {selectedDateAvailable && selectedDateGames.length === 0 && (
+            {selectedDateAvailable && selectedDateGames.length === 0 && selectedDateIndGames.length === 0 && (
               <div className="flex items-center p-4 rounded-lg bg-green-50 border border-green-200">
                 <CheckCircle className="h-8 w-8 text-green-600 mr-4" />
                 <div>
@@ -609,6 +637,46 @@ export default function Calendar() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {selectedDateIndGames.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-slate-200" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Independent</span>
+                  <div className="h-px flex-1 bg-slate-200" />
+                </div>
+                {selectedDateIndGames.map(g => (
+                  <div key={g.id} className="p-4 bg-purple-50 rounded-lg border border-purple-200 shadow-sm">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="text-slate-900 font-bold flex-1 pr-2">
+                        {g.organization || 'Independent Game'}
+                      </h4>
+                      <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs font-bold">
+                        {g.game_type ? g.game_type.charAt(0).toUpperCase() + g.game_type.slice(1) : 'Independent'}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-slate-700 font-medium">
+                      {g.time && (
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-brand-orange" />
+                          <span>{g.time}</span>
+                        </div>
+                      )}
+                      {g.location && (
+                        <div className="flex items-center space-x-2">
+                          <MapPin className="h-4 w-4 text-brand-blue" />
+                          <span className="truncate">{g.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="h-4 w-4 text-green-600" />
+                        <span className="font-bold text-green-700 text-base">${Number(g.fee).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
