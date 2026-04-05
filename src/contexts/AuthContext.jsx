@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { DEMO_MANAGER_BASE, DEMO_REFEREE_BASE } from '@/lib/demoAccounts';
 
 const AuthContext = createContext();
 
@@ -234,30 +235,8 @@ export const AuthProvider = ({ children }) => {
             const users = getStoredUsers();
 
             const demoAccounts = [
-                {
-                    id: 'demo-manager',
-                    email: 'manager@demo.com',
-                    password: obfuscate('password'),
-                    name: 'Demo Manager',
-                    role: 'manager',
-                    avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=manager',
-                    rating: 5.0,
-                    experience: '10 years',
-                    phone: '+1 555 0199'
-                },
-                {
-                    id: 'demo-referee',
-                    email: 'referee@demo.com',
-                    password: obfuscate('password'),
-                    name: 'Demo Referee',
-                    role: 'referee',
-                    avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=referee',
-                    rating: 4.8,
-                    experience: '3 years',
-                    phone: '+1 555 0123',
-                    games_officiated: 42,
-                    certifications: ['Certified Official Level 1', 'NFHS Certified']
-                }
+                { ...DEMO_MANAGER_BASE, password: obfuscate('password') },
+                { ...DEMO_REFEREE_BASE, password: obfuscate('password') },
             ];
 
             let newUsers = [...users];

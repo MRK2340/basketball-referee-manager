@@ -136,6 +136,12 @@ Applied all fixes from CODE_REVIEW.md (commit f6c2c62):
 - **Quality**: Removed `async` from all sync action functions; ROLE_HOME map in ProtectedRoute; try/catch on notification reads; UTC `Z` suffix in conflictUtils.js; `duration_mins` fallback for variable game lengths
 - Testing: 10/10 regression checks passed (iteration_12.json)
 
+### Phase 9 - Demo Credentials Consolidation (Complete — Apr 2026)
+- Created `src/lib/demoAccounts.js` — single source of truth for `DEMO_MANAGER_BASE` and `DEMO_REFEREE_BASE`
+- `AuthContext.jsx` imports base profiles and spreads `password` on top at runtime
+- `demoDataService.js` imports base profiles and spreads data-layer-only fields (location, league_name, bio, etc.) on top
+- Schema changes now only need to be made in one place; silent drift between auth and data layers eliminated
+
 
 - **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages
 

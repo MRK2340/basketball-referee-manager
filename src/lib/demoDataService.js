@@ -1,3 +1,5 @@
+import { DEMO_MANAGER_BASE, DEMO_REFEREE_BASE } from './demoAccounts';
+
 const STORAGE_KEY = 'iwhistle_demo_data_v3';
 const USER_STORAGE_KEY = 'iwhistle_users';
 
@@ -48,14 +50,7 @@ const getStoredUsers = () => parseJson(localStorage.getItem(USER_STORAGE_KEY), [
 const createSeedStore = () => ({
   profiles: [
     {
-      id: 'demo-manager',
-      email: 'manager@demo.com',
-      name: 'Demo Manager',
-      role: 'manager',
-      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=manager',
-      rating: 5,
-      experience: '10 years',
-      phone: '+1 555 0199',
+      ...DEMO_MANAGER_BASE,
       certifications: ['Tournament Director'],
       games_officiated: 0,
       location: 'Atlanta, GA',
@@ -112,16 +107,7 @@ const createSeedStore = () => ({
       active_tournaments: 4,
     },
     {
-      id: 'demo-referee',
-      email: 'referee@demo.com',
-      name: 'Demo Referee',
-      role: 'referee',
-      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=referee',
-      rating: 4.8,
-      experience: '3 years',
-      phone: '+1 555 0123',
-      certifications: ['Certified Official Level 1', 'NFHS Certified'],
-      games_officiated: 42,
+      ...DEMO_REFEREE_BASE,
     },
     {
       id: 'ref-olivia',
