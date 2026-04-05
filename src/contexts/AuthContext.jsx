@@ -1,280 +1,248 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { DEMO_MANAGER_BASE, DEMO_REFEREE_BASE } from '@/lib/demoAccounts';
+import { auth, db } from '@/lib/firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
+import { checkAndSeedDemoData } from '@/lib/seedFirestore';
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  return context;
 };
 
-const STORAGE_KEYS = {
-    USERS: 'iwhistle_users',
-    SESSION: 'iwhistle_session',
-    TEMP_DATA: 'iwhistle_temp_data',
+const DEMO_ACCOUNTS = {
+  'manager@demo.com': {
+    name: 'Demo Manager',
+    role: 'manager',
+    phone: '+1 555 0100',
+    avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=manager',
+    location: 'Atlanta, GA',
+    league_name: 'Metro AAU League',
+    bio: 'Experienced tournament director running competitive AAU youth programs across the Southeast region.',
+    certifications: ['Tournament Director'],
+    games_officiated: 0,
+    active_tournaments: 2,
+    experience: '5 years',
+    rating: 4.9,
+  },
+  'referee@demo.com': {
+    name: 'Demo Referee',
+    role: 'referee',
+    phone: '+1 555 0200',
+    avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=referee',
+    certifications: ['NFHS Certified', 'Certified Official Level 2'],
+    games_officiated: 45,
+    experience: '3 years',
+    rating: 4.7,
+    location: 'Atlanta, GA',
+    bio: 'Dedicated official with experience across U12–U18 divisions.',
+  },
 };
 
-// Base64 encoding provides basic obfuscation to avoid accidental plaintext exposure in developer tools — not cryptographic security
-const obfuscate = (str) => btoa(encodeURIComponent(str));
-
-const getStoredUsers = () => {
-    try {
-        const stored = localStorage.getItem(STORAGE_KEYS.USERS);
-        return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-        console.error("Error parsing stored users:", error);
-        return [];
-    }
-};
-
-const setStoredUsers = (users) => {
-    try {
-        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-    } catch (error) {
-        console.error("Error saving users to storage:", error);
-        toast({
-            title: "Storage Error",
-            description: "Failed to save user data. Local storage might be full.",
-            variant: "destructive"
-        });
-    }
+const mapFirebaseError = (error) => {
+  const codes = {
+    'auth/user-not-found': 'No account found with this email.',
+    'auth/wrong-password': 'Incorrect password. Please try again.',
+    'auth/invalid-credential': 'Invalid email or password.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+    'auth/network-request-failed': 'Network error. Please check your connection.',
+  };
+  return new Error(codes[error.code] || error.message || 'An unexpected error occurred.');
 };
 
 const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('Could not read the selected image.'));
-    reader.readAsDataURL(file);
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = () => reject(new Error('Could not read the selected image.'));
+  reader.readAsDataURL(file);
 });
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const initAuth = async () => {
-             const storedSession = localStorage.getItem(STORAGE_KEYS.SESSION);
-             if (storedSession) {
-                 try {
-                     const sessionUser = JSON.parse(storedSession);
-                     const users = getStoredUsers();
-                     const foundUser = users.find(u => u.id === sessionUser.id);
+  // Build app user object from Firebase UID + Firestore profile
+  const buildUser = (uid, email, profile) => ({
+    id: uid,
+    email,
+    ...profile,
+  });
 
-                     if (foundUser) {
-                         const { password, ...userWithoutPassword } = foundUser;
-                         setUser(userWithoutPassword);
-                     } else {
-                         localStorage.removeItem(STORAGE_KEYS.SESSION);
-                     }
-                 } catch (e) {
-                     console.error("Session restoration error:", e);
-                     localStorage.removeItem(STORAGE_KEYS.SESSION);
-                 }
-             }
-             setLoading(false);
-        };
-        initAuth();
-    }, []);
+  // Fetch or auto-create a Firestore user profile
+  const getOrCreateProfile = async (uid, email) => {
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
 
-    const login = async (email, password) => {
-        setLoading(true);
+    if (snap.exists()) return snap.data();
 
+    // Auto-create for known demo accounts
+    const demoDefaults = DEMO_ACCOUNTS[email?.toLowerCase()];
+    if (demoDefaults) {
+      const profile = { ...demoDefaults, email, created_at: new Date().toISOString() };
+      await setDoc(userRef, profile);
+      return profile;
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
         try {
-            const users = getStoredUsers();
-            const obfuscatedPassword = obfuscate(password);
-            // Check new encoding, legacy btoa encoding, and plaintext for backward compat
-            const foundUser = users.find(u =>
-                u.email.toLowerCase() === email.toLowerCase() &&
-                (u.password === obfuscatedPassword || u.password === btoa(password) || u.password === password)
-            );
-
-            if (foundUser) {
-                const { password: _, ...userWithoutPassword } = foundUser;
-                setUser(userWithoutPassword);
-                localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(userWithoutPassword));
-                setLoading(false);
-                return userWithoutPassword;
-            }
-
-            throw new Error("Invalid email or password.");
-        } catch (error) {
-            setLoading(false);
-            throw error;
+          const profile = await getOrCreateProfile(firebaseUser.uid, firebaseUser.email);
+          if (profile) {
+            setUser(buildUser(firebaseUser.uid, firebaseUser.email, profile));
+          } else {
+            setUser(null);
+          }
+        } catch (err) {
+          console.error('Auth state profile fetch error:', err);
+          setUser(null);
         }
-    };
-
-    const register = async (userData) => {
-        setLoading(true);
-
-        try {
-            const users = getStoredUsers();
-            if (users.find(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
-                 setLoading(false);
-                 toast({
-                    title: "Registration failed",
-                    description: "An account with this email already exists.",
-                    variant: "destructive",
-                });
-                return { success: false, error: "User already exists" };
-            }
-
-            const newUser = {
-                id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-                ...userData,
-                password: obfuscate(userData.password),
-                role: userData.role || 'referee',
-                created_at: new Date().toISOString(),
-                avatar_url: userData.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.email}`
-            };
-
-            const updatedUsers = [...users, newUser];
-            setStoredUsers(updatedUsers);
-
-            toast({
-                title: "Account created! 🎉",
-                description: "You can now log in with your new account.",
-            });
-            return { success: true };
-        } catch (error) {
-            console.error("Registration error:", error);
-            return { success: false, error: error.message };
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const logout = async () => {
-        setLoading(true);
+      } else {
         setUser(null);
-        localStorage.removeItem(STORAGE_KEYS.SESSION);
-        localStorage.removeItem(STORAGE_KEYS.TEMP_DATA);
-        toast({
-            title: "Logged out",
-            description: "See you next time! 👋",
-        });
-        setLoading(false);
-    };
+      }
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
 
-    const updateProfile = async (updates) => {
-        if (!user) return;
-        setLoading(true);
+  const login = async (email, password) => {
+    setLoading(true);
+    try {
+      const { user: fbUser } = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      const profile = await getOrCreateProfile(fbUser.uid, fbUser.email);
+      if (!profile) throw new Error('User profile not found. Please register first.');
 
-        try {
-            const users = getStoredUsers();
-            const updatedUsers = users.map(u => {
-                if (u.id === user.id) {
-                    if (updates.password) {
-                        return { ...u, ...updates, password: obfuscate(updates.password) };
-                    }
-                    return { ...u, ...updates };
-                }
-                return u;
-            });
+      const userData = buildUser(fbUser.uid, fbUser.email, profile);
+      setUser(userData);
 
-            setStoredUsers(updatedUsers);
+      // Trigger demo seed (no-op if already done or both users not yet registered)
+      checkAndSeedDemoData().catch(console.error);
 
-            const updatedUser = updatedUsers.find(u => u.id === user.id);
-            const { password: _, ...userWithoutPassword } = updatedUser;
+      setLoading(false);
+      return userData;
+    } catch (error) {
+      setLoading(false);
+      throw mapFirebaseError(error);
+    }
+  };
 
-            setUser(userWithoutPassword);
-            localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(userWithoutPassword));
+  const register = async (userData) => {
+    setLoading(true);
+    try {
+      const { user: fbUser } = await createUserWithEmailAndPassword(
+        auth,
+        userData.email.trim().toLowerCase(),
+        userData.password
+      );
 
-            toast({
-                title: "Profile updated! ✅",
-                description: "Your changes have been saved.",
-            });
-        } catch (error) {
-            console.error("Update profile error:", error);
-            toast({
-                title: "Update failed",
-                description: "Could not save profile changes.",
-                variant: "destructive"
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
+      const profile = {
+        name: userData.name,
+        email: userData.email.trim().toLowerCase(),
+        role: userData.role || 'referee',
+        phone: userData.phone || '',
+        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.email}`,
+        certifications: [],
+        games_officiated: 0,
+        experience: '0 years',
+        rating: 0,
+        bio: '',
+        location: '',
+        created_at: new Date().toISOString(),
+      };
 
-    const uploadAvatar = async (file) => {
-        if (!user) return;
-        if (file.size > 1_000_000) {
-            toast({
-                title: "Image too large",
-                description: "Please upload a photo under 1 MB.",
-                variant: "destructive",
-            });
-            return;
-        }
-        setLoading(true);
-        try {
-            const avatarUrl = await readFileAsDataUrl(file);
-            const users = getStoredUsers();
-            const updatedUsers = users.map(u => u.id === user.id ? { ...u, avatar_url: avatarUrl } : u);
-            setStoredUsers(updatedUsers);
-            const updatedUser = { ...user, avatar_url: avatarUrl };
-            setUser(updatedUser);
-            localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(updatedUser));
-            toast({ title: "Profile photo updated! ✅", description: "Your new photo has been saved." });
-        } catch (error) {
-            toast({
-                title: "Upload failed",
-                description: error.message || "Could not update your profile photo.",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
+      await setDoc(doc(db, 'users', fbUser.uid), profile);
 
-    const createDemoAccounts = async () => {
-        try {
-            const users = getStoredUsers();
+      toast({ title: 'Account created!', description: 'You can now sign in.' });
+      return { success: true };
+    } catch (error) {
+      const mapped = mapFirebaseError(error);
+      toast({ title: 'Registration failed', description: mapped.message, variant: 'destructive' });
+      return { success: false, error: mapped.message };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            const demoAccounts = [
-                { ...DEMO_MANAGER_BASE, password: obfuscate('password') },
-                { ...DEMO_REFEREE_BASE, password: obfuscate('password') },
-            ];
+  const logout = async () => {
+    setLoading(true);
+    await signOut(auth);
+    setUser(null);
+    toast({ title: 'Logged out', description: 'See you next time!' });
+    setLoading(false);
+  };
 
-            let newUsers = [...users];
-            let added = false;
+  const updateProfile = async (updates) => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const userRef = doc(db, 'users', user.id);
+      // Never write password or id to Firestore
+      const { password, id, ...safeUpdates } = updates;
+      await updateDoc(userRef, safeUpdates);
+      setUser(prev => ({ ...prev, ...safeUpdates }));
+      toast({ title: 'Profile updated!', description: 'Your changes have been saved.' });
+    } catch (error) {
+      toast({ title: 'Update failed', description: 'Could not save profile changes.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            demoAccounts.forEach(demoAcct => {
-                if (!users.find(u => u.email === demoAcct.email)) {
-                    newUsers.push(demoAcct);
-                    added = true;
-                }
-            });
+  const uploadAvatar = async (file) => {
+    if (!user) return;
+    if (file.size > 800_000) {
+      toast({ title: 'Image too large', description: 'Please upload a photo under 800 KB.', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const avatarUrl = await readFileAsDataUrl(file);
+      await updateDoc(doc(db, 'users', user.id), { avatar_url: avatarUrl });
+      setUser(prev => ({ ...prev, avatar_url: avatarUrl }));
+      toast({ title: 'Profile photo updated!' });
+    } catch (error) {
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            if (added) {
-                setStoredUsers(newUsers);
-            }
+  // Kept for backward-compat with Login.jsx — now a no-op since accounts exist in Firebase
+  const createDemoAccounts = async () => ({ success: true });
 
-            return { success: true };
-        } catch (error) {
-            console.error("Create demo accounts error:", error);
-            return { success: false, error: error.message };
-        }
-    };
+  const value = {
+    user,
+    login,
+    register,
+    logout,
+    updateProfile,
+    uploadAvatar,
+    loading,
+    createDemoAccounts,
+    isAuthenticated: !!user,
+  };
 
-    const value = {
-        user,
-        login,
-        register,
-        logout,
-        updateProfile,
-        uploadAvatar,
-        loading,
-        createDemoAccounts,
-        isAuthenticated: !!user
-    };
-
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

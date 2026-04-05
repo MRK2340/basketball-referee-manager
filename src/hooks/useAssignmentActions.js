@@ -5,12 +5,12 @@ import {
   requestAssignment,
   unassignReferee,
   updateAssignment,
-} from '@/lib/demoDataService';
+} from '@/lib/firestoreService';
 
 export const useAssignmentActions = (user, fetchData) => {
-  const assignRefereeToGame = (gameId, refereeId) => {
+  const assignRefereeToGame = async (gameId, refereeId) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = assignReferee(user, gameId, refereeId);
+    const { error } = await assignReferee(user, gameId, refereeId);
     if (error) {
         toast({ title: "Assignment Failed", description: error.message, variant: "destructive" });
     } else {
@@ -19,9 +19,9 @@ export const useAssignmentActions = (user, fetchData) => {
     }
   };
 
-  const unassignRefereeFromGame = (assignmentId) => {
+  const unassignRefereeFromGame = async (assignmentId) => {
       if (!user || user.role !== 'manager') return;
-      const { error } = unassignReferee(user, assignmentId);
+      const { error } = await unassignReferee(user, assignmentId);
       if (error) {
           toast({ title: "Unassignment Failed", description: error.message, variant: "destructive" });
       } else {
@@ -30,9 +30,9 @@ export const useAssignmentActions = (user, fetchData) => {
       }
   };
 
-  const updateAssignmentStatus = (assignmentId, status, reason = null) => {
+  const updateAssignmentStatus = async (assignmentId, status, reason = null) => {
     if (!user || user.role !== 'referee') return;
-    const { error } = updateAssignment(user, assignmentId, status, reason);
+    const { error } = await updateAssignment(user, assignmentId, status, reason);
 
     if (error) {
       toast({ title: "Update Failed", description: error.message, variant: "destructive" });
@@ -43,10 +43,10 @@ export const useAssignmentActions = (user, fetchData) => {
     }
   };
 
-  const assignRefereesToCourt = (assignments) => {
+  const assignRefereesToCourt = async (assignments) => {
     if (!user || user.role !== 'manager') return;
 
-    const { error } = assignCourtSchedule(user, assignments);
+    const { error } = await assignCourtSchedule(user, assignments);
 
     if (error) {
       toast({
@@ -63,10 +63,10 @@ export const useAssignmentActions = (user, fetchData) => {
     }
   };
 
-  const requestGameAssignment = (gameId) => {
+  const requestGameAssignment = async (gameId) => {
     if (!user || user.role !== 'referee') return;
 
-    const { error } = requestAssignment(user, gameId);
+    const { error } = await requestAssignment(user, gameId);
 
     if (error) {
       if (error.code === '23505') {

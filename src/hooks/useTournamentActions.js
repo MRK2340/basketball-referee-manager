@@ -3,12 +3,12 @@ import {
   addTournament as addTournamentRecord,
   updateTournamentRecord,
   deleteTournamentRecord,
-} from '@/lib/demoDataService';
+} from '@/lib/firestoreService';
 
 export const useTournamentActions = (user, fetchData) => {
   const addTournament = async (tournamentData) => {
     if (!user) return;
-    const { error } = addTournamentRecord(user, tournamentData);
+    const { error } = await addTournamentRecord(user, tournamentData);
 
     if (error) {
       toast({
@@ -27,7 +27,7 @@ export const useTournamentActions = (user, fetchData) => {
 
   const updateTournament = async (tournamentId, tournamentData) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = updateTournamentRecord(user, tournamentId, tournamentData);
+    const { error } = await updateTournamentRecord(user, tournamentId, tournamentData);
 
     if (error) {
       toast({
@@ -46,7 +46,7 @@ export const useTournamentActions = (user, fetchData) => {
 
   const deleteTournament = async (tournamentId) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = deleteTournamentRecord(user, tournamentId);
+    const { error } = await deleteTournamentRecord(user, tournamentId);
 
     if (error) {
       toast({

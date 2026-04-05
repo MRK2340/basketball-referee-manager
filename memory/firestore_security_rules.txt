@@ -1,0 +1,131 @@
+# iWhistle Firestore Security Rules
+# Paste these in Firebase Console → Firestore Database → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isManager() {
+      return isAuth() && getRole() == 'manager';
+    }
+
+    function isReferee() {
+      return isAuth() && getRole() == 'referee';
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if isAuth() && request.auth.uid == userId;
+    }
+
+    // ── Meta (seed guard) ─────────────────────────────────────────────────────
+    match /_meta/{docId} {
+      allow read, write: if isAuth();
+    }
+
+    // ── Tournaments ───────────────────────────────────────────────────────────
+    match /tournaments/{tournamentId} {
+      allow read: if isAuth();
+      allow create: if isManager();
+      allow update, delete: if isManager() && resource.data.manager_id == request.auth.uid;
+    }
+
+    // ── Games ─────────────────────────────────────────────────────────────────
+    match /games/{gameId} {
+      allow read: if isAuth();
+      allow create: if isManager();
+      allow update: if isManager() && resource.data.manager_id == request.auth.uid;
+      allow delete: if isManager() && resource.data.manager_id == request.auth.uid;
+    }
+
+    // ── Game Assignments ──────────────────────────────────────────────────────
+    match /game_assignments/{assignmentId} {
+      allow read: if isAuth();
+      allow create: if isAuth() &&
+        (isManager() || isReferee());
+      allow update: if isAuth() &&
+        (isManager() || request.auth.uid == resource.data.referee_id);
+      allow delete: if isManager();
+    }
+
+    // ── Payments ──────────────────────────────────────────────────────────────
+    match /payments/{paymentId} {
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.manager_id ||
+         request.auth.uid == resource.data.referee_id);
+      allow create: if isManager();
+      allow update: if isManager() && resource.data.manager_id == request.auth.uid;
+    }
+
+    // ── Messages ──────────────────────────────────────────────────────────────
+    match /messages/{messageId} {
+      allow read: if isAuth() &&
+        request.auth.uid in resource.data.participants;
+      allow create: if isAuth();
+      allow update: if isAuth() &&
+        request.auth.uid in resource.data.participants;
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.recipient_id;
+      allow create: if isAuth();
+      allow update: if isAuth() && request.auth.uid == resource.data.recipient_id;
+    }
+
+    // ── Referee Availability ──────────────────────────────────────────────────
+    match /referee_availability/{availId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isReferee() &&
+        (resource == null || request.auth.uid == resource.data.referee_id);
+    }
+
+    // ── Game Reports ──────────────────────────────────────────────────────────
+    match /game_reports/{reportId} {
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.referee_id ||
+         request.auth.uid == resource.data.manager_id);
+      allow create: if isReferee();
+      allow update: if isAuth() &&
+        (request.auth.uid == resource.data.referee_id ||
+         request.auth.uid == resource.data.manager_id);
+    }
+
+    // ── Referee Ratings ───────────────────────────────────────────────────────
+    match /referee_ratings/{ratingId} {
+      allow read: if isAuth();
+      allow create, update: if isManager();
+    }
+
+    // ── Manager Connections ───────────────────────────────────────────────────
+    match /manager_connections/{connId} {
+      allow read: if isAuth() &&
+        (request.auth.uid == resource.data.manager_id ||
+         request.auth.uid == resource.data.referee_id);
+      allow create: if isReferee();
+      allow update: if isAuth() &&
+        (request.auth.uid == resource.data.manager_id ||
+         request.auth.uid == resource.data.referee_id);
+      allow delete: if isAuth() &&
+        (request.auth.uid == resource.data.manager_id ||
+         request.auth.uid == resource.data.referee_id);
+    }
+
+    // ── Independent Games (referee-private) ───────────────────────────────────
+    match /independent_games/{gameId} {
+      allow read, create, update, delete: if isReferee() &&
+        (resource == null || request.auth.uid == resource.data.referee_id);
+    }
+  }
+}

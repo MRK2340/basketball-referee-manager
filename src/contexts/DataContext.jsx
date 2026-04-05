@@ -7,7 +7,7 @@ import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 import { useMessageActions } from '@/hooks/useMessageActions';
 import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
-import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord, requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord, addIndependentGameRecord, updateIndependentGameRecord, deleteIndependentGameRecord } from '@/lib/demoDataService';
+import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord, requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord, addIndependentGameRecord, updateIndependentGameRecord, deleteIndependentGameRecord } from '@/lib/firestoreService';
 import { toast } from '@/components/ui/use-toast';
 
 const DataContext = createContext();
@@ -54,29 +54,29 @@ export const DataProvider = ({ children }) => {
   const availabilityActions = useAvailabilityActions(user, fetchData);
   const reportActions = useReportActions(user, fetchData);
 
-  const markNotificationRead = (notificationId) => {
+  const markNotificationRead = async (notificationId) => {
     if (!user) return;
     try {
-      markNotificationReadRecord(user, notificationId);
+      await markNotificationReadRecord(user, notificationId);
     } catch (e) {
       console.error('markNotificationRead error:', e);
     }
     fetchData(false);
   };
 
-  const markAllNotificationsRead = () => {
+  const markAllNotificationsRead = async () => {
     if (!user) return;
     try {
-      markAllNotificationsReadRecord(user);
+      await markAllNotificationsReadRecord(user);
     } catch (e) {
       console.error('markAllNotificationsRead error:', e);
     }
     fetchData(false);
   };
 
-  const batchUnassignReferees = (gameIds) => {
+  const batchUnassignReferees = async (gameIds) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = batchUnassignRefereesRecord(user, gameIds);
+    const { error } = await batchUnassignRefereesRecord(user, gameIds);
     if (error) {
       toast({ title: 'Batch unassign failed', description: error.message, variant: 'destructive' });
     } else {
@@ -85,16 +85,16 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const batchMarkPaymentsPaid = (paymentIds) => {
+  const batchMarkPaymentsPaid = async (paymentIds) => {
     if (!user) return;
-    batchMarkPaymentsPaidRecord(user, paymentIds);
+    await batchMarkPaymentsPaidRecord(user, paymentIds);
     toast({ title: 'Payments Updated', description: `${paymentIds.length} payment(s) marked as paid.` });
     fetchData(false);
   };
 
-  const rateReferee = (gameId, refereeId, stars, feedback) => {
+  const rateReferee = async (gameId, refereeId, stars, feedback) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = rateRefereeRecord(user, gameId, refereeId, stars, feedback);
+    const { error } = await rateRefereeRecord(user, gameId, refereeId, stars, feedback);
     if (error) {
       toast({ title: 'Rating failed', description: error.message, variant: 'destructive' });
     } else {
@@ -103,15 +103,15 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const saveNotificationPreferences = (prefs) => {
+  const saveNotificationPreferences = async (prefs) => {
     if (!user) return;
-    saveNotificationPreferencesRecord(user, prefs);
+    await saveNotificationPreferencesRecord(user, prefs);
     fetchData(false);
   };
 
-  const addReportResolution = (reportId, note) => {
+  const addReportResolution = async (reportId, note) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = addReportResolutionRecord(user, reportId, note);
+    const { error } = await addReportResolutionRecord(user, reportId, note);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
@@ -120,9 +120,9 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const requestManagerConnection = (managerId, note) => {
+  const requestManagerConnection = async (managerId, note) => {
     if (!user || user.role !== 'referee') return;
-    const { error } = requestManagerConnectionRecord(user, managerId, note);
+    const { error } = await requestManagerConnectionRecord(user, managerId, note);
     if (error) {
       toast({ title: 'Request failed', description: error.message, variant: 'destructive' });
     } else {
@@ -131,9 +131,9 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const respondToConnection = (connectionId, status) => {
+  const respondToConnection = async (connectionId, status) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = respondToConnectionRecord(user, connectionId, status);
+    const { error } = await respondToConnectionRecord(user, connectionId, status);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
@@ -143,9 +143,9 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const withdrawConnection = (managerId) => {
+  const withdrawConnection = async (managerId) => {
     if (!user || user.role !== 'referee') return;
-    const { error } = withdrawConnectionRecord(user, managerId);
+    const { error } = await withdrawConnectionRecord(user, managerId);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
@@ -154,9 +154,9 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const addIndependentGame = (gameData) => {
+  const addIndependentGame = async (gameData) => {
     if (!user || user.role !== 'referee') return;
-    const { error } = addIndependentGameRecord(user, gameData);
+    const { error } = await addIndependentGameRecord(user, gameData);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
@@ -165,9 +165,9 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const updateIndependentGame = (gameId, gameData) => {
+  const updateIndependentGame = async (gameId, gameData) => {
     if (!user || user.role !== 'referee') return;
-    const { error } = updateIndependentGameRecord(user, gameId, gameData);
+    const { error } = await updateIndependentGameRecord(user, gameId, gameData);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
@@ -176,9 +176,9 @@ export const DataProvider = ({ children }) => {
     }
   };
 
-  const deleteIndependentGame = (gameId) => {
+  const deleteIndependentGame = async (gameId) => {
     if (!user || user.role !== 'referee') return;
-    const { error } = deleteIndependentGameRecord(user, gameId);
+    const { error } = await deleteIndependentGameRecord(user, gameId);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {

@@ -1,10 +1,10 @@
 import { toast } from '@/components/ui/use-toast';
-import { addGameRecord, markGameCompleted } from '@/lib/demoDataService';
+import { addGameRecord, markGameCompleted } from '@/lib/firestoreService';
 
 export const useGameActions = (user, fetchData) => {
-  const addGame = (gameData) => {
+  const addGame = async (gameData) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = addGameRecord(user, gameData);
+    const { error } = await addGameRecord(user, gameData);
 
     if (error) {
       toast({
@@ -21,9 +21,9 @@ export const useGameActions = (user, fetchData) => {
     }
   };
 
-  const markGameAsCompleted = (gameId) => {
+  const markGameAsCompleted = async (gameId) => {
     if (!user || user.role !== 'manager') return;
-    const { error } = markGameCompleted(user, gameId);
+    const { error } = await markGameCompleted(user, gameId);
     if (error) {
       toast({ title: "Action Failed", description: error.message, variant: "destructive" });
     } else {

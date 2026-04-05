@@ -50,7 +50,7 @@ const Login = () => {
     try {
       await createDemoAccounts();
       const demoEmail = role === 'manager' ? 'manager@demo.com' : 'referee@demo.com';
-      const demoPassword = 'password';
+      const demoPassword = role === 'manager' ? 'manager123' : 'Referee123';
       const user = await login(demoEmail, demoPassword);
       toast({
         title: `Logged in as Demo ${role.charAt(0).toUpperCase() + role.slice(1)}!`,

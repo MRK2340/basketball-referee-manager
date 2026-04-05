@@ -1,10 +1,10 @@
 import { toast } from '@/components/ui/use-toast';
-import { markMessageRead, sendMessageRecord } from '@/lib/demoDataService';
+import { markMessageRead, sendMessageRecord } from '@/lib/firestoreService';
 
 export const useMessageActions = (user, fetchData) => {
   const sendMessage = async (messageData) => {
     if (!user) return;
-    const { error } = sendMessageRecord(user, messageData);
+    const { error } = await sendMessageRecord(user, messageData);
 
     if (error) {
       toast({
@@ -23,7 +23,7 @@ export const useMessageActions = (user, fetchData) => {
 
   const markMessageAsRead = async (messageId) => {
     if (!user) return;
-    const { error } = markMessageRead(user, messageId);
+    const { error } = await markMessageRead(user, messageId);
 
     if (error) {
       toast({

@@ -1,0 +1,93 @@
+{
+  "summary": "First Firebase integration test (iteration 15). Tested all 12 required flows. Two critical blockers found: (1) Firestore database does not exist for Firebase project iwhistle-6f5d1 — ALL authenticated flows are broken because user profiles cannot be loaded. (2) Referee demo password mismatch: Login.jsx had 'referee123' but Firebase Auth account uses 'Referee123' (capital R). Fixed #2 in code. #1 requires Firebase Console action by main agent.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "All login flows (referee, manager, new user registration)",
+        "issue": "Firestore database '(default)' does not exist for project iwhistle-6f5d1. After Firebase Auth succeeds, getOrCreateProfile() calls getDoc()/setDoc() which fail with 404. App gets stuck in infinite loading spinner. Error: 'The database (default) does not exist for project iwhistle-6f5d1'",
+        "affected_selectors": ["[data-testid='login-submit-button']", "[data-testid='login-demo-manager-button']", "[data-testid='login-demo-referee-button']"],
+        "priority": "CRITICAL"
+      },
+      {
+        "flow": "Demo Referee login (Try Demo Account → Log in as Referee)",
+        "issue": "Password mismatch: Login.jsx sent 'referee123' but Firebase Auth account uses 'Referee123' (capital R). FIXED in this iteration — changed to 'Referee123' in Login.jsx line 53.",
+        "affected_selectors": ["[data-testid='login-demo-referee-button']"],
+        "priority": "HIGH — FIXED"
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Register page",
+        "issues": ["None of the form inputs have data-testid attributes — reduces testability. All Register.jsx inputs (name, email, phone, password, confirmPassword, submit button) missing data-testid."]
+      }
+    ]
+  },
+  "test_results": {
+    "TEST_1_login_page_loads": "PASS — /login loads without crash, form visible, all elements present",
+    "TEST_2_referee_login_email_form": "FAIL — 'referee123' triggers INVALID_LOGIN_CREDENTIALS (Firebase password is 'Referee123'). Code fixed in this iteration.",
+    "TEST_3_dashboard_with_user_name": "BLOCKED — Firestore not created; cannot login to reach dashboard",
+    "TEST_4_manager_login": "FAIL — manager@demo.com/manager123 passes Firebase Auth but Firestore returns 404, app stuck in loading spinner",
+    "TEST_5_manager_dashboard": "BLOCKED — Firestore not created",
+    "TEST_6_firestore_seed_data": "BLOCKED — Firestore not created",
+    "TEST_7_wrong_password_error": "PASS — Login Failed toast shown correctly with 'Invalid email or password.' message; no crash",
+    "TEST_8_logout": "BLOCKED — cannot login to test logout",
+    "TEST_9_register_page": "PASS (page loads) — Register form at /register loads with all fields. Submit PARTIALLY WORKS: Firebase Auth creates the account but setDoc to Firestore fails silently, app stays on loading spinner",
+    "TEST_10_games_page": "BLOCKED — protected route; cannot login",
+    "TEST_11_calendar_page": "BLOCKED — protected route; cannot login",
+    "TEST_12_schedule_page": "BLOCKED — protected route; cannot login",
+    "EXTRA_protected_route_redirect": "PASS — /dashboard, /manager etc redirect to /login when unauthenticated"
+  },
+  "firebase_auth_verification": {
+    "manager_account": "EXISTS — manager@demo.com / manager123 verified via Firebase Auth REST API",
+    "referee_account": "EXISTS — referee@demo.com / Referee123 (capital R) verified via Firebase Auth REST API",
+    "firestore_db": "DOES NOT EXIST — HTTP 404: 'The database (default) does not exist for project iwhistle-6f5d1. Please visit https://console.cloud.google.com/datastore/setup?project=iwhistle-6f5d1'"
+  },
+  "test_report_links": ["/app/test_reports/iteration_15.json"],
+  "action_items": [
+    "CRITICAL: Create Firestore database for Firebase project iwhistle-6f5d1. Go to: https://console.cloud.google.com/datastore/setup?project=iwhistle-6f5d1 and create a Firestore database in Native mode. Without this, ALL authenticated flows are blocked.",
+    "CRITICAL: Apply Firestore security rules from /app/memory/firestore_security_rules.txt after creating the database, OR temporarily set to 'test mode' (allow all reads/writes) for initial testing.",
+    "DONE (fixed in this iteration): Referee demo password in Login.jsx was 'referee123' (lowercase), changed to 'Referee123' to match Firebase Auth account.",
+    "OPTIONAL: Add data-testid attributes to Register page form inputs for better testability.",
+    "After Firestore is created and rules are set, re-run full test suite to verify: login flows, dashboard, seed data, logout, games/calendar/schedule pages."
+  ],
+  "critical_code_review_comments": [
+    "AuthContext.getOrCreateProfile: When Firestore fails, the error is caught and setUser(null) is called but no user-facing error is shown from onAuthStateChanged. The login() function does show a toast, but the onAuthStateChanged failure is silent. Consider adding a toast in the onAuthStateChanged catch block.",
+    "App gets stuck in loading spinner when Firestore is down — no timeout or fallback error. The onAuthStateChanged handler retries Firestore for ~9 seconds before failing. Consider adding an explicit timeout or error boundary for Firestore connectivity failures.",
+    "Register page form inputs lack data-testid attributes — impacts automated testing.",
+    "Register.jsx line 29: 'if (user) return <Navigate to='/' replace />' redirects registered+logged users to '/' not '/dashboard'. Should be '/dashboard' for consistency."
+  ],
+  "updated_files": [
+    "/app/src/pages/Login.jsx (line 53: 'referee123' → 'Referee123')",
+    "/app/memory/test_credentials.md (updated with correct passwords)"
+  ],
+  "success_rate": {
+    "backend": "N/A (pure frontend Firebase app)",
+    "frontend": "25% (3/12 flows passing: login page loads, wrong password error, register page loads, protected route redirects)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123 (capital R — note: Login.jsx now fixed to use correct password)",
+    "firebase_project": "iwhistle-6f5d1.firebaseapp.com"
+  },
+  "seed_data_creation": "None — blocked by Firestore not existing",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Firebase Auth works: manager@demo.com/manager123 and referee@demo.com/Referee123 are confirmed valid in Firebase Auth REST API. BLOCKING ISSUE: Firestore database does not exist for project iwhistle-6f5d1 — must be created in Firebase Console before any Firestore reads/writes work. Once Firestore is created, test: login as both demo users (referee FIRST, then manager to trigger seed), verify dashboard loads, check games/calendar/schedule pages, test logout. The referee password fix (referee123 → Referee123) was applied in Login.jsx in this iteration.",
+  "rca_of_issue": {
+    "issue_1_firestore_missing": {
+      "root_cause": "Firebase Firestore database was never created for project iwhistle-6f5d1. Firebase Auth and Firestore are separate services — creating a Firebase project does NOT automatically create a Firestore database.",
+      "evidence": "REST API call to https://firestore.googleapis.com/v1/projects/iwhistle-6f5d1/databases/(default) returns HTTP 404: 'The database (default) does not exist for project iwhistle-6f5d1'",
+      "mitigation": "Go to Firebase Console → Project iwhistle-6f5d1 → Firestore Database → Create database → Choose Native mode → Select a region. Then apply security rules from /app/memory/firestore_security_rules.txt"
+    },
+    "issue_2_referee_password": {
+      "root_cause": "Case mismatch: The Firebase Auth account for referee@demo.com was created with password 'Referee123' (capital R), but Login.jsx hardcoded 'referee123' (lowercase r). Firebase Auth passwords are case-sensitive.",
+      "evidence": "Tested via Firebase Auth REST API: 'referee123' → INVALID_LOGIN_CREDENTIALS, 'Referee123' → success with idToken",
+      "mitigation": "FIXED: Changed Login.jsx line 53 from 'referee123' to 'Referee123'"
+    }
+  }
+}

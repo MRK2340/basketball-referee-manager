@@ -1,10 +1,10 @@
 import { toast } from '@/components/ui/use-toast';
-import { submitGameReportRecord } from '@/lib/demoDataService';
+import { submitGameReportRecord } from '@/lib/firestoreService';
 
 export const useReportActions = (user, fetchData) => {
   const submitGameReport = async (reportData) => {
     if (!user || user.role !== 'referee') return false;
-    const { error } = submitGameReportRecord(user, reportData);
+    const { error } = await submitGameReportRecord(user, reportData);
     if (error) {
       toast({ title: "Report Submission Failed", description: error.message, variant: "destructive" });
       return false;

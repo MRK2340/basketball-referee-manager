@@ -1,5 +1,5 @@
 import { toast } from '@/components/ui/use-toast';
-import { addAvailabilityRecord } from '@/lib/demoDataService';
+import { addAvailabilityRecord } from '@/lib/firestoreService';
 
 export const useAvailabilityActions = (user, fetchData) => {
   const addAvailability = async (startDate, endDate) => {
@@ -11,7 +11,7 @@ export const useAvailabilityActions = (user, fetchData) => {
     const endOfDay = new Date(endDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const { error } = addAvailabilityRecord(user, startOfDay.toISOString(), endOfDay.toISOString());
+    const { error } = await addAvailabilityRecord(user, startOfDay.toISOString(), endOfDay.toISOString());
 
     if (error) {
         toast({

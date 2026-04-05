@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { fetchAppData } from '@/lib/demoDataService';
+import { fetchAppData } from '@/lib/firestoreService';
 
 export const useDataFetching = (user) => {
   const [loading, setLoading] = useState(true);
@@ -39,7 +39,7 @@ export const useDataFetching = (user) => {
     else setRefreshing(true);
 
     try {
-      const data = fetchAppData(user);
+      const data = await fetchAppData(user);
       setGames(data.games);
       setTournaments(data.tournaments);
       setPayments(data.payments);
