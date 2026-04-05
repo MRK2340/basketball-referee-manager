@@ -29,7 +29,7 @@ import { toast } from '@/components/ui/use-toast';
 
 const Payments = () => {
   // Hooks at the top
-  const { payments, games, batchMarkPaymentsPaid } = useData();
+  const { payments, games, externalGames, batchMarkPaymentsPaid } = useData();
   const [filter, setFilter] = useState('all');
   const [selectedPaymentIds, setSelectedPaymentIds] = useState(new Set());
 
@@ -103,12 +103,15 @@ const Payments = () => {
     URL.revokeObjectURL(url);
   };
 
+  const findGameForPayment = (p) =>
+    games.find(g => g.id === p.gameId) || (externalGames || []).find(g => g.id === p.gameId);
+
   const exportPaymentsCsv = () => {
-    const headers = ['Payment ID', 'Game', 'Date', 'Amount ($)', 'Status', 'Method'];
+    const headers = ['Payment ID', 'Game', 'Date', 'Amount ($)', 'Status', 'Method', 'Source'];
     const rows = payments.map((p) => {
-      const game = games.find(g => g.id === p.gameId);
+      const game = findGameForPayment(p);
       const gameLabel = game ? `${game.homeTeam} vs ${game.awayTeam}` : 'N/A';
-      return [p.id, gameLabel, p.date || '', p.amount, p.status, p.method || ''];
+      return [p.id, gameLabel, p.date || '', p.amount, p.status, p.method || '', p.source === 'external' ? 'External' : 'iWhistle'];
     });
     const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     downloadCsv(csv, 'payments.csv');
@@ -333,7 +336,7 @@ const Payments = () => {
 
           {filteredPayments.length > 0 ? (
             filteredPayments.map((payment, index) => {
-              const game = games.find(g => g.id === payment.gameId);
+              const game = findGameForPayment(payment);
               const isPending = payment.status === 'pending';
               const isChecked = selectedPaymentIds.has(payment.id);
               return (
@@ -359,13 +362,18 @@ const Payments = () => {
                             />
                           )}
                           <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-3">
+                            <div className="flex items-center space-x-3 mb-3 flex-wrap gap-y-1">
                               <h3 className="text-lg font-bold text-slate-900">
                                 {game ? `${game.homeTeam} vs ${game.awayTeam}` : 'Game Payment'}
                               </h3>
                               <Badge className={`border ${getStatusColor(payment.status)}`}>
                                 {payment.status}
                               </Badge>
+                              {payment.source === 'external' && (
+                                <Badge className="bg-purple-100 text-purple-700 border-purple-200 border text-xs">
+                                  External
+                                </Badge>
+                              )}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">

@@ -17,6 +17,7 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
   const [hasMoreGames, setHasMoreGames] = useState(true);
   const [connections, setConnections] = useState([]);
   const [managerProfiles, setManagerProfiles] = useState([]);
+  const [externalGames, setExternalGames] = useState([]);
 
   const fetchData = useCallback(async (isInitialLoad = true) => {
     if (!user) {
@@ -50,6 +51,7 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
         setNotificationPreferences(data.notificationPreferences || {});
         setConnections(data.connections || []);
         setManagerProfiles(data.managerProfiles || []);
+        setExternalGames(data.externalGames || []);
       }
 
       setHasMoreGames(data.games.length === pageSize);
@@ -80,6 +82,7 @@ export const useDataFetching = (user, page = 1, pageSize = 20) => {
     notificationPreferences, setNotificationPreferences,
     connections, setConnections,
     managerProfiles, setManagerProfiles,
+    externalGames, setExternalGames,
     fetchData,
     hasMoreGames
   };

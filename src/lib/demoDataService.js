@@ -46,6 +46,7 @@ const createNotification = (store, recipientId, type, title, body, link = '/') =
 const getStoredUsers = () => parseJson(localStorage.getItem(USER_STORAGE_KEY), []);
 
 const createSeedStore = () => ({
+  externalGames: [],
   profiles: [
     {
       id: 'demo-manager',
@@ -688,6 +689,41 @@ const mapReferee = (profile, store) => ({
   referee_availability: store.refereeAvailability.filter((slot) => slot.referee_id === profile.id),
 });
 
+const mapExternalGame = (eg) => ({
+  id: eg.id,
+  homeTeam: eg.home_team,
+  awayTeam: eg.away_team,
+  home_team: eg.home_team,
+  away_team: eg.away_team,
+  date: eg.game_date,
+  game_date: eg.game_date,
+  time: eg.game_time ? eg.game_time.slice(0, 5) : '',
+  game_time: eg.game_time || '',
+  venue: eg.venue || '',
+  division: eg.division || '',
+  level: eg.level || '',
+  payment: eg.payment_amount,
+  payment_amount: eg.payment_amount,
+  paymentMethod: eg.payment_method,
+  payment_method: eg.payment_method,
+  paymentStatus: eg.payment_status,
+  leagueName: eg.league_name || '',
+  tournamentName: eg.league_name || 'External Game',
+  notes: eg.notes || '',
+  status: 'completed',
+  source: 'external',
+  refereeId: eg.referee_id,
+  createdAt: eg.created_at,
+  assignments: [],
+  game_assignments: [],
+  requiredCertifications: [],
+  required_certifications: [],
+  homeScore: null,
+  awayScore: null,
+  managerId: null,
+  tournamentId: null,
+});
+
 const updateStore = (updater) => {
   const draft = clone(loadStore());
   const result = updater(draft);
@@ -719,6 +755,8 @@ const getFallbackRecipientId = (store, user) => {
 
 export const fetchAppData = (user, page = 1, pageSize = 20) => {
   const store = loadStore();
+  if (!store.externalGames) store.externalGames = [];
+
   const sortedGames = [...store.games].sort((left, right) => {
     const leftStamp = `${left.game_date}T${left.game_time}`;
     const rightStamp = `${right.game_date}T${right.game_time}`;
@@ -731,13 +769,35 @@ export const fetchAppData = (user, page = 1, pageSize = 20) => {
     ? store.payments
     : store.payments.filter((payment) => payment.referee_id === user.id);
 
+  // Build synthetic payment records for external games (referee only)
+  const externalGamesForUser = store.externalGames.filter((eg) => eg.referee_id === user.id);
+  const externalPayments = user.role === 'referee'
+    ? externalGamesForUser.map((eg) => ({
+        id: `extpay-${eg.id}`,
+        gameId: eg.id,
+        game_id: eg.id,
+        amount: eg.payment_amount,
+        status: eg.payment_status,
+        date: eg.game_date,
+        payment_date: eg.game_date,
+        method: eg.payment_method,
+        payment_method: eg.payment_method,
+        refereeId: eg.referee_id,
+        referee_id: eg.referee_id,
+        source: 'external',
+      }))
+    : [];
+
   const messages = store.messages.filter(
     (message) => message.sender_id === user.id || message.recipient_id === user.id
   );
 
   return {
     games: sortedGames.slice(sliceStart, sliceEnd).map((game) => mapGame(game, store)),
-    payments: payments.map(mapPayment),
+    payments: [...payments.map(mapPayment), ...externalPayments],
+    externalGames: externalGamesForUser
+      .sort((a, b) => b.game_date.localeCompare(a.game_date))
+      .map(mapExternalGame),
     messages: messages
       .sort((left, right) => right.created_at.localeCompare(left.created_at))
       .map((message) => mapMessage(message, store)),
@@ -1306,5 +1366,70 @@ export const withdrawConnectionRecord = (user, managerId) => updateStore((store)
   );
   if (idx === -1) return { error: createError('Connection not found.') };
   store.manager_connections.splice(idx, 1);
+  return { data: true };
+});
+
+// ─── External Game CRUD ───────────────────────────────────────────────────────
+
+export const addExternalGameRecord = (user, gameData) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can log external games.') };
+  }
+  if (!gameData.home_team || !gameData.away_team || !gameData.game_date) {
+    return { error: createError('Home team, away team, and date are required.') };
+  }
+  if (!store.externalGames) store.externalGames = [];
+  store.externalGames.unshift({
+    id: createId('ext-game'),
+    referee_id: user.id,
+    home_team: gameData.home_team,
+    away_team: gameData.away_team,
+    game_date: gameData.game_date,
+    game_time: gameData.game_time || '',
+    venue: gameData.venue || '',
+    league_name: gameData.league_name || '',
+    division: gameData.division || '',
+    level: gameData.level || '',
+    payment_amount: Number(gameData.payment_amount) || 0,
+    payment_method: gameData.payment_method || 'Cash',
+    payment_status: gameData.payment_status || 'paid',
+    notes: gameData.notes || '',
+    created_at: new Date().toISOString(),
+  });
+  return { data: true };
+});
+
+export const updateExternalGameRecord = (user, gameId, gameData) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can edit external games.') };
+  }
+  if (!store.externalGames) store.externalGames = [];
+  const game = store.externalGames.find((eg) => eg.id === gameId && eg.referee_id === user.id);
+  if (!game) return { error: createError('External game not found.') };
+  Object.assign(game, {
+    home_team: gameData.home_team ?? game.home_team,
+    away_team: gameData.away_team ?? game.away_team,
+    game_date: gameData.game_date ?? game.game_date,
+    game_time: gameData.game_time ?? game.game_time,
+    venue: gameData.venue ?? game.venue,
+    league_name: gameData.league_name ?? game.league_name,
+    division: gameData.division ?? game.division,
+    level: gameData.level ?? game.level,
+    payment_amount: gameData.payment_amount !== undefined ? Number(gameData.payment_amount) : game.payment_amount,
+    payment_method: gameData.payment_method ?? game.payment_method,
+    payment_status: gameData.payment_status ?? game.payment_status,
+    notes: gameData.notes ?? game.notes,
+  });
+  return { data: true };
+});
+
+export const deleteExternalGameRecord = (user, gameId) => updateStore((store) => {
+  if (!user || user.role !== 'referee') {
+    return { error: createError('Only referees can delete external games.') };
+  }
+  if (!store.externalGames) store.externalGames = [];
+  const idx = store.externalGames.findIndex((eg) => eg.id === gameId && eg.referee_id === user.id);
+  if (idx === -1) return { error: createError('External game not found.') };
+  store.externalGames.splice(idx, 1);
   return { data: true };
 });

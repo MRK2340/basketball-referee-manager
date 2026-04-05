@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Plus, Repeat } from 'lucide-react';
 
-const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule }) => {
+const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule, onLogExternalGame }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -15,15 +15,15 @@ const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule }) => 
         <p className="app-kicker mb-3">Scheduling</p>
         <h1 className="app-heading mb-3 text-4xl text-slate-950">Game Schedule</h1>
         <p className="max-w-2xl text-slate-600">
-          {userRole === 'manager' 
+          {userRole === 'manager'
             ? 'Manage your game assignments and availability'
-            : 'View your upcoming game assignments'}
+            : 'View your iWhistle assignments and log games from outside the platform'}
         </p>
       </div>
-      
+
       {userRole === 'manager' && (
         <div className="flex gap-2">
-          <Button 
+          <Button
             variant="outline"
             data-testid="schedule-assign-court-button"
             className="border-slate-300 text-slate-800 hover:bg-slate-100"
@@ -32,7 +32,7 @@ const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule }) => 
             <Repeat className="h-4 w-4 mr-2" />
             Assign Court Schedule
           </Button>
-          <Button 
+          <Button
             className="basketball-gradient hover:opacity-90 text-white"
             data-testid="schedule-game-button"
             onClick={onScheduleGame}
@@ -41,6 +41,17 @@ const ScheduleHeader = ({ userRole, onScheduleGame, onAssignCourtSchedule }) => 
             Schedule Game
           </Button>
         </div>
+      )}
+
+      {userRole === 'referee' && onLogExternalGame && (
+        <Button
+          className="basketball-gradient hover:opacity-90 text-white"
+          data-testid="schedule-log-external-button"
+          onClick={onLogExternalGame}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Log External Game
+        </Button>
       )}
     </motion.div>
   );

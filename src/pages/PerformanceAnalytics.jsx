@@ -9,7 +9,7 @@ import { format, getMonth } from 'date-fns';
 import { DollarSign, Trophy, Star, TrendingUp } from 'lucide-react';
 
 const PerformanceAnalytics = () => {
-  const { payments, games, gameReports } = useData();
+  const { payments, games, gameReports, externalGames } = useData();
   const { user } = useAuth();
 
   const monthlyEarningsData = useMemo(() => {
@@ -26,13 +26,14 @@ const PerformanceAnalytics = () => {
     return months;
   }, [payments]);
   
-  // For referees, only count games they were personally assigned to
+  // For referees, include both iWhistle-assigned games and self-logged external games
   const myGames = useMemo(() => {
     if (user?.role === 'referee') {
-      return games.filter(g => g.assignments.some(a => a.referee.id === user.id));
+      const assigned = games.filter(g => g.assignments.some(a => a.referee?.id === user.id));
+      return [...assigned, ...(externalGames || [])];
     }
     return games;
-  }, [games, user]);
+  }, [games, externalGames, user]);
 
   const monthlyGamesData = useMemo(() => {
       const months = Array(12).fill(0).map((_, i) => ({

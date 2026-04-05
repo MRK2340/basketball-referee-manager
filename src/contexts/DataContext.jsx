@@ -7,6 +7,7 @@ import { useAssignmentActions } from '@/hooks/useAssignmentActions';
 import { useMessageActions } from '@/hooks/useMessageActions';
 import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
+import { useExternalGameActions } from '@/hooks/useExternalGameActions';
 import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord, requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord } from '@/lib/demoDataService';
 import { toast } from '@/components/ui/use-toast';
 
@@ -36,6 +37,7 @@ export const DataProvider = ({ children }) => {
     notificationPreferences,
     connections,
     managerProfiles,
+    externalGames,
     fetchData
   } = useDataFetching(user);
 
@@ -51,6 +53,7 @@ export const DataProvider = ({ children }) => {
   const assignmentActions = useAssignmentActions(user, fetchData);
   const availabilityActions = useAvailabilityActions(user, fetchData);
   const reportActions = useReportActions(user, fetchData);
+  const externalGameActions = useExternalGameActions(user, fetchData);
 
   const markNotificationRead = (notificationId) => {
     if (!user) return;
@@ -158,6 +161,7 @@ export const DataProvider = ({ children }) => {
     notificationPreferences,
     connections,
     managerProfiles,
+    externalGames,
     fetchData,
     markNotificationRead,
     markAllNotificationsRead,
@@ -174,7 +178,8 @@ export const DataProvider = ({ children }) => {
     ...assignmentActions,
     ...messageActions,
     ...availabilityActions,
-    ...reportActions
+    ...reportActions,
+    ...externalGameActions,
   };
 
   return (

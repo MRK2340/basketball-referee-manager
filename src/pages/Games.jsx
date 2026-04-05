@@ -19,10 +19,13 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 const Games = () => {
-  const { games, payments } = useData();
+  const { games, payments, externalGames } = useData();
   const navigate = useNavigate();
 
-  const completedGames = games.filter(game => game.status === 'completed');
+  const completedGames = [
+    ...games.filter(game => game.status === 'completed'),
+    ...(externalGames || []),
+  ].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   const upcomingGames = games.filter(game => game.status === 'scheduled');
   const inProgressGames = games.filter(game => game.status === 'in-progress');
 
@@ -74,7 +77,7 @@ const Games = () => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            { title: 'Total Games', value: games.length, icon: Trophy, color: 'text-blue-600', bgColor: 'bg-blue-100' },
+            { title: 'Total Games', value: games.length + (externalGames?.length || 0), icon: Trophy, color: 'text-blue-600', bgColor: 'bg-blue-100' },
             { title: 'Completed', value: completedGames.length, icon: TrendingUp, color: 'text-green-600', bgColor: 'bg-green-100' },
             { title: 'Total Earnings', value: `$${totalEarnings}`, icon: DollarSign, color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
             { title: 'Avg Rating', value: averageRating, icon: Star, color: 'text-orange-600', bgColor: 'bg-orange-100' }
@@ -201,9 +204,14 @@ const Games = () => {
                         <h4 className="text-slate-900 font-semibold text-sm">{game.homeTeam} vs {game.awayTeam}</h4>
                         <p className="text-slate-600 text-xs">{game.division}</p>
                       </div>
-                      <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Completed</Badge>
+                      <div className="flex gap-1">
+                        {game.source === 'external' && (
+                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 text-xs border">External</Badge>
+                        )}
+                        <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Completed</Badge>
+                      </div>
                     </div>
-                    {game.homeScore !== undefined && (
+                    {game.homeScore != null && (
                       <div className="text-slate-900 text-sm font-semibold mb-2">
                         {game.homeScore} - {game.awayScore}
                       </div>
@@ -212,9 +220,11 @@ const Games = () => {
                       <span>{game.date}</span>
                       <span className="text-green-600 font-semibold">${game.payment}</span>
                     </div>
-                    <Button size="sm" variant="outline" data-testid={`games-view-report-${game.id}`} className="w-full mt-3 border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => handleFeatureClick('view-game-report')}>
-                      View Report
-                    </Button>
+                    {game.source !== 'external' && (
+                      <Button size="sm" variant="outline" data-testid={`games-view-report-${game.id}`} className="w-full mt-3 border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => handleFeatureClick('view-game-report')}>
+                        View Report
+                      </Button>
+                    )}
                   </div>
                 ))}
                 {completedGames.length === 0 && (
