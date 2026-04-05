@@ -7,6 +7,7 @@ D) Payment batch processing
 """
 import asyncio
 import json
+from playwright.async_api import Page
 
 # ============================================================
 # HELPERS
@@ -15,11 +16,11 @@ import json
 BASE_URL = "http://localhost:3000"
 STORAGE_KEY = "iwhistle_demo_data_v3"
 
-async def clear_localStorage(page):
+async def clear_localStorage(page: Page) -> None:
     """Remove demo data to force fresh seed on next load."""
     await page.evaluate(f"localStorage.removeItem('{STORAGE_KEY}')")
 
-async def login_as_referee(page):
+async def login_as_referee(page: Page) -> None:
     """Login as Demo Referee via Try Demo Account button."""
     await page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded")
     await page.wait_for_timeout(500)
@@ -35,7 +36,7 @@ async def login_as_referee(page):
     except Exception as e:
         print(f"Login as Referee failed: {e}")
 
-async def login_as_manager(page):
+async def login_as_manager(page: Page) -> None:
     """Login as Demo Manager via Try Demo Account button."""
     await page.goto(f"{BASE_URL}/login", wait_until="domcontentloaded")
     await page.wait_for_timeout(500)
