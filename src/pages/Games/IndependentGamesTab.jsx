@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '@/contexts/DataContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -9,11 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
   Plus, Pencil, Trash2, MapPin, Clock, DollarSign, Building2,
-  TrendingUp, Trophy, Search, X, ClipboardList,
+  TrendingUp, Trophy, Search, X, ClipboardList, Download, FileText, Sheet,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { exportToCSV, exportToPDF } from '@/lib/exportIndependentGames';
 
 const GAME_TYPES = [
   { value: 'league', label: 'League Game', color: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -29,6 +32,7 @@ const EMPTY_FORM = { date: '', time: '', location: '', organization: '', game_ty
 
 export const IndependentGamesTab = () => {
   const { independentGames, addIndependentGame, updateIndependentGame, deleteIndependentGame } = useData();
+  const { user } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -36,8 +40,30 @@ export const IndependentGamesTab = () => {
   const [editingGame, setEditingGame] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [exportYear, setExportYear] = useState(String(new Date().getFullYear()));
 
   const currentYear = new Date().getFullYear();
+
+  // Build list of years that have games, plus current year
+  const availableYears = useMemo(() => {
+    const years = new Set([String(currentYear)]);
+    (independentGames || []).forEach(g => {
+      if (g.date) years.add(g.date.slice(0, 4));
+    });
+    return [...years].sort((a, b) => b - a);
+  }, [independentGames, currentYear]);
+
+  const gamesForExportYear = useMemo(() => {
+    return (independentGames || []).filter(g => g.date?.startsWith(exportYear));
+  }, [independentGames, exportYear]);
+
+  const handleExportCSV = () => {
+    exportToCSV(gamesForExportYear, exportYear, user?.name || 'Referee');
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF(gamesForExportYear, exportYear, user?.name || 'Referee');
+  };
 
   const yearStats = useMemo(() => {
     const thisYear = (independentGames || []).filter(g => g.date?.startsWith(String(currentYear)));
@@ -187,6 +213,69 @@ export const IndependentGamesTab = () => {
           Log Game
         </Button>
       </div>
+
+      {/* Export Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100"
+        data-testid="ind-export-banner"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-brand-blue/10">
+            <Download className="h-4 w-4 text-brand-blue" />
+          </div>
+          <div>
+            <p className="text-slate-900 font-semibold text-sm">Year-End Export</p>
+            <p className="text-slate-500 text-xs">Download your game log for taxes or records</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Select value={exportYear} onValueChange={setExportYear}>
+            <SelectTrigger className="w-24 border-slate-200 bg-white text-sm h-9" data-testid="ind-export-year-trigger">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableYears.map(y => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white gap-2 h-9 text-sm shrink-0"
+                data-testid="ind-export-btn"
+                disabled={gamesForExportYear.length === 0}
+              >
+                <Download className="h-4 w-4" />
+                Export {exportYear}
+                {gamesForExportYear.length === 0 && ' (no games)'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem
+                onClick={handleExportCSV}
+                className="cursor-pointer gap-2"
+                data-testid="ind-export-csv-btn"
+              >
+                <Sheet className="h-4 w-4 text-green-600" />
+                <span>Download CSV</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleExportPDF}
+                className="cursor-pointer gap-2"
+                data-testid="ind-export-pdf-btn"
+              >
+                <FileText className="h-4 w-4 text-red-500" />
+                <span>Download PDF</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </motion.div>
 
       {/* Games List */}
       <AnimatePresence mode="popLayout">
