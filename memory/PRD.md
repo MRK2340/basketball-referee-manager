@@ -138,6 +138,18 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
   `register-confirm-password-input`, `register-submit-button`
 - Added `autoComplete` hints: name, email, tel, new-password
 
+### Phase 13 - Real-time In-App Notifications (Complete — Apr 2026)
+- Created `useRealtimeNotifications.js` — Firestore `onSnapshot` listener on user's notifications
+- Bell badge in TopBar updates in real-time (no page refresh)
+- Toast banner fires for each genuinely new notification (existing ones at login are silenced)
+- Fixed pre-existing `Messages.jsx` bug: `New Message` compose "To:" was null → Firestore undefined error
+  - Replaced readOnly input with dynamic `<select>` dropdown: managers → referees, referees → managers
+  - Reply mode still uses readOnly recipient from original sender
+  - `handleForward`/`openNewCompose` default to first valid recipient
+  - Guard in `handleSendMessage` blocks sends with no recipient
+- Testing: 10/10 flows passing (iteration_18.json)
+
+
 ## Test Credentials
 - Manager: `manager@demo.com` / `manager123`
 - Referee: `referee@demo.com` / `Referee123` (capital R)

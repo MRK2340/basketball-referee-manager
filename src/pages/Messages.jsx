@@ -224,8 +224,8 @@ const Messages = () => {
                     {composeMode === 'reply'
                       ? `Replying to ${newRecipientName}`
                       : composeMode === 'forward'
-                      ? 'Forwarding to League Manager'
-                      : 'Send a message to a league manager.'}
+                      ? `Forwarding to ${newRecipientName || 'a contact'}`
+                      : 'Select a recipient and send your message.'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
