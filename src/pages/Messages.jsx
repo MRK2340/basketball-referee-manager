@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
+import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,15 +18,24 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 const Messages = () => {
-  const { messages, sendMessage, markMessageAsRead } = useData();
+  const { user } = useAuth();
+  const { messages, sendMessage, markMessageAsRead, referees, managerProfiles } = useData();
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [newSubject, setNewSubject] = useState('');
   const [newRecipientId, setNewRecipientId] = useState(null);
-  const [newRecipientName, setNewRecipientName] = useState('League Manager');
+  const [newRecipientName, setNewRecipientName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCompose, setShowCompose] = useState(false);
   const [composeMode, setComposeMode] = useState('new');
+
+  // Build the list of people this user can message
+  const recipientOptions = useMemo(() => {
+    if (user?.role === 'manager') {
+      return referees.map(r => ({ id: r.id, name: r.name }));
+    }
+    return managerProfiles.map(m => ({ id: m.id, name: m.name }));
+  }, [user?.role, referees, managerProfiles]);
 
   const filteredMessages = messages.filter(message =>
     (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -44,11 +54,12 @@ const Messages = () => {
   };
 
   const openNewCompose = () => {
+    const first = recipientOptions[0] || null;
     setComposeMode('new');
     setNewSubject('');
     setNewMessage('');
-    setNewRecipientId(null);
-    setNewRecipientName('League Manager');
+    setNewRecipientId(first?.id || null);
+    setNewRecipientName(first?.name || '');
     setShowCompose(true);
     setSelectedMessage(null);
   };
@@ -65,17 +76,22 @@ const Messages = () => {
 
   const handleForward = () => {
     if (!selectedMessage) return;
+    const first = recipientOptions[0] || null;
     setComposeMode('forward');
     setNewSubject(`Fwd: ${selectedMessage.subject}`);
     setNewMessage(
       `\n\n--- Forwarded Message ---\nFrom: ${selectedMessage.from}\nDate: ${new Date(selectedMessage.timestamp).toLocaleString()}\n\n${selectedMessage.content}`
     );
-    setNewRecipientId(null);
-    setNewRecipientName('League Manager');
+    setNewRecipientId(first?.id || null);
+    setNewRecipientName(first?.name || '');
     setShowCompose(true);
   };
 
   const handleSendMessage = () => {
+    if (!newRecipientId) {
+      toast({ title: "No recipient", description: "Please select a recipient before sending.", variant: "destructive" });
+      return;
+    }
     if (newMessage.trim() && newSubject.trim()) {
       sendMessage({
         subject: newSubject,
@@ -215,12 +231,33 @@ const Messages = () => {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">To:</label>
-                    <Input
-                      data-testid="messages-compose-recipient-input"
-                      value={newRecipientName}
-                      readOnly
-                      className="bg-slate-50 border-slate-200 text-slate-600 cursor-not-allowed"
-                    />
+                    {composeMode === 'reply' ? (
+                      <Input
+                        data-testid="messages-compose-recipient-input"
+                        value={newRecipientName}
+                        readOnly
+                        className="bg-slate-50 border-slate-200 text-slate-600 cursor-not-allowed"
+                      />
+                    ) : (
+                      <select
+                        data-testid="messages-compose-recipient-select"
+                        value={newRecipientId || ''}
+                        onChange={(e) => {
+                          const opt = recipientOptions.find(r => r.id === e.target.value);
+                          setNewRecipientId(opt?.id || null);
+                          setNewRecipientName(opt?.name || '');
+                        }}
+                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        {recipientOptions.length === 0 ? (
+                          <option value="">No contacts available</option>
+                        ) : (
+                          recipientOptions.map(opt => (
+                            <option key={opt.id} value={opt.id}>{opt.name}</option>
+                          ))
+                        )}
+                      </select>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-slate-800 text-sm font-medium">Subject:</label>
