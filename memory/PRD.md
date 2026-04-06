@@ -159,6 +159,15 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 
 
 
+### Phase 15 - Context Namespace Refactor (Complete — Apr 2026)
+- Grouped all flat action exports from `DataContext.jsx` into 11 named namespace objects:
+  `tournamentActions`, `gameActions`, `assignmentActions`, `messageActions`, `availabilityActions`,
+  `reportActions`, `notificationActions`, `paymentActions`, `connectionActions`,
+  `settingsActions`, `independentGameActions`
+- Updated all 20 consumer files to destructure namespaced objects instead of flat functions
+- Eliminates namespace pollution in the context API; fulfills Code Review Issue #9
+- Testing: 17/17 flows passing (iteration_20.json)
+
 ## Test Credentials
 - Manager: `manager@demo.com` / `manager123`
 - Referee: `referee@demo.com` / `Referee123` (capital R)
@@ -166,5 +175,5 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 ## Prioritized Backlog
 
 ### P2 (Future / Optional)
-- Context namespace refactor (Issue #9 from Code Review)
 - camelCase vs snake_case consolidation (Issue #10) — defer until further backend work
+- Add ARIA role='switch' + aria-checked to Settings toggle buttons (low-priority accessibility)
