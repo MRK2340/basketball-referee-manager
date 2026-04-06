@@ -13,7 +13,7 @@ import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 
 const AddGameDialog = ({ open, setOpen }) => {
-  const { tournaments, addGame } = useData();
+  const { tournaments, gameActions } = useData();
   const [tournamentId, setTournamentId] = useState('');
   const [homeTeam, setHomeTeam] = useState('');
   const [awayTeam, setAwayTeam] = useState('');
@@ -47,7 +47,7 @@ const AddGameDialog = ({ open, setOpen }) => {
       });
       return;
     }
-    await addGame({
+    await gameActions.addGame({
       tournament_id: tournamentId,
       home_team: homeTeam,
       away_team: awayTeam,

@@ -9,7 +9,7 @@ import EventDetailsDialog from './components/EventDetailsDialog';
 
 const Calendar = () => {
   // Hooks at the top
-  const { games, availability, addAvailability } = useData();
+  const { games, availability, availabilityActions } = useData();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
@@ -118,7 +118,7 @@ const Calendar = () => {
         <AvailabilityDialog
           isOpen={isAvailabilityDialogOpen}
           onOpenChange={setIsAvailabilityDialogOpen}
-          addAvailability={addAvailability}
+          addAvailability={availabilityActions.addAvailability}
         />
         <EventDetailsDialog
           isOpen={isEventDetailsOpen}

@@ -61,7 +61,7 @@ const SORT_OPTIONS = [
 ];
 
 const LeaderboardTab = ({ referees, games }) => {
-  const { assignRefereeToGame } = useData();
+  const { assignmentActions } = useData();
   const [sortBy, setSortBy] = useState('rating');
   const [assignTarget, setAssignTarget] = useState(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -231,7 +231,7 @@ const LeaderboardTab = ({ referees, games }) => {
         setOpen={setAssignDialogOpen}
         referee={assignTarget}
         games={games}
-        onAssign={assignRefereeToGame}
+        onAssign={assignmentActions.assignRefereeToGame}
       />
     </div>
   );

@@ -19,7 +19,7 @@ import { toast } from '@/components/ui/use-toast';
 
 const Messages = () => {
   const { user } = useAuth();
-  const { messages, sendMessage, markMessageAsRead, referees, managerProfiles } = useData();
+  const { messages, messageActions, referees, managerProfiles } = useData();
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [newSubject, setNewSubject] = useState('');
@@ -49,7 +49,7 @@ const Messages = () => {
     setSelectedMessage(message);
     setShowCompose(false);
     if (!message.read) {
-      markMessageAsRead(message.id);
+      messageActions.markMessageAsRead(message.id);
     }
   };
 
@@ -93,7 +93,7 @@ const Messages = () => {
       return;
     }
     if (newMessage.trim() && newSubject.trim()) {
-      sendMessage({
+      messageActions.sendMessage({
         subject: newSubject,
         content: newMessage,
         recipientId: newRecipientId,

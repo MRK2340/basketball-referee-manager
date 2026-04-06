@@ -95,7 +95,7 @@ const OpenGameCard = ({ game, onRequestGame, isRequested, matchScore }) => {
 
 const OpenGamesTab = ({ games }) => {
   const { user } = useAuth();
-  const { requestGameAssignment } = useData();
+  const { assignmentActions } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date-asc');
   const [divisionFilter, setDivisionFilter] = useState('all');
@@ -285,7 +285,7 @@ const OpenGamesTab = ({ games }) => {
                 >
                   <OpenGameCard
                     game={game}
-                    onRequestGame={requestGameAssignment}
+                    onRequestGame={assignmentActions.requestGameAssignment}
                     isRequested={isRequested}
                     matchScore={matchScore}
                   />

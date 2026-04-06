@@ -68,7 +68,8 @@ const NotificationItem = ({ notification, onRead }) => {
 };
 
 const NotificationPanel = ({ open, onOpenChange }) => {
-  const { notifications, markNotificationRead, markAllNotificationsRead } = useData();
+  const { notifications, notificationActions } = useData();
+  const { markNotificationRead, markAllNotificationsRead } = notificationActions;
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (

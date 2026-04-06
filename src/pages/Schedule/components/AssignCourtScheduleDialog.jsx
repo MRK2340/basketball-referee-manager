@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const AssignCourtScheduleDialog = ({ open, setOpen }) => {
-  const { tournaments, referees, assignRefereesToCourt } = useData();
+  const { tournaments, referees, assignmentActions } = useData();
   const [tournamentId, setTournamentId] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
   const [courtNumber, setCourtNumber] = useState('');
@@ -73,7 +73,7 @@ const AssignCourtScheduleDialog = ({ open, setOpen }) => {
         gameIndex++;
     }
     
-    assignRefereesToCourt(assignments);
+    assignmentActions.assignRefereesToCourt(assignments);
     setOpen(false);
   };
   

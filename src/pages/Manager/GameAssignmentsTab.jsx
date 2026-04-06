@@ -21,7 +21,7 @@ const CONFLICT_BADGE = {
 };
 
 const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefereeFromGame }) => {
-  const { markGameAsCompleted, batchUnassignReferees } = useData();
+  const { gameActions, assignmentActions } = useData();
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
   const [selectedGameIds, setSelectedGameIds] = useState(new Set());
@@ -50,17 +50,17 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
   };
 
   const handleBulkUnassign = () => {
-    batchUnassignReferees([...selectedGameIds]);
+    assignmentActions.batchUnassignReferees([...selectedGameIds]);
     setSelectedGameIds(new Set());
   };
 
   const handleBulkComplete = () => {
-    [...selectedGameIds].forEach((id) => markGameAsCompleted(id));
+    [...selectedGameIds].forEach((id) => gameActions.markGameAsCompleted(id));
     setSelectedGameIds(new Set());
   };
 
   const handleMarkComplete = (game) => {
-    markGameAsCompleted(game.id);
+    gameActions.markGameAsCompleted(game.id);
     // Prompt for rating if game has assigned referees
     if (game.game_assignments?.length > 0) {
       setGameToRate(game);

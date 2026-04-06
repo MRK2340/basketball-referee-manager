@@ -203,6 +203,13 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  // Group inline functions into namespaces
+  const notificationActions = { markNotificationRead, markAllNotificationsRead };
+  const paymentActions = { batchMarkPaymentsPaid, rateReferee };
+  const connectionActions = { requestManagerConnection, respondToConnection, withdrawConnection };
+  const settingsActions = { saveNotificationPreferences };
+  const independentGameActions = { addIndependentGame, updateIndependentGame, deleteIndependentGame };
+
   const value = {
     loading,
     refreshing,
@@ -220,25 +227,17 @@ export const DataProvider = ({ children }) => {
     managerProfiles,
     independentGames,
     fetchData,
-    markNotificationRead,
-    markAllNotificationsRead,
-    batchUnassignReferees,
-    batchMarkPaymentsPaid,
-    rateReferee,
-    saveNotificationPreferences,
-    addReportResolution,
-    requestManagerConnection,
-    respondToConnection,
-    withdrawConnection,
-    addIndependentGame,
-    updateIndependentGame,
-    deleteIndependentGame,
-    ...tournamentActions,
-    ...gameActions,
-    ...assignmentActions,
-    ...messageActions,
-    ...availabilityActions,
-    ...reportActions
+    tournamentActions,
+    gameActions,
+    assignmentActions: { ...assignmentActions, batchUnassignReferees },
+    messageActions,
+    availabilityActions,
+    reportActions: { ...reportActions, addReportResolution },
+    notificationActions,
+    paymentActions,
+    connectionActions,
+    settingsActions,
+    independentGameActions,
   };
 
   return (

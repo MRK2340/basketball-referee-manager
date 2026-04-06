@@ -17,7 +17,7 @@ import RosterTab from './RosterTab';
 
 const Manager = () => {
   const { user } = useAuth();
-  const { tournaments, games, referees, gameReports, connections, addTournament, updateTournament, deleteTournament, assignRefereeToGame, unassignRefereeFromGame, respondToConnection } = useData();
+  const { tournaments, games, referees, gameReports, connections, tournamentActions, assignmentActions, connectionActions } = useData();
 
   if (user?.role !== 'manager') {
     return <Navigate to="/" replace />;
@@ -77,9 +77,9 @@ const Manager = () => {
           <TabsContent value="tournaments">
             <TournamentsTab 
               tournaments={tournaments}
-              addTournament={addTournament}
-              updateTournament={updateTournament}
-              deleteTournament={deleteTournament}
+              addTournament={tournamentActions.addTournament}
+              updateTournament={tournamentActions.updateTournament}
+              deleteTournament={tournamentActions.deleteTournament}
             />
           </TabsContent>
 
@@ -87,8 +87,8 @@ const Manager = () => {
             <GameAssignmentsTab 
               games={games} 
               referees={referees} 
-              assignRefereeToGame={assignRefereeToGame} 
-              unassignRefereeFromGame={unassignRefereeFromGame} 
+              assignRefereeToGame={assignmentActions.assignRefereeToGame} 
+              unassignRefereeFromGame={assignmentActions.unassignRefereeFromGame} 
             />
           </TabsContent>
 
@@ -96,7 +96,7 @@ const Manager = () => {
             <RosterTab
               connections={connections || []}
               referees={referees}
-              respondToConnection={respondToConnection}
+              respondToConnection={connectionActions.respondToConnection}
             />
           </TabsContent>
 

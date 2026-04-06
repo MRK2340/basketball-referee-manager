@@ -9,7 +9,7 @@ import AccountSecuritySettings from './Settings/AccountSecuritySettings';
 import SupportSettings from './Settings/SupportSettings';
 
 const Settings = () => {
-  const { notificationPreferences, saveNotificationPreferences } = useData();
+  const { notificationPreferences, settingsActions } = useData();
 
   const [notifications, setNotifications] = useState(() => ({
     gameAssignments: true,
@@ -41,7 +41,7 @@ const Settings = () => {
   const handleNotificationChange = (key) => {
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
-    saveNotificationPreferences(updated);
+    settingsActions.saveNotificationPreferences(updated);
     toast({
       title: "Settings updated",
       description: "Your notification preferences have been saved.",

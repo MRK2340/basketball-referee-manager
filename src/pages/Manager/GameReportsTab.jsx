@@ -166,7 +166,8 @@ const ReportDetailsDialog = ({ open, setOpen, report, onResolve }) => {
 };
 
 const GameReportsTab = ({ gameReports }) => {
-  const { addReportResolution } = useData();
+  const { reportActions } = useData();
+  const { addReportResolution } = reportActions;
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
 

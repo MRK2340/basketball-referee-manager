@@ -31,7 +31,7 @@ const typeInfo = (type) => GAME_TYPES.find(t => t.value === type) || GAME_TYPES[
 const EMPTY_FORM = { date: '', time: '', location: '', organization: '', game_type: 'league', fee: '', notes: '' };
 
 export const IndependentGamesTab = () => {
-  const { independentGames, addIndependentGame, updateIndependentGame, deleteIndependentGame } = useData();
+  const { independentGames, independentGameActions } = useData();
   const { user } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -112,9 +112,9 @@ export const IndependentGamesTab = () => {
   const handleSave = () => {
     if (!form.date || !form.organization) return;
     if (editingGame) {
-      updateIndependentGame(editingGame.id, form);
+      independentGameActions.updateIndependentGame(editingGame.id, form);
     } else {
-      addIndependentGame(form);
+      independentGameActions.addIndependentGame(form);
     }
     setDialogOpen(false);
     setForm(EMPTY_FORM);
@@ -122,7 +122,7 @@ export const IndependentGamesTab = () => {
   };
 
   const handleDelete = (id) => {
-    deleteIndependentGame(id);
+    independentGameActions.deleteIndependentGame(id);
     setConfirmDeleteId(null);
   };
 

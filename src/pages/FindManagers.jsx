@@ -167,7 +167,8 @@ const ManagerCard = ({ manager, connection, onRequest, onWithdraw, isDark }) => 
 const FindManagersPage = () => {
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const { managerProfiles, connections, requestManagerConnection, withdrawConnection } = useData();
+  const { managerProfiles, connections, connectionActions } = useData();
+  const { requestManagerConnection, withdrawConnection } = connectionActions;
 
   const [search, setSearch] = useState('');
   const [requestTarget, setRequestTarget] = useState(null);

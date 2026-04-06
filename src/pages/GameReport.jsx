@@ -15,7 +15,7 @@ import { Star, Trophy, AlertTriangle, Users, Award } from 'lucide-react';
 
 const GameReport = () => {
   const { user } = useAuth();
-  const { games, gameReports, submitGameReport } = useData();
+  const { games, gameReports, reportActions } = useData();
   const navigate = useNavigate();
 
   const [selectedGameId, setSelectedGameId] = useState('');
@@ -70,7 +70,7 @@ const GameReport = () => {
       mvp_player: mvpPlayer,
     };
 
-    const success = await submitGameReport(reportData);
+    const success = await reportActions.submitGameReport(reportData);
     if (success) {
       navigate('/dashboard');
     }

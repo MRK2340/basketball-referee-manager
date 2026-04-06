@@ -26,7 +26,8 @@ const StarRating = ({ value, onChange }) => (
 );
 
 const RatingDialog = ({ open, setOpen, game }) => {
-  const { rateReferee } = useData();
+  const { paymentActions } = useData();
+  const { rateReferee } = paymentActions;
   const referees = (game?.assignments || []).filter((a) => a.status !== 'declined');
   const [ratings, setRatings] = useState({});
   const [feedbacks, setFeedbacks] = useState({});

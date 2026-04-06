@@ -29,7 +29,7 @@ import { toast } from '@/components/ui/use-toast';
 
 const Payments = () => {
   // Hooks at the top
-  const { payments, games, batchMarkPaymentsPaid } = useData();
+  const { payments, games, paymentActions } = useData();
   const [filter, setFilter] = useState('all');
   const [selectedPaymentIds, setSelectedPaymentIds] = useState(new Set());
 
@@ -156,7 +156,7 @@ const Payments = () => {
   };
 
   const handleBulkMarkPaid = () => {
-    batchMarkPaymentsPaid([...selectedPaymentIds]);
+    paymentActions.batchMarkPaymentsPaid([...selectedPaymentIds]);
     setSelectedPaymentIds(new Set());
   };
 

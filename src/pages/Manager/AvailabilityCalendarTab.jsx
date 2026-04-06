@@ -229,7 +229,7 @@ const QuickAssignPopover = ({ referee, day, openGames, existingGames, onAssign }
 
 // ── Main component ───────────────────────────────────────────────────────────
 const AvailabilityCalendarTab = ({ referees, games }) => {
-  const { assignRefereeToGame } = useData();
+  const { assignmentActions } = useData();
   const { isDark } = useTheme();
   const [weekOffset, setWeekOffset] = useState(0);
   const [certFilter, setCertFilter] = useState('all');
@@ -562,7 +562,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
                             day={day}
                             openGames={isConflict ? dayOpenGames : dayOpenGames}
                             existingGames={refGames}
-                            onAssign={assignRefereeToGame}
+                            onAssign={assignmentActions.assignRefereeToGame}
                           />
                         ) : null}
                       </div>

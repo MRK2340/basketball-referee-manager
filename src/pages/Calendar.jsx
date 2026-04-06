@@ -24,7 +24,7 @@ import { format, startOfWeek, addDays, isSameDay, parse, isValid } from 'date-fn
 export default function Calendar() {
   
   const { toast } = useToast();
-  const { games = [], availability = [], addAvailability, independentGames = [] } = useData();
+  const { games = [], availability = [], availabilityActions, independentGames = [] } = useData();
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState('month');
@@ -121,8 +121,8 @@ export default function Calendar() {
   const handleSaveAvailability = () => {
     if (availabilityDateRange?.from) {
       const toDate = availabilityDateRange.to || availabilityDateRange.from;
-      if (addAvailability) {
-        addAvailability(availabilityDateRange.from, toDate);
+      if (availabilityActions?.addAvailability) {
+        availabilityActions.addAvailability(availabilityDateRange.from, toDate);
       }
       setShowAvailabilityDialog(false);
       setAvailabilityDateRange({ from: undefined, to: undefined });
