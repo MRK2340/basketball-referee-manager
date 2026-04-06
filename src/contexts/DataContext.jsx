@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDataFetching } from '@/hooks/useDataFetching';
 import { useTournamentActions } from '@/hooks/useTournamentActions';
@@ -9,6 +9,7 @@ import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
 import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord, requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord, addIndependentGameRecord, updateIndependentGameRecord, deleteIndependentGameRecord } from '@/lib/firestoreService';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { toast } from '@/components/ui/use-toast';
 
 const DataContext = createContext();
@@ -29,6 +30,7 @@ export const DataProvider = ({ children }) => {
     games,
     payments,
     messages,
+    setMessages,
     notifications,
     setNotifications,
     tournaments,
@@ -43,9 +45,17 @@ export const DataProvider = ({ children }) => {
     fetchData
   } = useDataFetching(user);
 
-  // Real-time Firestore listener — keeps notification bell + panel live,
-  // and pops an in-app toast whenever a new notification arrives.
+  // Build a stable id→profile map for resolving sender names in messages
+  const usersMap = useMemo(() => {
+    const map = {};
+    [...referees, ...managerProfiles].forEach(u => { map[u.id] = u; });
+    if (user) map[user.id] = user;
+    return map;
+  }, [referees, managerProfiles, user]);
+
+  // Real-time Firestore listeners
   useRealtimeNotifications(user, setNotifications);
+  useRealtimeMessages(user, setMessages, usersMap);
 
   useEffect(() => {
     if (user) {

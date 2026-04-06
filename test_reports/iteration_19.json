@@ -1,0 +1,60 @@
+{
+  "summary": "Iteration 19 — Testing real-time onSnapshot messages (useRealtimeMessages.js). All 8 features under test pass. Manager inbox loads, compose dropdown works, sent messages appear instantly via onSnapshot (4→5 messages without page refresh). Referee sees manager's message in inbox on first load (onSnapshot fired immediately). Referee reply flow works (5→6 messages). Notification bell not broken by new listener. Zero JS crashes.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "test_results": {
+    "TEST_1_manager_login": "PASS — Manager logs in with manager@demo.com / manager123. Redirected to /manager dashboard. Success toast shown.",
+    "TEST_2_manager_inbox_loads": "PASS — Manager navigates to /messages. Inbox loads with 4 existing messages. 'data-testid=messages-page-header' present. Unread badge shows '2 new'.",
+    "TEST_3_compose_dropdown": "PASS — 'New Message' opens compose form with <select data-testid='messages-compose-recipient-select'>. Dropdown has 3 referee options: Demo Referee, Jordan Ellis, Olivia Brooks.",
+    "TEST_4_manager_send_success": "PASS — Manager selects Demo Referee, fills subject 'REALTIME-TEST-{ts}' + body, clicks Send. Toast: 'Message Sent! ✉️ Your message has been sent successfully.' No Firestore errors.",
+    "TEST_5_realtime_inbox_update": "PASS — Sent message 'REALTIME-TEST-{ts}' appears at top of manager inbox immediately via onSnapshot (4→5 messages). No page refresh required.",
+    "TEST_6_referee_inbox_loads": "PASS — Referee logs in and navigates to /messages. Inbox shows 5 messages including the REALTIME-TEST message from manager. '3 new' unread badge. Real-time onSnapshot delivers messages on initial load.",
+    "TEST_7_referee_reply": "PASS — Referee clicks manager message, Reply button opens form with readOnly input ('Demo Manager'), subject prefixed 'Re:'. Sends reply. Toast: 'Message Sent! ✉️'. Inbox updates 5→6 immediately via onSnapshot.",
+    "TEST_8_manager_sees_reply": "PASS — Manager logs back in, sees referee's reply 'Re: REALTIME-TEST' in inbox (6 messages). Notification panel shows 'New message from Demo Referee - Re: REALTIME-TEST' as notification.",
+    "TEST_9_notification_bell_badge": "PASS — Manager bell badge shows '3'. Referee bell badge shows '2'. Bell opens notification panel with unread notifications. No regression from adding messages listener.",
+    "TEST_10_no_js_crashes": "PASS — Zero page errors and zero JS console errors across all manager and referee message flows."
+  },
+
+  "test_report_links": [
+    "/app/test_reports/iteration_19.json"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "INFO: useRealtimeMessages.js is well-structured. usersMapRef pattern avoids stale-closure without re-subscribing. isInitialized + knownIds correctly prevents toasts for existing messages on login.",
+    "INFO: DataContext.jsx usersMap useMemo correctly merges referees + managerProfiles + current user. Passed as stable ref to useRealtimeMessages.",
+    "MINOR: When manager sends a message, the sent message is created with is_read=false, causing the sender's own message to increment the unread badge. Not a regression from this iteration. Sender's own messages could optionally be marked is_read=true on creation to avoid this cosmetic issue.",
+    "INFO: Warning 'Missing Description or aria-describedby for DialogContent' appears on notification panel open — pre-existing, non-blocking accessibility warning."
+  ],
+
+  "updated_files": [],
+
+  "success_rate": {
+    "backend": "N/A (pure Firebase Firestore frontend app)",
+    "frontend": "100% (10/10 tests passing)"
+  },
+
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123 (capital R, case-sensitive)"
+  },
+
+  "seed_data_creation": "New test messages created during testing: 'REALTIME-TEST-1775436229' (manager→referee) and 'Re: REALTIME-TEST-1775436229' (referee→manager) are now live in Firestore. Total messages: manager sees 6, referee sees 6.",
+
+  "retest_needed": false,
+
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "All message flows + real-time onSnapshot working correctly. useRealtimeMessages.js attaches onSnapshot on messages where participants array-contains user.id. First snapshot records existing IDs (no toast). New incoming messages (not sent by current user) show toast. Both manager and referee see each other's messages without page refresh. Notification bell (useRealtimeNotifications) still functioning with no regression. Minor cosmetic: sender's own sent messages appear as 'unread' in their inbox because is_read is not set to true on creation."
+}
