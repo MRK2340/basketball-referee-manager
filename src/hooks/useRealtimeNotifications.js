@@ -6,7 +6,7 @@
  * - Shows an in-app toast for each NEW notification that arrives after login
  */
 import { useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 
@@ -29,17 +29,22 @@ export const useRealtimeNotifications = (user, setNotifications) => {
       return;
     }
 
+    // orderBy('created_at', 'desc') pushes sorting to Firestore (requires composite index).
+    // limit(100) caps memory/bandwidth for users with many notifications.
+    // See: firestore.indexes.json — notifications composite index.
     const q = query(
       collection(db, 'notifications'),
-      where('recipient_id', '==', user.id)
+      where('recipient_id', '==', user.id),
+      orderBy('created_at', 'desc'),
+      limit(100)
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        // Results arrive pre-sorted by Firestore (orderBy created_at desc)
         const allNotifs = snapshot.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+          .map(d => ({ id: d.id, ...d.data() }));
 
         // Always keep state fresh in real-time
         setNotifications(allNotifs);

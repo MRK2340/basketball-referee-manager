@@ -123,13 +123,12 @@ export const fetchAppData = async (user) => {
   if (!user) return {};
   const isManager = user.role === 'manager';
 
-  // 1. Fetch all referee profiles and all users (needed for joins)
-  const [allRefSnap, allUserSnap] = await Promise.all([
-    getDocs(query(collection(db, 'users'), where('role', '==', 'referee'))),
-    getDocs(collection(db, 'users')),
-  ]);
-  const allReferees = docsToArr(allRefSnap);
+  // 1. Fetch ALL users in one read, then split by role in JS.
+  //    Eliminates 2 redundant getDocs calls (role=referee + all users + role=manager).
+  const allUserSnap = await getDocs(collection(db, 'users'));
   const allUsers = docsToArr(allUserSnap);
+  const allReferees = allUsers.filter(u => u.role === 'referee');
+  const managerProfilesRaw = allUsers.filter(u => u.role === 'manager');
 
   // 2. Fetch games + assignments (based on role)
   let gamesRaw = [], assignmentsRaw = [];
@@ -152,11 +151,11 @@ export const fetchAppData = async (user) => {
     }
   }
 
-  // 3. Parallel fetch for everything else
+  // 3. Parallel fetch for everything else (manager profiles already derived above)
   const [
     tournamentsSnap, paymentsSnap, messagesSnap, notificationsSnap,
     availabilitySnap, gameReportsSnap, ratingsSnap, connectionsSnap,
-    indGamesSnap, managerProfilesSnap,
+    indGamesSnap,
   ] = await Promise.all([
     isManager
       ? getDocs(query(collection(db, 'tournaments'), where('manager_id', '==', user.id)))
@@ -179,7 +178,6 @@ export const fetchAppData = async (user) => {
     isManager
       ? Promise.resolve({ docs: [] })
       : getDocs(query(collection(db, 'independent_games'), where('referee_id', '==', user.id))),
-    getDocs(query(collection(db, 'users'), where('role', '==', 'manager'))),
   ]);
 
   const tournamentsRaw = docsToArr(tournamentsSnap);
@@ -191,7 +189,6 @@ export const fetchAppData = async (user) => {
   const ratingsRaw = docsToArr(ratingsSnap);
   const connectionsRaw = docsToArr(connectionsSnap);
   const indGamesRaw = docsToArr(indGamesSnap);
-  const managerProfilesRaw = docsToArr(managerProfilesSnap);
 
   // 4. Map everything into the app's expected format
   const sortedGames = [...gamesRaw].sort((a, b) => {

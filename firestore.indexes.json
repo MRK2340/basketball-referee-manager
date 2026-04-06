@@ -1,0 +1,61 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "recipient_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "recipient_id", "order": "ASCENDING" },
+        { "fieldPath": "read",         "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "participants",  "arrayConfig": "CONTAINS" },
+        { "fieldPath": "created_at",    "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "game_assignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "game_id",     "order": "ASCENDING" },
+        { "fieldPath": "referee_id",  "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "game_reports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "game_id",    "order": "ASCENDING" },
+        { "fieldPath": "referee_id", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "referee_ratings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "game_id",    "order": "ASCENDING" },
+        { "fieldPath": "referee_id", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "manager_connections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "referee_id", "order": "ASCENDING" },
+        { "fieldPath": "manager_id", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -26,12 +26,17 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuth();
       allow create: if isAuth() && request.auth.uid == userId;
-      allow update: if isAuth() && request.auth.uid == userId;
+      // Prevent role-escalation: users cannot modify their own `role` field
+      allow update: if isAuth() && request.auth.uid == userId
+        && !('role' in request.resource.data.diff(resource.data).affectedKeys());
     }
 
     // ── Meta (seed guard) ─────────────────────────────────────────────────────
+    // Read: any auth'd user can check the seed guard.
+    // Write: only allowed if the doc does not yet exist (prevents re-seeding).
     match /_meta/{docId} {
-      allow read, write: if isAuth();
+      allow read: if isAuth();
+      allow write: if isAuth() && resource == null;
     }
 
     // ── Tournaments ───────────────────────────────────────────────────────────
@@ -103,9 +108,13 @@ service cloud.firestore {
     }
 
     // ── Referee Ratings ───────────────────────────────────────────────────────
+    // Managers see all ratings (for leaderboard). Referees see only their own.
     match /referee_ratings/{ratingId} {
-      allow read: if isAuth();
-      allow create, update: if isManager();
+      allow read: if isAuth() &&
+        (isManager() || request.auth.uid == resource.data.referee_id);
+      allow create: if isManager();
+      // Managers can only update ratings they originally created
+      allow update: if isManager() && resource.data.manager_id == request.auth.uid;
     }
 
     // ── Manager Connections ───────────────────────────────────────────────────

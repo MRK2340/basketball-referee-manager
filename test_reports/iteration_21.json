@@ -1,0 +1,85 @@
+{
+  "summary": "Security rules review + performance optimization testing (Iteration 21). Tested all manager and referee flows after (1) fetchAppData 1-read optimization, (2) useRealtimeNotifications orderBy+limit, (3) useRealtimeMessages orderBy+limit, and (4) firestore.indexes.json creation. All functional flows pass. Two expected Firestore index errors confirmed (composite indexes not yet deployed to Firebase).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Settings/NotificationsSettings.jsx",
+        "issue": "Toggle buttons lack role='switch' and aria-checked attributes (carry-over from iteration_20 — LOW priority accessibility)",
+        "selector": "button.relative.inline-flex.h-6.w-11",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Real-time notifications (useRealtimeNotifications)",
+        "issue": "KNOWN/EXPECTED: onSnapshot listener fails with 'The query requires an index' because Firestore composite index notifications(recipient_id ASC, created_at DESC) has not been deployed. New notifications do NOT appear in real-time; page refresh required.",
+        "affected_selectors": ["notification bell badge"],
+        "index_url": "https://console.firebase.google.com/v1/r/project/iwhistle-6f5d1/firestore/databases/refereemanager/indexes?create_composite=Cllwcm9qZWN0cy9pd2hpc3RsZS02ZjVkMS9kYXRhYmFzZXMvcmVmZXJlZW1hbmFnZXIvY29sbGVjdGlvbkdyb3Vwcy9ub3RpZmljYXRpb25zL2luZGV4ZXMvXxABGhAKDHJlY2lwaWVudF9pZBABGg4KCmNyZWF0ZWRfYXQQAhoMCghfX25hbWVfXxAC"
+      },
+      {
+        "flow": "Real-time messages (useRealtimeMessages)",
+        "issue": "KNOWN/EXPECTED: onSnapshot listener fails with 'The query requires an index' because Firestore composite index messages(participants CONTAINS, created_at DESC) has not been deployed. New messages do NOT appear in real-time; page refresh required.",
+        "affected_selectors": ["messages inbox new count badge"],
+        "index_url": "https://console.firebase.google.com/v1/r/project/iwhistle-6f5d1/firestore/databases/refereemanager/indexes?create_composite=ClRwcm9qZWN0cy9pd2hpc3RsZS02ZjVkMS9kYXRhYmFzZXMvcmVmZXJlZW1hbmFnZXIvY29sbGVjdGlvbkdyb3Vwcy9tZXNzYWdlcy9pbmRleGVzL18QARoQCgxwYXJ0aWNpcGFudHMYARoOCgpjcmVhdGVkX2F0EAIaDAoIX19uYW1lX18QAg"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_21.json"],
+  "action_items": [
+    "CRITICAL (Firebase deployment): Deploy firestore.indexes.json to Firebase to enable realtime sorting. Use 'firebase deploy --only firestore:indexes' or click the index creation URLs embedded in the console errors. Until deployed, realtime listeners fail and users must refresh the page to see new notifications/messages.",
+    "LOW: Add role='switch' and aria-checked attributes to custom toggle buttons in NotificationsSettings.jsx for accessibility"
+  ],
+  "critical_code_review_comments": [
+    "fetchAppData (firestoreService.js lines 128-130): ONE getDocs on users collection correctly replaces 3 separate role-filtered queries. allUsers is split by role in JS. OPTIMIZATION CONFIRMED.",
+    "useRealtimeNotifications.js: orderBy('created_at','desc') + limit(100) correct. Fails at runtime due to missing composite index — this is expected until firestore.indexes.json is deployed.",
+    "useRealtimeMessages.js: orderBy('created_at','desc') + limit(100) on messages(participants array-contains) correct. Fails at runtime due to missing composite index — expected until deployed.",
+    "firestore.indexes.json: Correct composite indexes defined for notifications(recipient_id+created_at) and messages(participants+created_at). Deploy this file to Firebase to fix realtime listener failures.",
+    "IMPACT: Without deployed indexes, the initial fetchAppData still works (JS-side sorting in fetchAppData fallback). Users see sorted data on page load but NOT in real-time. No data loss or crashes.",
+    "usersMapRef pattern in useRealtimeMessages.js (line 38-41): Correct pattern — avoids re-subscribing on usersMap changes while keeping closure fresh. No bugs."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A - Pure Firebase frontend app",
+    "frontend": "95% (all UI flows pass; 2 realtime listeners fail with expected index errors requiring Firebase deployment)"
+  },
+  "test_credentials": "Manager: manager@demo.com / manager123 | Referee: referee@demo.com / Referee123",
+  "seed_data_creation": "Test message sent from manager to referee: 'Manager Index Test Message'",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "App is pure React + Firebase Vite app at /app (no FastAPI). Iteration 21 tested: (1) fetchAppData 1-read optimization - CONFIRMED working. (2) Realtime notifications/messages with orderBy+limit - CODE CORRECT but fail at runtime because Firestore composite indexes in firestore.indexes.json are NOT yet deployed to Firebase. These are the only 2 console errors visible. All manager tabs (Tournaments, Assignments, Availability, Leaderboard, Roster, Reports) PASS. All referee flows (Dashboard, Messages, Notifications, Calendar+Add Availability, Settings, Payments) PASS. Notification panel sorts newest-first. Messages inbox sorts newest-first. Availability Saved toast appears. Next agent should verify AFTER indexes are deployed: real-time notifications and messages update without page refresh.",
+  "rca_of_issue": {
+    "issue": "useRealtimeNotifications and useRealtimeMessages fail with 'The query requires an index'",
+    "root_cause": "Firestore composite queries using orderBy on a filtered field require a composite index to be created in Firebase Console. The code correctly defines these indexes in firestore.indexes.json but the file must be DEPLOYED to Firebase using 'firebase deploy --only firestore:indexes'. The indexes have NOT been deployed yet.",
+    "reproduction_steps": [
+      "1. Login as manager@demo.com or referee@demo.com",
+      "2. Open browser DevTools console",
+      "3. See errors: '[useRealtimeNotifications] Listener error: FirebaseError: The query requires an index' and '[useRealtimeMessages] Listener error'"
+    ],
+    "mitigation": "Deploy the firestore.indexes.json file to Firebase: run 'firebase deploy --only firestore:indexes' from the project root, OR click the Firebase Console direct links in the console error messages to create each index individually. After deployment, the realtime listeners will work.",
+    "impact": "Medium — app is functional (data loads on page refresh) but real-time updates are broken for notifications and messages"
+  },
+  "test_results": {
+    "manager_login": "PASS - loads at /manager",
+    "manager_tournaments_tab": "PASS - Spring Showcase Classic + Summer Prep Jam visible",
+    "manager_assignments_tab": "PASS",
+    "manager_availability_tab": "PASS",
+    "manager_leaderboard_tab": "PASS",
+    "manager_roster_tab": "PASS",
+    "manager_reports_tab": "PASS",
+    "manager_send_message": "PASS - Message sent to referee, notification created",
+    "notification_bell_initial_count": "PASS - badge shows '3' on manager, '3' on referee",
+    "referee_login": "PASS - loads at /dashboard",
+    "referee_messages_inbox": "PASS - shows 'Manager Index Test Message' at top (newest-first sorting correct)",
+    "referee_notification_panel": "PASS - opens with 6 notifications, 3 unread, newest (5 min ago) at top",
+    "referee_calendar_add_availability": "PASS - dialog opens, date selected, 'Availability Saved!' toast shown",
+    "referee_settings_toggles": "PASS - 7 toggles visible (3 game + 1 communication + 3 delivery), auto-save on toggle",
+    "referee_payments": "PASS - $75 paid payment (Capital Cougars vs Southside Rockets) visible",
+    "console_index_errors": "FAIL (KNOWN) - 2 Firestore index errors: notifications + messages composite indexes NOT deployed",
+    "fetchAppData_1read_optimization": "PASS (code verified) - ONE getDocs('users') call, split by role in JS"
+  }
+}

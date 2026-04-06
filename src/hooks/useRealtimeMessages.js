@@ -7,7 +7,7 @@
  * - Uses a ref for usersMap so the listener never re-subscribes on re-renders
  */
 import { useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 
@@ -47,17 +47,22 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       return;
     }
 
+    // orderBy('created_at', 'desc') pushes sorting to Firestore (requires composite index).
+    // limit(100) caps memory/bandwidth for users with large inboxes.
+    // See: firestore.indexes.json — messages composite index.
     const q = query(
       collection(db, 'messages'),
-      where('participants', 'array-contains', user.id)
+      where('participants', 'array-contains', user.id),
+      orderBy('created_at', 'desc'),
+      limit(100)
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
+        // Results arrive pre-sorted by Firestore (orderBy created_at desc)
         const allMessages = snapshot.docs
-          .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id))
-          .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+          .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id));
 
         // Always keep state fresh
         setMessages(allMessages);
