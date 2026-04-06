@@ -159,6 +159,23 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 
 
 
+### Phase 16 - Firebase Security Rules & Performance Optimization (Complete — Apr 2026)
+**Security rules (apply in Firebase Console → Firestore → Rules):**
+- Blocks role-escalation: users can no longer modify their own `role` field
+- `_meta` seed guard: write only allowed if doc doesn't exist (prevents re-seeding)
+- `referee_ratings` read scoped by role: referees see only their own ratings
+- `referee_ratings` update: managers can only update ratings they originally created
+
+**Performance improvements (code deployed):**
+- `fetchAppData` now fetches all users in ONE Firestore read (split by role in JS) — saves 3 reads per page load
+- `useRealtimeNotifications` + `useRealtimeMessages`: added `limit(100)` to cap large accounts
+
+**Composite indexes (defined in `/app/firestore.indexes.json`, must be deployed separately):**
+- `notifications(recipient_id, created_at)` + `notifications(recipient_id, read)` 
+- `messages(participants, created_at)`, `game_assignments(game_id, referee_id)`, etc.
+- See `/app/memory/firebase_deployment_guide.md` for full instructions
+- After deploying indexes, `orderBy` can be added to realtime hooks for server-side sorting
+
 ### Phase 15 - Context Namespace Refactor (Complete — Apr 2026)
 - Grouped all flat action exports from `DataContext.jsx` into 11 named namespace objects:
   `tournamentActions`, `gameActions`, `assignmentActions`, `messageActions`, `availabilityActions`,

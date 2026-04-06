@@ -63,8 +63,26 @@ The following code changes are **already deployed** in this fork — no action n
 | Change | Benefit |
 |--------|---------|
 | `fetchAppData` — fetch all users in one read, split by role in JS | Saves **3 Firestore reads** on every page load |
-| `useRealtimeNotifications` — added `orderBy + limit(100)` | Sorting delegated to Firestore; caps at 100 docs |
-| `useRealtimeMessages` — added `orderBy + limit(100)` | Same; inbox capped at 100 most recent messages |
+| `useRealtimeNotifications` — added `limit(100)` | Caps max documents from large accounts; client-side sort restored |
+| `useRealtimeMessages` — added `limit(100)` | Same; inbox capped at 100 most recent messages |
+
+### Activating Firestore-side `orderBy` (after deploying indexes in Step 2)
+
+Once the composite indexes are deployed, you can upgrade both realtime hooks to sort server-side
+instead of client-side (eliminates one JS pass per snapshot update):
+
+In `useRealtimeNotifications.js`, change the query to:
+```js
+const q = query(
+  collection(db, 'notifications'),
+  where('recipient_id', '==', user.id),
+  orderBy('created_at', 'desc'),  // ← add this
+  limit(100)
+);
+```
+And remove the `.sort(...)` below it.
+
+Do the same in `useRealtimeMessages.js` (`messages` + `participants` array-contains + `orderBy('created_at','desc')`).
 
 ---
 

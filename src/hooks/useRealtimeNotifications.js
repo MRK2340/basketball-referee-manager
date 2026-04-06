@@ -6,7 +6,7 @@
  * - Shows an in-app toast for each NEW notification that arrives after login
  */
 import { useEffect, useRef } from 'react';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 
@@ -29,22 +29,23 @@ export const useRealtimeNotifications = (user, setNotifications) => {
       return;
     }
 
-    // orderBy('created_at', 'desc') pushes sorting to Firestore (requires composite index).
     // limit(100) caps memory/bandwidth for users with many notifications.
-    // See: firestore.indexes.json — notifications composite index.
+    // NOTE: Adding orderBy('created_at','desc') here requires deploying the composite
+    // index in firestore.indexes.json first. See /app/memory/firebase_deployment_guide.md
     const q = query(
       collection(db, 'notifications'),
       where('recipient_id', '==', user.id),
-      orderBy('created_at', 'desc'),
       limit(100)
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        // Results arrive pre-sorted by Firestore (orderBy created_at desc)
+        // Sort client-side (newest-first). After deploying firestore.indexes.json,
+        // orderBy('created_at','desc') can be added to the query above to push sort to Firestore.
         const allNotifs = snapshot.docs
-          .map(d => ({ id: d.id, ...d.data() }));
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 
         // Always keep state fresh in real-time
         setNotifications(allNotifs);
