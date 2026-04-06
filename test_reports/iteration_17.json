@@ -1,0 +1,83 @@
+{
+  "summary": "Iteration 17 frontend tests for iWhistle real-time Firestore onSnapshot notification feature. All core notification flows pass. One pre-existing bug found in 'New Message' compose form (recipient_id undefined). The useRealtimeNotifications hook, TopBar bell badge, and NotificationPanel sheet are all working correctly.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Manager sends New Message",
+        "issue": "New Message compose form fails with Firestore error: 'Unsupported field value: undefined (found in field recipient_id)'. Root cause: openNewCompose() sets newRecipientId=null, handleSendMessage passes recipientId:null to sendMessageRecord, and null || undefined = undefined in firestoreService.js line 355. Fix: when composing new message, require user to pick a recipient from a dropdown that resolves to their actual user ID, OR default to a known user ID.",
+        "affected_selectors": ["button:has-text('New Message')", "button:has-text('Send Message')"],
+        "file": "/app/src/pages/Messages.jsx",
+        "lines": "46-85",
+        "priority": "HIGH"
+      }
+    ],
+    "design_issues": []
+  },
+
+  "test_results": {
+    "TEST_1_app_loads": "PASS - Landing page loads at / without crash, title 'iWhistle - Leadership Under Pressure'",
+    "TEST_2_referee_login": "PASS - referee@demo.com/Referee123 logs in, redirected to /dashboard",
+    "TEST_3_bell_badge": "PASS - Bell badge shows '2' unread after referee login; useRealtimeNotifications hook updating TopBar badge in real-time",
+    "TEST_4_notification_panel": "PASS - Bell click opens NotificationPanel sheet with 3 items (assignment, message, payment); data-testid='notification-panel' confirmed",
+    "TEST_5_mark_all_read": "PASS - 'Mark all read' button clears badge (NO_BADGE after click); mark-all-read button also disappears correctly",
+    "TEST_6_manager_login": "PASS - manager@demo.com/manager123 logs in, redirected to /manager (League Management)",
+    "TEST_7_assign_referee": "PASS - Assign Referee dialog opens with data-testid='assign-referee-dialog'; 3 referee cards shown; selected Olivia Brooks; confirm button 'Assign Olivia Brooks' clicked; toast 'Referee Assigned! ✅ The referee has been assigned to the game.' shown",
+    "TEST_8_manager_sends_message": "FAIL - New Message compose form fails with 'Function addDoc() called with invalid data. Unsupported field value: undefined (found in field recipient_id)'. Bug: newRecipientId=null not resolved to actual user ID",
+    "TEST_9_notification_icons": "PASS - NotificationPanel shows correct icons: assignment=ClipboardList(orange), message=MessageSquare(blue), payment=DollarSign(green); all items have SVG icons",
+    "TEST_10_no_crashes": "PASS - Zero JS page errors across all login, navigation, and notification flows"
+  },
+
+  "critical_code_review_comments": [
+    "BUG (HIGH): Messages.jsx openNewCompose() sets newRecipientId=null. When sending, recipientId is null. In firestoreService.js sendMessageRecord(), `const recipientId = messageData.recipientId || messageData.recipient_id` resolves to `null || undefined = undefined`. Firestore throws 'Unsupported field value: undefined'. Fix: add a recipient selector (search users dropdown) in the compose form, or use a default referee user ID for manager broadcasts.",
+    "INFO: useRealtimeNotifications.js — isInitialized.current ref is correctly used to skip toasts for existing notifications at login time and only toast for NEW arrivals. Logic is sound.",
+    "INFO: NotificationPanel correctly shows TYPE_CONFIG icons (MessageSquare, ClipboardList, DollarSign, Trophy, FileText) with matching colors. No issues.",
+    "INFO: setNotifications is passed from useDataFetching and used correctly in DataContext.jsx line 48 to wire up the real-time listener."
+  ],
+
+  "test_report_links": [
+    "/app/tests/test_notifications_playwright.py",
+    "/app/test_reports/iteration_17.json"
+  ],
+
+  "action_items": [
+    "FIX (HIGH): Messages.jsx 'New Message' compose form — fix undefined recipient_id bug. Add a proper recipient user selector (e.g., referees dropdown from the referees array in DataContext), OR use a special broadcast recipientId. Current code: openNewCompose() sets newRecipientId=null which becomes undefined in Firestore addDoc call.",
+    "INFO: After fixing the message bug, TEST_8 (manager sends message → notification created for referee) should pass automatically since firestoreService.js sendMessageRecord() already correctly creates a notifications doc with recipient_id when the value is properly set."
+  ],
+
+  "updated_files": [],
+
+  "success_rate": {
+    "backend": "N/A (pure frontend Firebase app)",
+    "frontend": "90% (9/10 flows passing; TEST_8 fails due to pre-existing message compose bug)"
+  },
+
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123 (capital R)"
+  },
+
+  "seed_data_creation": "Seed data already present from iteration_16. No re-seeding required.",
+
+  "retest_needed": true,
+
+  "should_main_agent_self_test": true,
+
+  "context_for_next_testing_agent": "All notification feature tests pass except TEST_8 (manager new message → notification). The useRealtimeNotifications hook works correctly: bell badge updates in real-time (showed '2' after referee login), NotificationPanel opens with correct icons, mark-all-read clears the badge. The broken flow is: Messages page > 'New Message' button > fill subject/body > click 'Send Message' → toast 'Error sending message - Function addDoc() called with invalid data. Unsupported field value: undefined (found in field recipient_id)'. This is a pre-existing bug in Messages.jsx, not caused by the notification feature. The notification feature itself (onSnapshot listener, toast for new notifs) is working as designed.",
+
+  "rca_of_issue": {
+    "bug_new_message_undefined_recipient_id": {
+      "file": "/app/src/pages/Messages.jsx",
+      "function": "openNewCompose() + handleSendMessage()",
+      "root_cause": "openNewCompose() initializes newRecipientId=null and newRecipientName='League Manager'. handleSendMessage() calls sendMessage({ subject, content, recipientId: null }). In firestoreService.js sendMessageRecord(), line 355: const recipientId = messageData.recipientId || messageData.recipient_id = null || undefined = undefined. Firestore addDoc() throws 'Unsupported field value: undefined' because undefined is not a valid Firestore field value.",
+      "evidence": "Toast shown: 'Error sending message - Function addDoc() called with invalid data. Unsupported field value: undefined (found in field recipient_id in document messages/joJ0CkLMfevlWB712txh)'",
+      "fix_suggestion": "In Messages.jsx, add a recipient dropdown populated from referees/users in DataContext. Set newRecipientId to the selected user's actual Firestore ID. Alternatively, for manager-to-referee broadcasts, use a known referee's ID from the referees array. The 'To: League Manager' hardcoded placeholder is misleading since it implies sending to the manager itself (circular)."
+    }
+  }
+}

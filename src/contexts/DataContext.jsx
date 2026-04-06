@@ -8,6 +8,7 @@ import { useMessageActions } from '@/hooks/useMessageActions';
 import { useAvailabilityActions } from '@/hooks/useAvailabilityActions';
 import { useReportActions } from '@/hooks/useReportActions';
 import { markNotificationReadRecord, markAllNotificationsReadRecord, batchUnassignRefereesRecord, batchMarkPaymentsPaidRecord, rateRefereeRecord, saveNotificationPreferencesRecord, addReportResolutionRecord, requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord, addIndependentGameRecord, updateIndependentGameRecord, deleteIndependentGameRecord } from '@/lib/firestoreService';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { toast } from '@/components/ui/use-toast';
 
 const DataContext = createContext();
@@ -29,6 +30,7 @@ export const DataProvider = ({ children }) => {
     payments,
     messages,
     notifications,
+    setNotifications,
     tournaments,
     referees,
     availability,
@@ -40,6 +42,10 @@ export const DataProvider = ({ children }) => {
     independentGames,
     fetchData
   } = useDataFetching(user);
+
+  // Real-time Firestore listener — keeps notification bell + panel live,
+  // and pops an in-app toast whenever a new notification arrives.
+  useRealtimeNotifications(user, setNotifications);
 
   useEffect(() => {
     if (user) {
