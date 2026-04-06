@@ -5,19 +5,20 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **Referees** can view their schedule, log availability, and communicate with managers
 - **Managers** can assign referees and manage tournaments
 
-**User Decision**: Build all rich frontend UI/UX features FIRST using mocked local storage backend, then connect Supabase at the very end.
+**User Decision**: Build all rich frontend UI/UX features FIRST using mocked local storage backend, then connect Firebase at the very end.
 
 ## App Overview
 **Brand**: iWhistle — "Leadership Under Pressure"  
 **Tagline**: "Master the Moment. Lead with Confidence."  
-**URL**: Pure Vite/React frontend at port 3000, no backend  
-**Data**: Fully mocked via localStorage (`demoDataService.js`)
+**URL**: Pure Vite/React frontend at port 3000, no traditional backend  
+**Data**: Live Firebase Firestore (`refereemanager` database)
 
 ## Tech Stack
 - React (Vite)
 - Tailwind CSS + Shadcn/UI  
 - Framer Motion
-- Local Storage mock data layer
+- **Firebase** (Auth + Firestore) — replaced local storage mock layer
+- `jspdf` + `jspdf-autotable` for PDF exports
 - iWhistle Brand Style Guide v2.0 (Dec 2025)
 
 ## Brand Specification (iWhistle v2.0)
@@ -32,13 +33,17 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 ## Architecture
 ```
 /app/src/
-├── App.jsx
+├── App.jsx (lazy-loaded routes via React.lazy/Suspense)
 ├── index.css (brand colors, Arial font)
 ├── styles/iwhistle-brand.css (CSS variables)
 ├── tailwind.config.js (brand-blue #0080C8, brand-orange #FF8C00)
-├── contexts/ (AuthContext.jsx, DataContext.jsx)
-├── hooks/ (useDataFetching.js, useAvailabilityActions.js, etc.)
-├── lib/ (demoDataService.js — core mock data layer)
+├── contexts/ (AuthContext.jsx, DataContext.jsx, ThemeContext.jsx)
+├── hooks/ (useDataFetching.js, useAvailabilityActions.js, useGameActions.js, etc.)
+├── lib/
+│   ├── firebase.js          — Firebase app init (uses VITE_ env vars)
+│   ├── firestoreService.js  — Async Firestore DB service (replaces demoDataService.js)
+│   ├── seedFirestore.js     — Auto-seeds demo data on first login
+│   └── exportIndependentGames.js — CSV/PDF export logic
 ├── components/ (Layout, Sidebar, TopBar, BottomNavigation, GameDetailSheet, etc.)
 └── pages/
     ├── LandingPage.jsx, Login.jsx, Register.jsx
@@ -55,126 +60,90 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
         └── ... (more tabs)
 ```
 
+## Firestore Collections (DB ID: `refereemanager`)
+`tournaments`, `games`, `game_assignments`, `game_reports`, `profiles`, `messages`, `notifications`, `refereeAvailability`, `manager_connections`, `independent_games`, `_meta` (seed guard)
+
 ## What's Been Implemented
 
 ### Phase 1 - Core App (Complete)
 - Auth flow (login/register/demo accounts)
 - Manager dashboard with 7 tabs
 - Referee dashboard with schedule/games/payments/messages/calendar
-- Full mock data layer (demoDataService.js) with all CRUD operations
+- Full mock data layer (demoDataService.js) — **replaced by Firebase**
 
-### Phase 2 - Top-Notch UI Features (Complete — 2025)
+### Phase 2 - Top-Notch UI Features (Complete)
 - Referee Post-Game Rating System
 - Tournament Standings Tab
 - Referee Leaderboard
 - Live Activity Feed on Dashboard
 - Game Detail Slide-out Panel (GameDetailSheet.jsx)
 - Enhanced Game Reports
-- Working Notification Preferences (persisted to localStorage)
+- Working Notification Preferences (persisted)
 - Calendar Week View
 - Open Games Smart Sorting
 - Empty States & Skeleton Loading States (SkeletonCard.jsx)
 - Referee Availability Calendar Tab (AvailabilityCalendarTab.jsx)
 
-### Phase 3 - iWhistle Brand Redesign (Complete — Apr 2026)
-- Updated all "Basketball Reff" → "iWhistle" across entire app
-- Applied iWhistle Brand Style Guide v2.0:
-  - Font: Arial (replaced IBM Plex Sans + Cabinet Grotesk)
-  - Colors: #0080C8 blue, #003D7A deep blue, #FF8C00 orange
-  - "Leadership Under Pressure" tagline on login/landing
-  - iWhistle logo with gradient border (blue → orange)
-  - Active nav states: #E6F2F8 background, #0080C8 text
-  - Notification badges, buttons, CTAs: brand colors
-  - CSS variables updated (iwhistle-brand.css)
-  - Tailwind config updated (brand-blue, brand-orange, brand-blue-deep, brand-blue-light)
+### Phase 3 - iWhistle Brand Redesign (Complete)
+- Applied iWhistle Brand Style Guide v2.0 across entire app
+- Font: Arial, Colors: #0080C8 / #003D7A / #FF8C00
 - Testing: 24/24 brand checks passed (iteration_7.json)
 
-### Phase 5 - Referee–Manager Connection System (Complete — Apr 2026)
-- New data model: manager_connections {id, referee_id, manager_id, status: pending|connected|declined, note, created_at}
-- 3 additional manager profiles seeded: Thomas Washington (Capitol Hoops D.C.), Sarah Chen (Bay Area Youth Basketball), Marcus Johnson (Midwest AAU)
-- /find-managers route (referee-only): browse managers, filter by name/league/location, send roster requests with note, withdraw pending requests
-- Roster tab in Manager panel: incoming requests (Accept/Decline), connected referee roster with expandable contact info
-- Pending request badge on Roster tab in Manager nav
-- Multi-manager support: referees can be on unlimited rosters simultaneously
-- service functions: requestManagerConnectionRecord, respondToConnectionRecord, withdrawConnectionRecord
+### Phase 4 - Dark Mode Toggle (Complete)
+- ThemeContext.jsx with localStorage persistence
+- Sun/Moon toggle in TopBar
+- Dark theme: Deep Blue palette
+- Testing: 14/14 checks passed (iteration_8.json)
+
+### Phase 5 - Referee–Manager Connection System (Complete)
+- `manager_connections` data model
+- /find-managers route for referees, Roster tab for managers
 - Testing: 17/17 checks passed (iteration_9.json)
 
-### Phase 4 - Dark Mode Toggle (Complete — Apr 2026)
-- ThemeContext.jsx with localStorage persistence ('iwhistle-theme')
-- Sun/Moon toggle button in TopBar (data-testid='theme-toggle-button')
-- Dark theme: Deep Blue palette — body #001829, surfaces rgba(0,28,60,0.95), text light blue/white
-- Smooth CSS transitions on theme switch (0.25s ease)
-- Active nav in dark mode: amber/orange accent highlighting
-- Sidebar, TopBar, BottomNavigation all fully dark-mode aware
-- Testing: 14/14 dark mode checks passed (iteration_8.json)
-
-### Phase 6 - Real-time Conflict Warnings (Complete — Apr 2026)
-- ConflictSummaryPanel at top of Availability tab: collapsible, shows all conflicts this week with animated ping dot
-- Per-day conflict badges in column headers (data-testid='day-conflict-badge-{date}')
-- Individual conflict cells: red background, pulsing animation ring, game tags shown inline
-- Conflict stat card with animated ping dot (data-testid='stat-conflicts')
-- Conflict count badge in week label area (data-testid='conflict-count-badge')
-- Quick-assign popover warns of double-booking with conflict details before assigning
+### Phase 6 - Real-time Conflict Warnings (Complete)
+- ConflictSummaryPanel, per-day conflict badges, conflict stat card
+- Quick-assign popover with double-booking warnings
 - Testing: 14/14 checks passed (iteration_10.json)
 
-### Phase 7 - Code Review Fixes (Complete — Apr 2026)
-Applied all fixes from CODE_REVIEW.md (commit f6c2c62):
-- **Bug**: Null guard `a.referee?.id` in Dashboard.jsx (crash prevention)
-- **Bug**: "Games This Month" stat now filters by actual current month
-- **Security**: `obfuscate` fixed to `btoa(encodeURIComponent(str))` — handles Unicode passwords safely; login check backward-compatible
-- **Security**: 1 MB file size guard on avatar upload before localStorage write
-- **Bug**: Removed double `setLoading(false)` in `uploadAvatar` — loading state owned by single caller
-- **Quality**: Deprecated `.substr()` → `.substring()` in AuthContext
-- **Quality**: Removed dead `sendMessage`/`games` params from `useAssignmentActions`
-- **Performance**: React.lazy + Suspense for all 13 page routes in App.jsx — reduces initial bundle size
-- Testing: 11/11 regression checks passed (iteration_11.json)
+### Phase 7 & 8 - Code Review Fixes (Complete)
+- Null guards, React.lazy/Suspense, security fixes, dead code removal
+- Testing: 11/11 (iteration_11.json), 10/10 (iteration_12.json)
 
-### Phase 8 - CODE_REVIEW.md Round 2 Fixes (Complete — Apr 2026)
-- **Security**: Legacy `btoa(password)` in login wrapped in try/catch — safe for Unicode passwords
-- **Bug**: Removed dead pagination state (`page`, `pageSize`, `hasMoreGames`) from `useDataFetching.js`
-- **Performance**: `refreshing` state added — background mutations use `fetchData(false)`, no full-page spinner flash
-- **Quality**: Removed `async` from all sync action functions; ROLE_HOME map in ProtectedRoute; try/catch on notification reads; UTC `Z` suffix in conflictUtils.js; `duration_mins` fallback for variable game lengths
-- Testing: 10/10 regression checks passed (iteration_12.json)
+### Phase 9 - Independent Game Log (Complete)
+- `independent_games` Firestore collection
+- 2-tab Games page: Assigned Games + Independent Log
+- Add/Edit/Delete game dialog, search & filter by type
+- Year-end summary stats row
+- Testing: 13/13 checks passed (iteration_13.json)
 
-### Phase 11 - Firebase Integration (In Progress — Apr 2026)
-**Status**: Firebase Auth working. Blocked pending Firestore database creation.
+### Phase 10 - Year-End Export (Complete)
+- Export banner in Independent Log tab (select year → CSV or PDF)
+- CSV: native Blob/URL with headers + totals footer
+- PDF: iWhistle-branded (jsPDF + jspdf-autotable) with orange accents
+- Testing: 13/13 export tests passed (iteration_14.json)
 
-**Completed:**
+### Phase 11 - Firebase Migration (Complete — Apr 2026)
 - Installed `firebase` SDK
-- Created `/app/src/lib/firebase.js` — initializeApp, getAuth, getFirestore from VITE_ env vars
-- Rewrote `AuthContext.jsx` — Firebase Auth (signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged)
-- Created `firestoreService.js` — async Firestore replacement for demoDataService.js (same function signatures)
-- Created `seedFirestore.js` — auto-seeds demo data when both demo users have Firestore profiles
-- Updated `useDataFetching.js` — `await fetchAppData(user)`
-- Updated all action hooks + DataContext to use `await` on async Firestore calls
-- Firestore security rules saved to `/app/memory/firestore_security_rules.txt`
-- Demo credentials: manager@demo.com/manager123, referee@demo.com/Referee123
+- Created `firebase.js` — initializeApp, getAuth, getFirestore
+- Rewrote `AuthContext.jsx` — Firebase Auth (signIn, createUser, onAuthStateChanged)
+- Created `firestoreService.js` — async Firestore service replacing demoDataService.js
+- Created `seedFirestore.js` — auto-seeds demo data on first dual login
+- Updated all hooks + DataContext to async Firestore calls
+- Fixed nested getDocs bug for referee tournament query (iteration_16)
+- Testing: 12/12 e2e flows passing (iteration_16.json)
 
-**Pending (requires user action):**
-- Create Firestore database in Firebase Console (Native mode)
-- Apply security rules from `/app/memory/firestore_security_rules.txt`
-- Retest all flows
-- New data model: `independent_games` {id, referee_id, date, time, location, organization, game_type, fee, notes, created_at}
-- 5 seeded demo games for demo-referee across league/tournament/scrimmage/playoff types
-- **Games page**: 2-tab UI for referees — "Assigned Games" (existing) + "Independent Log" (new)
-  - Year-end summary: total games + total earnings for current year + top type
-  - Add/Edit game dialog with all fields (date, time, org, location, game type, fee, notes)
-  - Search by org/location, filter by game type, Edit + Delete with confirm dialog
-  - Stats row shows 4 cards: Assigned Games, Independent Games, Platform Earnings, Independent Earnings
-- **Schedule page**: Independent games section at bottom of My Schedule tab with org, type badge, date, fee
-- **Calendar page**: Independent games appear as purple events on calendar cells (month/week view)
-- Calendar event details dialog shows separate "INDEPENDENT" section for those days
-- Private to referee only — managers see no independent data
-- Service functions: addIndependentGameRecord, updateIndependentGameRecord, deleteIndependentGameRecord
-- **Year-End Export**: Export banner in Independent Log tab — select year, download CSV or PDF
-  - CSV: native Blob/URL with headers, game rows, totals footer
-  - PDF: iWhistle-branded report (jsPDF + jspdf-autotable) with header banner, stats cards, game table, orange accents
-- Testing: 13/13 checks passed (iteration_13.json), 13/13 export tests passed (iteration_14.json)
-
-
-- **Final Phase: Connect Supabase Backend (P0)** — strip out demoDataService.js and hook up real Supabase REST/GraphQL APIs for auth, games, assignments, reports, payments, messages, independent_games
+### Phase 12 - Register.jsx Testability Fix (Complete — Apr 2026)
+- Added `data-testid` to all form inputs: `register-name-input`, `register-email-input`,
+  `register-phone-input`, `register-role-select`, `register-password-input`,
+  `register-confirm-password-input`, `register-submit-button`
+- Added `autoComplete` hints: name, email, tel, new-password
 
 ## Test Credentials
-- Manager: `manager@demo.com` / `password`
-- Referee: `referee@demo.com` / `password`
-- Demo button: "Try Demo Account" on login page
+- Manager: `manager@demo.com` / `manager123`
+- Referee: `referee@demo.com` / `Referee123` (capital R)
+
+## Prioritized Backlog
+
+### P2 (Future / Optional)
+- Context namespace refactor (Issue #9 from Code Review)
+- camelCase vs snake_case consolidation (Issue #10) — defer until further backend work

@@ -132,6 +132,8 @@ const Register = () => {
                       placeholder="John Doe"
                       value={formData.name}
                       onChange={handleChange}
+                      autoComplete="name"
+                      data-testid="register-name-input"
                       className={`pl-10 bg-white text-slate-900 placeholder:text-slate-500 ${errors.name ? "border-red-500" : "border-slate-300"}`}
                       required
                     />
@@ -152,6 +154,8 @@ const Register = () => {
                       placeholder="you@example.com"
                       value={formData.email}
                       onChange={handleChange}
+                      autoComplete="email"
+                      data-testid="register-email-input"
                       className={`pl-10 bg-white text-slate-900 placeholder:text-slate-500 ${errors.email ? "border-red-500" : "border-slate-300"}`}
                       required
                     />
@@ -172,6 +176,8 @@ const Register = () => {
                       placeholder="+1 555 123 4567"
                       value={formData.phone}
                       onChange={handleChange}
+                      autoComplete="tel"
+                      data-testid="register-phone-input"
                       className={`pl-10 bg-white text-slate-900 placeholder:text-slate-500 ${errors.phone ? "border-red-500" : "border-slate-300"}`}
                       required
                     />
@@ -186,6 +192,7 @@ const Register = () => {
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
+                    data-testid="register-role-select"
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                   >
                     <option value="referee">Referee</option>
@@ -206,6 +213,8 @@ const Register = () => {
                       placeholder="Min. 8 characters"
                       value={formData.password}
                       onChange={handleChange}
+                      autoComplete="new-password"
+                      data-testid="register-password-input"
                       className={`pl-10 pr-10 bg-white text-slate-900 placeholder:text-slate-500 ${errors.password ? "border-red-500" : "border-slate-300"}`}
                       required
                     />
@@ -235,6 +244,8 @@ const Register = () => {
                       placeholder="Confirm your password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
+                      autoComplete="new-password"
+                      data-testid="register-confirm-password-input"
                       className={`pl-10 bg-white text-slate-900 placeholder:text-slate-500 ${errors.confirmPassword ? "border-red-500" : "border-slate-300"}`}
                       required
                     />
@@ -247,6 +258,7 @@ const Register = () => {
                   className="w-full text-white font-bold py-3 mt-2 shadow-md transition-all"
                   style={{backgroundColor: '#0080C8'}}
                   disabled={loading}
+                  data-testid="register-submit-button"
                 >
                   {loading ? 'Creating Account...' : 'Start Your Journey'}
                 </Button>
