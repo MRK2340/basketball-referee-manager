@@ -11,8 +11,9 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 
-const mapRawMessage = (id, data, usersMap) => {
+const mapRawMessage = (id, data, usersMap, currentUserId) => {
   const sender = usersMap[data.sender_id] || { name: 'System', avatar_url: null };
+  const isMine = data.sender_id === currentUserId;
   return {
     id,
     from: sender.name,
@@ -21,8 +22,9 @@ const mapRawMessage = (id, data, usersMap) => {
     content: data.content,
     timestamp: data.created_at,
     created_at: data.created_at,
-    read: data.is_read,
-    is_read: data.is_read,
+    // Sender already "read" their own message — prevents false unread badge count
+    read: data.is_read || isMine,
+    is_read: data.is_read || isMine,
     sender_id: data.sender_id,
     recipient_id: data.recipient_id,
   };
@@ -54,7 +56,7 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       q,
       (snapshot) => {
         const allMessages = snapshot.docs
-          .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current))
+          .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id))
           .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 
         // Always keep state fresh

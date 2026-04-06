@@ -149,6 +149,15 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
   - Guard in `handleSendMessage` blocks sends with no recipient
 - Testing: 10/10 flows passing (iteration_18.json)
 
+### Phase 14 - Real-time Messages via onSnapshot (Complete — Apr 2026)
+- Created `useRealtimeMessages.js` — Firestore `onSnapshot` on `messages` where `participants` array-contains user ID
+- Inbox updates live without any page refresh; new incoming messages show a toast
+- `usersMapRef` pattern keeps sender-name resolution always fresh without re-subscribing the listener
+- Sender's own messages treated as `read: true` — prevents false unread badge inflation
+- Wired into `DataContext.jsx` alongside notification listener (both run in parallel)
+- Testing: 10/10 flows passing (iteration_19.json)
+
+
 
 ## Test Credentials
 - Manager: `manager@demo.com` / `manager123`
