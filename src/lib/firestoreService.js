@@ -8,7 +8,7 @@
 import { db } from './firebase';
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, limit, documentId, serverTimestamp, writeBatch,
+  query, where, orderBy, limit, startAfter, documentId, serverTimestamp, writeBatch,
 } from 'firebase/firestore';
 import {
   mapProfile, mapConnection, mapGame, mapTournament,
@@ -498,4 +498,23 @@ export const updateIndependentGameRecord = async (user, gameId, gameData) => saf
 export const deleteIndependentGameRecord = async (user, gameId) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can delete independent games.');
   await deleteDoc(doc(db, 'independent_games', gameId));
+});
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch the next page of messages.
+ * @param {object} user           - current user ({ id })
+ * @param {string} afterTimestamp - created_at value of the oldest already-loaded message
+ * @param {Array}  allUsers       - user list for sender name resolution
+ */
+export const fetchMoreMessages = async (user, afterTimestamp, allUsers) => safeHandle(async () => {
+  const snap = await getDocs(query(
+    collection(db, 'messages'),
+    where('participants', 'array-contains', user.id),
+    orderBy('created_at', 'desc'),
+    startAfter(afterTimestamp),
+    limit(50),
+  ));
+  return docsToArr(snap).map(m => mapMessage(m, allUsers));
 });
