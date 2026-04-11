@@ -74,20 +74,20 @@ export const DataProvider = ({ children }) => {
     if (!user) return;
     try {
       await markNotificationReadRecord(user, notificationId);
+      await fetchData(false);
     } catch (e) {
       console.error('markNotificationRead error:', e);
     }
-    fetchData(false);
   };
 
   const markAllNotificationsRead = async () => {
     if (!user) return;
     try {
       await markAllNotificationsReadRecord(user);
+      await fetchData(false);
     } catch (e) {
       console.error('markAllNotificationsRead error:', e);
     }
-    fetchData(false);
   };
 
   const batchUnassignReferees = async (gameIds) => {
@@ -103,9 +103,13 @@ export const DataProvider = ({ children }) => {
 
   const batchMarkPaymentsPaid = async (paymentIds) => {
     if (!user) return;
-    await batchMarkPaymentsPaidRecord(user, paymentIds);
-    toast({ title: 'Payments Updated', description: `${paymentIds.length} payment(s) marked as paid.` });
-    fetchData(false);
+    try {
+      await batchMarkPaymentsPaidRecord(user, paymentIds);
+      toast({ title: 'Payments Updated', description: `${paymentIds.length} payment(s) marked as paid.` });
+      await fetchData(false);
+    } catch (e) {
+      toast({ title: 'Update failed', description: e.message, variant: 'destructive' });
+    }
   };
 
   const rateReferee = async (gameId, refereeId, stars, feedback) => {
@@ -121,8 +125,12 @@ export const DataProvider = ({ children }) => {
 
   const saveNotificationPreferences = async (prefs) => {
     if (!user) return;
-    await saveNotificationPreferencesRecord(user, prefs);
-    fetchData(false);
+    try {
+      await saveNotificationPreferencesRecord(user, prefs);
+      await fetchData(false);
+    } catch (e) {
+      console.error('saveNotificationPreferences error:', e);
+    }
   };
 
   const addReportResolution = async (reportId, note) => {

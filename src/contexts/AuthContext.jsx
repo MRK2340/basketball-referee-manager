@@ -117,6 +117,11 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (err) {
           console.error('Auth state profile fetch error:', err);
+          toast({
+            title: 'Could not load your profile',
+            description: 'There was a problem loading your account. Please refresh the page.',
+            variant: 'destructive',
+          });
           setUser(null);
         }
       } else {

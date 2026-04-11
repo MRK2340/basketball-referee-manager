@@ -6,7 +6,7 @@
 import { db } from './firebase';
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, documentId, serverTimestamp, writeBatch,
+  query, where, orderBy, limit, documentId, serverTimestamp, writeBatch,
 } from 'firebase/firestore';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -147,12 +147,16 @@ export const fetchAppData = async (user) => {
   if (!user) return {};
   const isManager = user.role === 'manager';
 
-  // 1. Fetch ALL users in one read, then split by role in JS.
-  //    Eliminates 2 redundant getDocs calls (role=referee + all users + role=manager).
-  const allUserSnap = await getDocs(collection(db, 'users'));
-  const allUsers = docsToArr(allUserSnap).map(mapProfile);
-  const allReferees = allUsers.filter(u => u.role === 'referee');
-  const managerProfilesRaw = allUsers.filter(u => u.role === 'manager');
+  // 1. M2 fix: two role-scoped queries + current user doc in parallel
+  //    (replaces full collection scan — getDocs(collection(db, 'users')))
+  const [refereeUserSnap, managerUserSnap, currentUserSnap] = await Promise.all([
+    getDocs(query(collection(db, 'users'), where('role', '==', 'referee'))),
+    getDocs(query(collection(db, 'users'), where('role', '==', 'manager'))),
+    getDoc(doc(db, 'users', user.id)),
+  ]);
+  const allReferees = docsToArr(refereeUserSnap).map(mapProfile);
+  const managerProfilesRaw = docsToArr(managerUserSnap).map(mapProfile);
+  const allUsers = [...allReferees, ...managerProfilesRaw];
 
   // 2. Fetch games + assignments (based on role)
   let gamesRaw = [], assignmentsRaw = [];
@@ -192,8 +196,19 @@ export const fetchAppData = async (user) => {
     getDocs(isManager
       ? query(collection(db, 'payments'), where('manager_id', '==', user.id))
       : query(collection(db, 'payments'), where('referee_id', '==', user.id))),
-    getDocs(query(collection(db, 'messages'), where('participants', 'array-contains', user.id))),
-    getDocs(query(collection(db, 'notifications'), where('recipient_id', '==', user.id))),
+    // M3 fix: server-side orderBy + limit — prevents unbounded reads for active users
+    getDocs(query(
+      collection(db, 'messages'),
+      where('participants', 'array-contains', user.id),
+      orderBy('created_at', 'desc'),
+      limit(50),
+    )),
+    getDocs(query(
+      collection(db, 'notifications'),
+      where('recipient_id', '==', user.id),
+      orderBy('created_at', 'desc'),
+      limit(100),
+    )),
     getDocs(query(collection(db, 'referee_availability'), where('referee_id', '==', user.id))),
     getDocs(isManager
       ? query(collection(db, 'game_reports'), where('manager_id', '==', user.id))
@@ -220,8 +235,9 @@ export const fetchAppData = async (user) => {
   const indGamesRaw = docsToArr(indGamesSnap);
 
   // Read the current user's saved notification preferences (if any)
-  const currentUserDoc = allUserSnap.docs.find(d => d.id === user.id);
-  const savedPrefs = currentUserDoc?.data()?.notification_preferences || {};
+  const savedPrefs = currentUserSnap.exists()
+    ? (currentUserSnap.data()?.notification_preferences || {})
+    : {};
   const notificationPreferences = {
     gameAssignments: true, scheduleChanges: true, paymentUpdates: true,
     messages: true, emailNotifications: true, pushNotifications: false, smsNotifications: false,
