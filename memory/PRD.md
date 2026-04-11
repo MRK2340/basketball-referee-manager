@@ -201,7 +201,15 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Created `storage.rules`, updated `firebase.json` with storage + functions configs
 - Testing: 100% pass (iteration_23.json)
 
-### Phase 21 - Critical / Security Audit Fixes (Complete — Apr 2026)
+### Phase 22 - Performance & Architecture Fixes (Complete — Apr 2026)
+- **H1** `firestoreService.js:165` — Referee game fetch: replaced N individual `getDoc()` calls with a single `where(documentId(), 'in', gameIds)` batch query. Added `chunkArray(arr, 30)` helper for Firestore's 30-item `in` limit.
+- **H1** `firestoreService.js:463` — `batchUnassignRefereesRecord`: replaced N `getDocs(where game_id ==)` calls with `where('game_id', 'in', chunk)` batch.
+- **M1** `firestoreService.js:234` — Availability mapping: replaced O(n²) `.filter()` inside `.map()` with a pre-built `Map<referee_id, availability[]>` for O(1) lookups.
+- **P3** `Messages.jsx:40` — `filteredMessages` wrapped in `useMemo([messages, searchTerm])` — eliminates re-computation on every render.
+- **A3** `src/constants.js` created — `ROLES`, `GAME_STATUS`, `ASSIGNMENT_STATUS`, `CONNECTION_STATUS`, `NOTIFICATION_TYPES`, `PAYMENT_STATUS` enums.
+- Testing: 100% pass, 0 regressions (iteration_24.json)
+
+
 - **C1** `Login.jsx`: demo passwords removed from component — now imported from `demoAccounts.js` (`DEMO_MANAGER_PASSWORD`, `DEMO_REFEREE_PASSWORD`)
 - **C2** `firebase.js`: startup env-var validation — throws with descriptive error if any `VITE_FIREBASE_*` var is missing; created `.env.example` template
 - **C3** `.gitignore`: added `memory/test_credentials.md` to prevent credential file from being committed
