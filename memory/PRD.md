@@ -168,9 +168,9 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 
 **Performance improvements (code deployed):**
 - `fetchAppData` now fetches all users in ONE Firestore read (split by role in JS) — saves 3 reads per page load
-- `useRealtimeNotifications` + `useRealtimeMessages`: added `limit(100)` to cap large accounts
+- `useRealtimeNotifications` + `useRealtimeMessages`: indexed `orderBy` query with automatic client-side fallback while index builds; `limit(100)` caps large accounts
 
-**Composite indexes (defined in `/app/firestore.indexes.json`, must be deployed separately):**
+**Composite indexes (`/app/firestore.indexes.json` — DEPLOYED to Firebase Apr 2026):**
 - `notifications(recipient_id, created_at)` + `notifications(recipient_id, read)` 
 - `messages(participants, created_at)`, `game_assignments(game_id, referee_id)`, etc.
 - See `/app/memory/firebase_deployment_guide.md` for full instructions

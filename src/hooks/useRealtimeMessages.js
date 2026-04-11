@@ -5,9 +5,11 @@
  * - Keeps the messages list in real-time (inbox updates without a page refresh)
  * - Shows an in-app toast for each NEW incoming message (not sent by this user)
  * - Uses a ref for usersMap so the listener never re-subscribes on re-renders
+ * - Uses an indexed query (orderBy) with automatic fallback to client-side sort
+ *   while the composite index is still building.
  */
 import { useEffect, useRef } from 'react';
-import { collection, query, where, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 
@@ -47,56 +49,72 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       return;
     }
 
-    // limit(100) caps memory/bandwidth for users with large inboxes.
-    // NOTE: Adding orderBy('created_at','desc') here requires deploying the composite
-    // index in firestore.indexes.json first. See /app/memory/firebase_deployment_guide.md
-    const q = query(
+    // Preferred query: Firestore-side sort (requires composite index).
+    const indexedQ = query(
+      collection(db, 'messages'),
+      where('participants', 'array-contains', user.id),
+      orderBy('created_at', 'desc'),
+      limit(100)
+    );
+
+    // Fallback query: used while the composite index is still building.
+    const fallbackQ = query(
       collection(db, 'messages'),
       where('participants', 'array-contains', user.id),
       limit(100)
     );
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        // Sort client-side (newest-first). After deploying firestore.indexes.json,
-        // orderBy('created_at','desc') can be added to the query above to push sort to Firestore.
-        const allMessages = snapshot.docs
-          .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id))
-          .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    let unsubscribe;
 
-        // Always keep state fresh
-        setMessages(allMessages);
-
-        if (!isInitialized.current) {
-          // First snapshot on login — record existing IDs, no toasts
-          allMessages.forEach(m => knownIds.current.add(m.id));
-          isInitialized.current = true;
-          return;
-        }
-
-        // Toast only for new messages the current user didn't send
-        allMessages.forEach(m => {
-          if (!knownIds.current.has(m.id) && m.sender_id !== user.id) {
-            knownIds.current.add(m.id);
-            toast({
-              title: `New message from ${m.from}`,
-              description: m.subject,
-              duration: 5000,
-            });
-          } else {
-            // Still track IDs for messages sent by this user (no toast)
-            knownIds.current.add(m.id);
-          }
-        });
-      },
-      (err) => {
-        console.error('[useRealtimeMessages] Listener error:', err);
+    const handleSnapshot = (snapshot, useFallbackSort = false) => {
+      let allMessages = snapshot.docs
+        .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id));
+      if (useFallbackSort) {
+        allMessages = allMessages.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
       }
-    );
+
+      setMessages(allMessages);
+
+      if (!isInitialized.current) {
+        allMessages.forEach(m => knownIds.current.add(m.id));
+        isInitialized.current = true;
+        return;
+      }
+
+      allMessages.forEach(m => {
+        if (!knownIds.current.has(m.id) && m.sender_id !== user.id) {
+          knownIds.current.add(m.id);
+          toast({
+            title: `New message from ${m.from}`,
+            description: m.subject,
+            duration: 5000,
+          });
+        } else {
+          knownIds.current.add(m.id);
+        }
+      });
+    };
+
+    const subscribe = (q, useFallbackSort = false) => {
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => handleSnapshot(snapshot, useFallbackSort),
+        (err) => {
+          if (!useFallbackSort && err.message?.includes('requires an index')) {
+            // Index still building — silently switch to fallback query
+            unsubscribe?.();
+            subscribe(fallbackQ, true);
+          } else {
+            console.error('[useRealtimeMessages] Listener error:', err);
+          }
+        }
+      );
+    };
+
+    subscribe(indexedQ, false);
 
     return () => {
-      unsubscribe();
+      unsubscribe?.();
       isInitialized.current = false;
       knownIds.current = new Set();
     };
