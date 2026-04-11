@@ -19,6 +19,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { checkAndSeedDemoData } from '@/lib/seedFirestore';
+import { Analytics } from '@/lib/analytics';
 
 const AuthContext = createContext();
 
@@ -138,6 +139,7 @@ export const AuthProvider = ({ children }) => {
 
       // Trigger demo seed (no-op if already done or both users not yet registered)
       checkAndSeedDemoData().catch(console.error);
+      Analytics.login();
 
       setLoading(false);
       return userData;
@@ -173,6 +175,7 @@ export const AuthProvider = ({ children }) => {
 
       await setDoc(doc(db, 'users', fbUser.uid), profile);
 
+      Analytics.signUp(userData.role || 'referee');
       toast({ title: 'Account created!', description: 'You can now sign in.' });
       return { success: true };
     } catch (error) {
@@ -186,6 +189,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     setLoading(true);
+    Analytics.logout();
     await signOut(auth);
     setUser(null);
     toast({ title: 'Logged out', description: 'See you next time!' });
@@ -224,6 +228,7 @@ export const AuthProvider = ({ children }) => {
       // Save the public download URL to Firestore (not a base64 blob)
       await updateDoc(doc(db, 'users', user.id), { avatar_url: avatarUrl });
       setUser(prev => ({ ...prev, avatar_url: avatarUrl, avatarUrl }));
+      Analytics.photoUploaded();
       toast({ title: 'Profile photo updated!' });
     } catch (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });

@@ -201,7 +201,13 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Created `storage.rules`, updated `firebase.json` with storage + functions configs
 - Testing: 100% pass (iteration_23.json)
 
-### Phase 19 - FCM Push Notifications (Complete — Apr 2026)
+### Phase 20 - Firebase Analytics (Complete — Apr 2026)
+- Added `getAnalytics(app)` export to `firebase.js`
+- Created `src/lib/analytics.js` — thin `Analytics` wrapper with named events: `login`, `signUp`, `logout`, `photoUploaded`, `profileUpdated`, `pushEnabled`, `pushDisabled`, `messageSent`, `gameReportSubmitted`, `independentGameLogged`, `exportGenerated`, `pageView`
+- Created `src/components/RouteTracker.jsx` — fires `page_view` on every React Router navigation (mounted inside `<Router>`)
+- Wired events: login/sign_up/logout in `AuthContext.jsx`, pushEnabled/pushDisabled in `useFCM.js`, photoUploaded in `AuthContext.uploadAvatar`
+
+
 - Created `public/firebase-messaging-sw.js` — FCM service worker for background push
 - Created `src/hooks/useFCM.js` — permission request, FCM token registration/clearing, auto-refresh
 - Wired `useFCM` into `Settings.jsx`; push toggle triggers real FCM permission flow

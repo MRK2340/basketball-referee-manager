@@ -11,6 +11,7 @@ import { getMessaging } from 'firebase/messaging';
 import { doc, updateDoc } from 'firebase/firestore';
 import app, { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
+import { Analytics } from '@/lib/analytics';
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
@@ -105,6 +106,7 @@ export const useFCM = (user) => {
     try {
       await updateDoc(doc(db, 'users', user.id), { fcmToken: null });
       setPushEnabled(false);
+      Analytics.pushDisabled();
       toast({ title: 'Push notifications disabled' });
     } catch (error) {
       console.error('[FCM disable]', error);
@@ -114,3 +116,4 @@ export const useFCM = (user) => {
 
   return { pushEnabled, permissionStatus, enablePushNotifications, disablePushNotifications };
 };
+
