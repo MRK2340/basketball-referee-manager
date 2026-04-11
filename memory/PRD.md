@@ -264,9 +264,9 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 
 ## Prioritized Backlog
 
-### P0 (Deploy Cloud Functions — Required for push to send)
-- Run: `cd /app && firebase deploy --only functions` to activate Cloud Function push triggers
-- Run: `cd /app && firebase deploy --only storage` to activate Storage security rules
+### P0 (Deploy Cloud Functions — DONE Apr 2026)
+- `sendPushNotification` (v2, us-central1) — LIVE. Triggers on every new `/notifications/{id}` doc.
+- Storage rules — LIVE.
 
 ### P1 (Optional Enhancement)
 - Public referee profile pages
