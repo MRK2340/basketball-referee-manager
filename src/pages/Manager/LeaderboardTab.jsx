@@ -37,7 +37,7 @@ const AssignFromLeaderboardDialog = ({ open, setOpen, referee, games, onAssign }
             <SelectContent className="bg-white border-slate-200">
               {scheduledGames.map((g) => (
                 <SelectItem key={g.id} value={g.id}>
-                  {g.game_date} — {g.home_team} vs {g.away_team}
+                  {g.date} — {g.homeTeam} vs {g.awayTeam}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -69,7 +69,7 @@ const LeaderboardTab = ({ referees, games }) => {
   const enrichedReferees = useMemo(() => {
     return referees.map((ref) => {
       const allGames = games || [];
-      const refAssignments = allGames.flatMap((g) => g.assignments || []).filter((a) => a.referee_id === ref.id);
+      const refAssignments = allGames.flatMap((g) => g.assignments || []).filter((a) => a.refereeId === ref.id);
       const total = refAssignments.length;
       const accepted = refAssignments.filter((a) => a.status === 'accepted').length;
       const acceptanceRate = total > 0 ? Math.round((accepted / total) * 100) : 0;
@@ -80,7 +80,7 @@ const LeaderboardTab = ({ referees, games }) => {
   const sorted = useMemo(() => {
     return [...enrichedReferees].sort((a, b) => {
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-      if (sortBy === 'games') return (b.games_officiated || 0) - (a.games_officiated || 0);
+      if (sortBy === 'games') return (b.gamesOfficiated || 0) - (a.gamesOfficiated || 0);
       if (sortBy === 'acceptance') return b.acceptanceRate - a.acceptanceRate;
       return 0;
     });
@@ -124,7 +124,7 @@ const LeaderboardTab = ({ referees, games }) => {
         {[
           { label: 'Total Referees', value: referees.length, icon: Trophy, color: 'text-brand-blue', bg: 'bg-blue-100' },
           { label: 'Avg Rating', value: referees.length ? (referees.reduce((s, r) => s + (r.rating || 0), 0) / referees.length).toFixed(1) : '—', icon: Star, color: 'text-yellow-600', bg: 'bg-yellow-100' },
-          { label: 'Avg Games', value: referees.length ? Math.round(referees.reduce((s, r) => s + (r.games_officiated || 0), 0) / referees.length) : 0, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
+          { label: 'Avg Games', value: referees.length ? Math.round(referees.reduce((s, r) => s + (r.gamesOfficiated || 0), 0) / referees.length) : 0, icon: TrendingUp, color: 'text-green-600', bg: 'bg-green-100' },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -170,7 +170,7 @@ const LeaderboardTab = ({ referees, games }) => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={referee.avatar_url} />
+                          <AvatarImage src={referee.avatarUrl} />
                           <AvatarFallback className="bg-slate-200 text-slate-700 text-xs">{referee.name?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -186,7 +186,7 @@ const LeaderboardTab = ({ referees, games }) => {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="font-bold text-slate-900">{referee.games_officiated || 0}</span>
+                      <span className="font-bold text-slate-900">{referee.gamesOfficiated || 0}</span>
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge className={`text-xs font-bold border-0 ${

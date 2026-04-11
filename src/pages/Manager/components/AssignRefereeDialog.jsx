@@ -69,24 +69,24 @@ const STATUS_CONFIG = {
 };
 
 const WeekCalendarStrip = ({ referee, game, allGames }) => {
-  if (!game?.game_date) return null;
-  const gameDate = parseISO(game.game_date);
+  if (!game?.date) return null;
+  const gameDate = parseISO(game.date);
   const days = Array.from({ length: 7 }, (_, i) => addDays(subDays(gameDate, 3), i));
 
   const getDay = (day) => {
     const dayStr = format(day, 'yyyy-MM-dd');
-    const isGameDay = dayStr === game.game_date;
-    const slots = referee.referee_availability || [];
+    const isGameDay = dayStr === game.date;
+    const slots = referee.availability || [];
     const dayStart = startOfDay(day);
     const dayEnd = addDays(dayStart, 1);
     const hasAvail = slots.some((s) => {
-      const sStart = new Date(s.start_time);
-      const sEnd = new Date(s.end_time);
+      const sStart = new Date(s.startTime);
+      const sEnd = new Date(s.endTime);
       return sStart < dayEnd && sEnd > dayStart;
     });
     const hasConflict = (allGames || []).some((g) => {
-      if (!g.game_date || g.game_date !== dayStr) return false;
-      return (g.game_assignments || []).some((a) => a.referee_id === referee.id);
+      if (!g.date || g.date !== dayStr) return false;
+      return (g.assignments || []).some((a) => a.refereeId === referee.id);
     });
     return { isGameDay, hasAvail, hasConflict };
   };
@@ -150,7 +150,7 @@ const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
     >
       <div className="flex items-center gap-3">
         <img
-          src={referee.avatar_url}
+          src={referee.avatarUrl}
           alt={referee.name}
           className="h-10 w-10 rounded-full ring-2 ring-white shadow-sm flex-shrink-0"
         />
@@ -172,7 +172,7 @@ const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
               <StatusIcon className="h-3 w-3" />
               {cfg.label}
             </span>
-            <span className="text-xs text-slate-500">{referee.games_officiated} games</span>
+            <span className="text-xs text-slate-500">{referee.gamesOfficiated} games</span>
           </div>
         </div>
         {isSelected && <ChevronRight className="h-4 w-4 text-brand-blue flex-shrink-0" />}
@@ -185,7 +185,7 @@ const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
             <p className="text-orange-700 font-medium">
               Conflict: already assigned to{' '}
               <strong>
-                {referee.fitStatus.conflicts[0].home_team} vs {referee.fitStatus.conflicts[0].away_team}
+                {referee.fitStatus.conflicts[0].homeTeam} vs {referee.fitStatus.conflicts[0].awayTeam}
               </strong>{' '}
               at the same time.
             </p>
@@ -197,7 +197,7 @@ const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
           )}
           {referee.fitStatus?.status === 'missing-certs' && (
             <p className="text-yellow-700 font-medium">
-              Missing required: {(game.required_certifications || game.requiredCertifications || []).join(', ')}
+              Missing required: {(game.requiredCertifications || []).join(', ')}
             </p>
           )}
         </div>
@@ -215,8 +215,8 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
   const [selectedReferee, setSelectedReferee] = useState(null);
 
   const alreadyAssignedIds = useMemo(() => {
-    if (!game?.game_assignments) return new Set();
-    return new Set(game.game_assignments.map((a) => a.referee_id));
+    if (!game?.assignments) return new Set();
+    return new Set(game.assignments.map((a) => a.refereeId));
   }, [game]);
 
   const rankedReferees = useMemo(() => {
@@ -230,12 +230,12 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
 
   const bestFit = rankedReferees[0];
 
-  const gameDate = game?.game_date
+  const gameDate = game?.date
     ? (() => {
         try {
-          return format(parseISO(game.game_date), 'MMM d, yyyy');
+          return format(parseISO(game.date), 'MMM d, yyyy');
         } catch {
-          return game.game_date;
+          return game.date;
         }
       })()
     : '';
@@ -265,20 +265,20 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-100">
           <DialogTitle className="text-slate-900 text-lg font-bold">Assign Referee</DialogTitle>
           <DialogDescription className="text-slate-600 text-sm mt-0.5">
-            {game?.home_team} vs {game?.away_team}
+            {game?.homeTeam} vs {game?.awayTeam}
             {gameDate && (
               <span className="inline-flex items-center gap-1 ml-2 text-slate-500">
                 <Clock className="h-3.5 w-3.5" />
-                {gameDate} at {game?.game_time?.slice(0, 5)}
+                {gameDate} at {game?.time?.slice(0, 5)}
               </span>
             )}
           </DialogDescription>
 
           {/* Required certs */}
-          {(game?.required_certifications || game?.requiredCertifications || []).length > 0 && (
+          {(game?.requiredCertifications || []).length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               <span className="text-xs text-slate-500 font-medium mr-1">Required:</span>
-              {(game.required_certifications || game.requiredCertifications).map((cert) => (
+              {(game.requiredCertifications || []).map((cert) => (
                 <Badge key={cert} variant="outline" className="text-xs border-orange-200 text-orange-700 bg-orange-50">
                   <Award className="h-2.5 w-2.5 mr-1" />
                   {cert}

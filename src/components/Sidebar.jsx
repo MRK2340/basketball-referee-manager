@@ -87,7 +87,7 @@ const Sidebar = ({ onClose }) => {
       <div className={`border-b p-6 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
         <div className={`flex items-center space-x-3 rounded-2xl p-3 ${isDark ? 'bg-white/8' : 'bg-slate-50'}`}>
           <img
-            src={user?.avatar_url}
+            src={user?.avatarUrl}
             alt={user?.name}
             className="h-12 w-12 rounded-full ring-2 ring-white shadow-sm"
           />

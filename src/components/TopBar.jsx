@@ -133,7 +133,7 @@ const TopBar = ({ onMenuClick }) => {
               isDark ? 'border border-white/10 bg-white/5' : 'border border-slate-200 bg-white'
             }`}>
               <Avatar className="h-9 w-9 ring-2 ring-slate-200">
-                <img src={user?.avatar_url} alt={user?.name} className="rounded-full" />
+                <img src={user?.avatarUrl} alt={user?.name} className="rounded-full" />
               </Avatar>
               <div className="hidden sm:block">
                 <p className={`text-sm font-semibold ${isDark ? 'text-blue-100' : 'text-slate-950'}`}>{user?.name}</p>

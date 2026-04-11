@@ -62,7 +62,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
   const handleMarkComplete = (game) => {
     gameActions.markGameAsCompleted(game.id);
     // Prompt for rating if game has assigned referees
-    if (game.game_assignments?.length > 0) {
+    if (game.assignments?.length > 0) {
       setGameToRate(game);
       setRatingDialogOpen(true);
     }
@@ -94,7 +94,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
 
   const getConflictBadge = (assignment, game) => {
     if (game.status === 'completed') return null;
-    const referee = referees?.find((r) => r.id === assignment.referee_id);
+    const referee = referees?.find((r) => r.id === assignment.refereeId);
     if (!referee) return null;
     const { status } = getRefereeStatus(referee, game, games);
     const cfg = CONFLICT_BADGE[status];
@@ -119,9 +119,9 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
   };
 
   const getGameConflictLevel = (game) => {
-    if (!game.game_assignments || !referees || game.status === 'completed') return null;
-    const statuses = game.game_assignments.map((a) => {
-      const ref = referees.find((r) => r.id === a.referee_id);
+    if (!game.assignments || !referees || game.status === 'completed') return null;
+    const statuses = game.assignments.map((a) => {
+      const ref = referees.find((r) => r.id === a.refereeId);
       if (!ref) return 'no-data';
       return getRefereeStatus(ref, game, games).status;
     });
@@ -243,7 +243,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                       <TableCell>
                         <div className="flex items-start gap-2">
                           <div>
-                            <p className="font-bold text-slate-900">{game.home_team} vs {game.away_team}</p>
+                            <p className="font-bold text-slate-900">{game.homeTeam} vs {game.awayTeam}</p>
                             <p className="text-sm text-slate-600 font-medium">
                               {game.tournament?.name} — {game.venue}
                             </p>
@@ -265,20 +265,20 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                       </TableCell>
 
                       <TableCell className="text-slate-700 font-medium">
-                        {formatDate(game.game_date)} at {formatTime(game.game_time)}
+                        {formatDate(game.date)} at {formatTime(game.time)}
                       </TableCell>
 
                       <TableCell>{getStatusBadge(game.status)}</TableCell>
 
                       <TableCell>
                         <div className="flex flex-wrap gap-2">
-                          {game.game_assignments && game.game_assignments.length > 0
-                            ? game.game_assignments.map((assignment) => (
+                          {game.assignments && game.assignments.length > 0
+                            ? game.assignments.map((assignment) => (
                                 <div
                                   key={assignment.id}
                                   className="flex items-center flex-wrap bg-slate-100 text-slate-800 border border-slate-200 rounded-full px-2 py-1 text-xs font-bold shadow-sm gap-0.5"
                                 >
-                                  <span>{assignment.profiles?.name || '...'}</span>
+                                  <span>{assignment.referee?.name || '...'}</span>
                                   {getAssignmentStatusBadge(assignment.status)}
                                   {getConflictBadge(assignment, game)}
                                   {game.status !== 'completed' && (
@@ -319,7 +319,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                             </Button>
                           </div>
                         )}
-                        {game.status === 'completed' && game.game_assignments?.some(a => a.status !== 'declined') && (
+                        {game.status === 'completed' && game.assignments?.some(a => a.status !== 'declined') && (
                           <Button
                             size="sm"
                             variant="outline"

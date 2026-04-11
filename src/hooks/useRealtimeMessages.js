@@ -14,21 +14,19 @@ import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 
 const mapRawMessage = (id, data, usersMap, currentUserId) => {
-  const sender = usersMap[data.sender_id] || { name: 'System', avatar_url: null };
+  const sender = usersMap[data.sender_id] || { name: 'System', avatarUrl: '' };
   const isMine = data.sender_id === currentUserId;
   return {
     id,
     from: sender.name,
-    fromAvatar: sender.avatar_url,
+    fromAvatar: sender.avatarUrl || '',
     subject: data.subject,
     content: data.content,
     timestamp: data.created_at,
-    created_at: data.created_at,
     // Sender already "read" their own message — prevents false unread badge count
     read: data.is_read || isMine,
-    is_read: data.is_read || isMine,
-    sender_id: data.sender_id,
-    recipient_id: data.recipient_id,
+    senderId: data.sender_id,
+    recipientId: data.recipient_id,
   };
 };
 
@@ -70,7 +68,7 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       let allMessages = snapshot.docs
         .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id));
       if (useFallbackSort) {
-        allMessages = allMessages.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+        allMessages = allMessages.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
       }
 
       setMessages(allMessages);
@@ -82,7 +80,7 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       }
 
       allMessages.forEach(m => {
-        if (!knownIds.current.has(m.id) && m.sender_id !== user.id) {
+        if (!knownIds.current.has(m.id) && m.senderId !== user.id) {
           knownIds.current.add(m.id);
           toast({
             title: `New message from ${m.from}`,

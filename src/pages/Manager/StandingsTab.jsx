@@ -11,20 +11,20 @@ const StandingsTab = ({ tournaments, games }) => {
   );
 
   const completedGames = useMemo(
-    () => games.filter((g) => g.tournament_id === selectedTournamentId && g.status === 'completed'),
+    () => games.filter((g) => g.tournamentId === selectedTournamentId && g.status === 'completed'),
     [games, selectedTournamentId]
   );
 
   const standings = useMemo(() => {
     const teamMap = {};
     completedGames.forEach((game) => {
-      const home = game.home_team;
-      const away = game.away_team;
+      const home = game.homeTeam;
+      const away = game.awayTeam;
       if (!teamMap[home]) teamMap[home] = { team: home, wins: 0, losses: 0, pf: 0, pa: 0, games: 0 };
       if (!teamMap[away]) teamMap[away] = { team: away, wins: 0, losses: 0, pf: 0, pa: 0, games: 0 };
 
-      const hs = game.home_score ?? 0;
-      const as = game.away_score ?? 0;
+      const hs = game.homeScore ?? 0;
+      const as = game.awayScore ?? 0;
 
       teamMap[home].games += 1;
       teamMap[away].games += 1;
@@ -49,7 +49,7 @@ const StandingsTab = ({ tournaments, games }) => {
   }, [completedGames]);
 
   const totalGames = useMemo(
-    () => games.filter((g) => g.tournament_id === selectedTournamentId),
+    () => games.filter((g) => g.tournamentId === selectedTournamentId),
     [games, selectedTournamentId]
   );
 
@@ -177,13 +177,13 @@ const StandingsTab = ({ tournaments, games }) => {
                 <div key={game.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200" data-testid={`standings-game-result-${game.id}`}>
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <span className="font-bold text-slate-900">{game.home_team}</span>
+                      <span className="font-bold text-slate-900">{game.homeTeam}</span>
                       <span className="text-2xl font-black text-brand-orange">
-                        {game.home_score ?? '—'} – {game.away_score ?? '—'}
+                        {game.homeScore ?? '—'} – {game.awayScore ?? '—'}
                       </span>
-                      <span className="font-bold text-slate-900">{game.away_team}</span>
+                      <span className="font-bold text-slate-900">{game.awayTeam}</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">{game.game_date} · {game.venue} · {game.division}</p>
+                    <p className="text-xs text-slate-500 mt-1">{game.date} · {game.venue} · {game.division}</p>
                   </div>
                   <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Final</Badge>
                 </div>

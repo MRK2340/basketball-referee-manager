@@ -86,6 +86,11 @@ export const AuthProvider = ({ children }) => {
     id: uid,
     email,
     ...profile,
+    // Expose camelCase aliases so UI components don't need to know Firestore field names
+    avatarUrl: profile.avatar_url || '',
+    gamesOfficiated: profile.games_officiated || 0,
+    leagueName: profile.league_name || '',
+    activeTournaments: profile.active_tournaments || 0,
   });
 
   // Fetch or auto-create a Firestore user profile
@@ -220,7 +225,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const avatarUrl = await readFileAsDataUrl(file);
       await updateDoc(doc(db, 'users', user.id), { avatar_url: avatarUrl });
-      setUser(prev => ({ ...prev, avatar_url: avatarUrl }));
+      setUser(prev => ({ ...prev, avatar_url: avatarUrl, avatarUrl }));
       toast({ title: 'Profile photo updated!' });
     } catch (error) {
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });

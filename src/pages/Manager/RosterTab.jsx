@@ -19,7 +19,7 @@ const RefereeProfileCard = ({ referee, connection, isDark }) => {
     >
       <div className="flex items-start gap-4">
         <img
-          src={referee.avatar_url}
+          src={referee.avatarUrl}
           alt={referee.name}
           className="h-12 w-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-white shadow-sm"
         />
@@ -37,7 +37,7 @@ const RefereeProfileCard = ({ referee, connection, isDark }) => {
           </div>
           <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs ${isDark ? 'text-blue-300/60' : 'text-slate-500'}`}>
             <span className="flex items-center gap-1">
-              <Trophy className="h-3 w-3" /> {referee.games_officiated} games
+              <Trophy className="h-3 w-3" /> {referee.gamesOfficiated} games
             </span>
             <span className="flex items-center gap-1">
               <Shield className="h-3 w-3" /> {referee.experience}
@@ -103,7 +103,7 @@ const RequestCard = ({ request, referee, onAccept, onDecline, isDark }) => (
   >
     <div className="flex items-start gap-4">
       <img
-        src={referee?.avatar_url}
+        src={referee?.avatarUrl}
         alt={referee?.name}
         className="h-12 w-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-white shadow-sm"
       />
@@ -127,7 +127,7 @@ const RequestCard = ({ request, referee, onAccept, onDecline, isDark }) => (
             <Shield className="h-3 w-3" /> {referee?.experience}
           </span>
           <span className="flex items-center gap-1">
-            <Trophy className="h-3 w-3" /> {referee?.games_officiated} games
+            <Trophy className="h-3 w-3" /> {referee?.gamesOfficiated} games
           </span>
         </div>
         {request.note && (
@@ -201,7 +201,7 @@ const RosterTab = ({ connections, referees, respondToConnection }) => {
                 <RequestCard
                   key={req.id}
                   request={req}
-                  referee={getRef(req.referee_id)}
+                  referee={getRef(req.refereeId)}
                   onAccept={(id) => respondToConnection(id, 'connected')}
                   onDecline={(id) => respondToConnection(id, 'declined')}
                   isDark={isDark}
@@ -235,7 +235,7 @@ const RosterTab = ({ connections, referees, respondToConnection }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             <AnimatePresence>
               {connected.map(conn => {
-                const ref = getRef(conn.referee_id);
+                const ref = getRef(conn.refereeId);
                 if (!ref) return null;
                 return (
                   <RefereeProfileCard

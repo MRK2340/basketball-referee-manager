@@ -27,6 +27,31 @@ const safeHandle = async (fn) => {
 const docToObj = (snap) => snap.exists() ? { id: snap.id, ...snap.data() } : null;
 const docsToArr = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+// ── Profile + Connection mappers ──────────────────────────────────────────────
+
+const mapProfile = (p) => ({
+  id: p.id, name: p.name, role: p.role,
+  email: p.email, phone: p.phone || '',
+  avatarUrl: p.avatar_url || '',
+  bio: p.bio || '', location: p.location || '',
+  certifications: p.certifications || [],
+  gamesOfficiated: p.games_officiated || 0,
+  rating: p.rating || 0,
+  experience: p.experience || '',
+  leagueName: p.league_name || '',
+  activeTournaments: p.active_tournaments || 0,
+  createdAt: p.created_at || '',
+});
+
+const mapConnection = (c) => ({
+  id: c.id,
+  managerId: c.manager_id,
+  refereeId: c.referee_id,
+  status: c.status,
+  note: c.note || '',
+  createdAt: c.created_at || '',
+});
+
 // ── Map helpers (same shape as demoDataService mappers) ──────────────────────
 
 const mapGame = (gameId, gameData, allAssignments, allUsers, allTournaments) => {
@@ -35,83 +60,75 @@ const mapGame = (gameId, gameData, allAssignments, allUsers, allTournaments) => 
     .filter(a => a.game_id === gameId)
     .map(a => {
       const ref = allUsers.find(u => u.id === a.referee_id) || {};
-      const refObj = { id: ref.id, name: ref.name || 'Unassigned Referee', avatarUrl: ref.avatar_url, avatar_url: ref.avatar_url, email: ref.email };
-      return { id: a.id, status: a.status, declineReason: a.decline_reason, decline_reason: a.decline_reason, refereeId: a.referee_id, referee_id: a.referee_id, referee: refObj, profiles: refObj };
+      const refObj = { id: ref.id, name: ref.name || 'Unassigned Referee', avatarUrl: ref.avatarUrl || '', email: ref.email };
+      return { id: a.id, status: a.status, declineReason: a.decline_reason, refereeId: a.referee_id, referee: refObj };
     });
 
   return {
     id: gameId,
     homeTeam: gameData.home_team, awayTeam: gameData.away_team,
-    home_team: gameData.home_team, away_team: gameData.away_team,
     date: gameData.game_date, time: gameData.game_time?.slice(0, 5) || gameData.game_time,
-    game_date: gameData.game_date, game_time: gameData.game_time,
     venue: gameData.venue, status: gameData.status,
-    payment: gameData.payment_amount, payment_amount: gameData.payment_amount,
+    payment: gameData.payment_amount,
     division: gameData.division, level: gameData.level,
     requiredCertifications: gameData.required_certifications || [],
-    required_certifications: gameData.required_certifications || [],
     homeScore: gameData.home_score ?? null, awayScore: gameData.away_score ?? null,
-    home_score: gameData.home_score ?? null, away_score: gameData.away_score ?? null,
-    tournamentId: gameData.tournament_id, tournament_id: gameData.tournament_id,
+    tournamentId: gameData.tournament_id,
     tournamentName: tournament?.name || 'Independent Game',
     managerId: gameData.manager_id || tournament?.manager_id || null,
-    manager_id: gameData.manager_id || tournament?.manager_id || null,
-    tournament: tournament ? { id: tournament.id, name: tournament.name, manager_id: tournament.manager_id } : null,
-    assignments: gameAssignments, game_assignments: gameAssignments,
+    tournament: tournament ? { id: tournament.id, name: tournament.name, managerId: tournament.manager_id } : null,
+    assignments: gameAssignments,
   };
 };
 
 const mapTournament = (t, gamesArr) => ({
   id: t.id, name: t.name,
   startDate: t.start_date, endDate: t.end_date,
-  start_date: t.start_date, end_date: t.end_date,
   location: t.location,
-  numberOfCourts: t.number_of_courts, number_of_courts: t.number_of_courts,
-  managerId: t.manager_id, manager_id: t.manager_id,
+  numberOfCourts: t.number_of_courts,
+  managerId: t.manager_id,
   games: (gamesArr || []).filter(g => g.tournament_id === t.id).length,
   refereesNeeded: 0,
 });
 
 const mapPayment = (p) => ({
-  id: p.id, gameId: p.game_id, game_id: p.game_id,
+  id: p.id, gameId: p.game_id,
   amount: p.amount, status: p.status,
-  date: p.payment_date, payment_date: p.payment_date,
-  method: p.payment_method, payment_method: p.payment_method,
-  refereeId: p.referee_id, referee_id: p.referee_id,
+  date: p.payment_date,
+  method: p.payment_method,
+  refereeId: p.referee_id,
 });
 
 const mapMessage = (m, allUsers) => {
   const sender = allUsers.find(u => u.id === m.sender_id) || { name: 'System' };
   return {
-    id: m.id, from: sender.name, fromAvatar: sender.avatar_url,
+    id: m.id, from: sender.name, fromAvatar: sender.avatarUrl || '',
     subject: m.subject, content: m.content,
-    timestamp: m.created_at, created_at: m.created_at,
-    read: m.is_read, is_read: m.is_read,
-    sender_id: m.sender_id, recipient_id: m.recipient_id,
+    timestamp: m.created_at,
+    read: m.is_read,
+    senderId: m.sender_id, recipientId: m.recipient_id,
   };
 };
 
 const mapAvailability = (a) => ({
   id: a.id, startTime: a.start_time, endTime: a.end_time,
-  start_time: a.start_time, end_time: a.end_time,
 });
 
 const mapGameReport = (r, gamesArr, allUsers) => {
   const game = gamesArr.find(g => g.id === r.game_id);
   const referee = allUsers.find(u => u.id === r.referee_id);
   return {
-    id: r.id, gameId: r.game_id, game_id: r.game_id,
+    id: r.id, gameId: r.game_id,
     gameTitle: game ? `${game.home_team} vs ${game.away_team}` : 'Game Report',
-    refereeId: r.referee_id, referee_id: r.referee_id,
+    refereeId: r.referee_id,
     refereeName: referee?.name || 'Referee',
-    managerId: r.manager_id, manager_id: r.manager_id,
-    homeScore: r.home_score, home_score: r.home_score,
-    awayScore: r.away_score, away_score: r.away_score,
-    professionalismRating: r.professionalism_rating, professionalism_rating: r.professionalism_rating,
+    managerId: r.manager_id,
+    homeScore: r.home_score, awayScore: r.away_score,
+    professionalismRating: r.professionalism_rating,
     incidents: r.incidents, notes: r.notes,
     technicalFouls: r.technical_fouls ?? null, personalFouls: r.personal_fouls ?? null,
     ejections: r.ejections ?? null, mvpPlayer: r.mvp_player || null,
-    status: r.status, createdAt: r.created_at, created_at: r.created_at,
+    status: r.status, createdAt: r.created_at,
     resolutionNote: r.resolution_note || null,
     resolvedBy: r.resolved_by || null, resolvedAt: r.resolved_at || null,
   };
@@ -126,7 +143,7 @@ export const fetchAppData = async (user) => {
   // 1. Fetch ALL users in one read, then split by role in JS.
   //    Eliminates 2 redundant getDocs calls (role=referee + all users + role=manager).
   const allUserSnap = await getDocs(collection(db, 'users'));
-  const allUsers = docsToArr(allUserSnap);
+  const allUsers = docsToArr(allUserSnap).map(mapProfile);
   const allReferees = allUsers.filter(u => u.role === 'referee');
   const managerProfilesRaw = allUsers.filter(u => u.role === 'manager');
 
@@ -207,7 +224,7 @@ export const fetchAppData = async (user) => {
     tournaments: tournamentsRaw.map(t => mapTournament(t, gamesRaw)),
     referees: allReferees.map(r => ({
       ...r,
-      referee_availability: availabilityRaw.filter(a => a.referee_id === r.id),
+      availability: availabilityRaw.filter(a => a.referee_id === r.id).map(mapAvailability),
     })),
     availability: availabilityRaw.map(mapAvailability),
     gameReports: gameReportsRaw.map(r => mapGameReport(r, gamesRaw, allUsers)),
@@ -216,7 +233,7 @@ export const fetchAppData = async (user) => {
       gameAssignments: true, scheduleChanges: true, paymentUpdates: true,
       messages: true, emailNotifications: true, pushNotifications: true, smsNotifications: false,
     },
-    connections: connectionsRaw,
+    connections: connectionsRaw.map(mapConnection),
     managerProfiles: managerProfilesRaw,
     independentGames: indGamesRaw.sort((a, b) => (b.date || '').localeCompare(a.date || '')),
   };

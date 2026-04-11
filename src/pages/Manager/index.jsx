@@ -113,7 +113,7 @@ const Manager = () => {
           </TabsContent>
 
           <TabsContent value="standings">
-            <StandingsTab tournaments={tournaments} games={games.map(g => ({ ...g, home_team: g.homeTeam, away_team: g.awayTeam, home_score: g.homeScore, away_score: g.awayScore, game_date: g.date, tournament_id: g.tournamentId }))} />
+            <StandingsTab tournaments={tournaments} games={games} />
           </TabsContent>
           
           <TabsContent value="reports">

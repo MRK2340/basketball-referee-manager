@@ -38,7 +38,7 @@ const RefereeManagementTab = ({ referees }) => {
                 <TableCell>
                   <div className="flex items-center space-x-3">
                     <Avatar>
-                      <AvatarImage src={referee.avatar_url} alt={referee.name} />
+                      <AvatarImage src={referee.avatarUrl} alt={referee.name} />
                       <AvatarFallback>{referee.name ? referee.name.charAt(0) : 'R'}</AvatarFallback>
                     </Avatar>
                     <div>
@@ -54,7 +54,7 @@ const RefereeManagementTab = ({ referees }) => {
                     {referee.rating?.toFixed(1) || 'N/A'}
                   </div>
                 </TableCell>
-                <TableCell className="text-center text-slate-700">{referee.games_officiated || 0}</TableCell>
+                <TableCell className="text-center text-slate-700">{referee.gamesOfficiated || 0}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="ghost" size="icon" data-testid={`manager-view-referee-${referee.id}`} onClick={() => handleFeatureClick('view-profile')}>
                     <Users className="h-4 w-4 text-slate-500" />

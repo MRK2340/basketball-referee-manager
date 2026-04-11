@@ -1,0 +1,106 @@
+{
+  "summary": "Iteration 22: camelCase/snake_case consolidation testing. Found and fixed 11 snake_case regression bugs introduced or missed during the consolidation. Most critical: missing getRefereeStatus export from conflictUtils.js caused a full app crash (ErrorBoundary). After fixes, all 15 requested test scenarios pass with zero console errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "bugs_found_and_fixed": [
+    {
+      "file": "src/lib/conflictUtils.js",
+      "issue": "Missing getRefereeStatus export — imported by GameAssignmentsTab.jsx and Schedule/GameCard.jsx. Caused full app crash via ErrorBoundary: 'does not provide an export named getRefereeStatus'",
+      "fix": "Added getRefereeStatus(referee, targetGame, allGames) function using getScheduleConflicts + checkAvailabilitySlots, returns { status, conflicts }",
+      "priority": "CRITICAL"
+    },
+    {
+      "file": "src/pages/Manager/GameAssignmentsTab.jsx (line 281)",
+      "issue": "assignment.profiles?.name — assigned referee name shows '...' because mapGame returns assignment.referee.name, not assignment.profiles.name",
+      "fix": "Changed to assignment.referee?.name",
+      "priority": "HIGH"
+    },
+    {
+      "file": "src/pages/Manager/RosterTab.jsx",
+      "issue": "referee?.avatar_url (snake_case) — pending connection cards showed broken avatar images",
+      "fix": "Changed to referee?.avatarUrl",
+      "priority": "HIGH"
+    },
+    {
+      "file": "src/pages/Manager/RosterTab.jsx",
+      "issue": "referee?.games_officiated (snake_case) — shows 'undefined games'",
+      "fix": "Changed to referee?.gamesOfficiated",
+      "priority": "HIGH"
+    },
+    {
+      "file": "src/pages/FindManagers.jsx (lines 65, 88, 182, 336)",
+      "issue": "manager.league_name, manager.active_tournaments, m.league_name, requestTarget?.league_name — all snake_case, fields show undefined after mapProfile consolidation",
+      "fix": "Changed all to camelCase: leagueName, activeTournaments",
+      "priority": "HIGH"
+    },
+    {
+      "file": "src/pages/Profile.jsx (line 148)",
+      "issue": "user?.games_officiated (snake_case) — showed '0 Games' instead of actual count",
+      "fix": "Changed to user?.gamesOfficiated (after also fixing buildUser to expose camelCase alias)",
+      "priority": "MEDIUM"
+    },
+    {
+      "file": "src/contexts/AuthContext.jsx — buildUser()",
+      "issue": "buildUser only exposed avatarUrl camelCase alias but not gamesOfficiated, leagueName, activeTournaments. After Profile.jsx fix, games count showed 0.",
+      "fix": "Added gamesOfficiated, leagueName, activeTournaments camelCase aliases to buildUser",
+      "priority": "HIGH"
+    },
+    {
+      "file": "src/contexts/AuthContext.jsx — uploadAvatar()",
+      "issue": "After avatar upload, local user state only updated avatar_url but not avatarUrl. UI wouldn't reflect new avatar until page reload.",
+      "fix": "Updated setUser to set both avatar_url and avatarUrl",
+      "priority": "MEDIUM"
+    }
+  ],
+  "test_results": {
+    "manager_dashboard_load": "PASS",
+    "tournaments_tab_startDate_endDate_numberOfCourts": "PASS",
+    "game_assignments_homeTeam_awayTeam": "PASS",
+    "assign_referee_dialog_avatarUrl_gamesOfficiated": "PASS",
+    "leaderboard_gamesOfficiated": "PASS",
+    "standings_homeTeam_awayTeam": "PASS",
+    "roster_pending_avatarUrl_gamesOfficiated": "PASS — no pending requests in test data; connected referees showing correctly",
+    "referee_dashboard_load": "PASS",
+    "calendar_availability_startTime_endTime": "PASS — green dots showing on correct days",
+    "messages_senderId_read_status": "PASS — 7 messages, 4 unread badge",
+    "find_managers_avatarUrl_leagueName_activeTournaments": "PASS",
+    "settings_aria_role_switch": "PASS — 7 toggle buttons with role=switch and aria-checked",
+    "profile_avatarUrl_gamesOfficiated": "PASS — avatar img loading, 45 games showing",
+    "no_console_errors": "PASS — 0 console errors across all pages"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CRITICAL: conflictUtils.js getRefereeStatus was dropped during camelCase refactor but still imported by 2 consumers — caused full app crash. Always audit all consumers when removing exports.",
+    "buildUser in AuthContext.jsx now exposes camelCase aliases for the 4 key fields (avatarUrl, gamesOfficiated, leagueName, activeTournaments). If more profile fields are added, they need the same treatment OR use mapProfile() directly in buildUser.",
+    "GameAssignmentsTab referenced assignment.profiles?.name (Supabase-style) instead of assignment.referee?.name (mapGame return shape) — mismatch between component and mapper."
+  ],
+  "updated_files": [
+    "/app/src/lib/conflictUtils.js",
+    "/app/src/pages/Manager/GameAssignmentsTab.jsx",
+    "/app/src/pages/Manager/RosterTab.jsx",
+    "/app/src/pages/FindManagers.jsx",
+    "/app/src/pages/Profile.jsx",
+    "/app/src/contexts/AuthContext.jsx"
+  ],
+  "success_rate": {
+    "backend": "N/A (frontend only)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "camelCase consolidation (Issue #10) is complete and all 15 test scenarios pass. The getRefereeStatus export was the critical blocker — now added to conflictUtils.js. buildUser in AuthContext now exposes 4 camelCase field aliases. All 6 source files updated. No console errors. App is stable.",
+  "rca_of_issues": "Root cause: During the camelCase/snake_case consolidation, firestoreService.js mappers and conflictUtils.js were rewritten to use camelCase internally, but (1) conflictUtils.js accidentally dropped the getRefereeStatus export that 2 consumer files still imported; (2) several UI components in RosterTab, FindManagers, Profile were not updated to match the new camelCase field names; (3) buildUser in AuthContext only partially exposed camelCase aliases. Fix: Added missing export, updated all consuming components, extended buildUser aliases."
+}

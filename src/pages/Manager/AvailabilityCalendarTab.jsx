@@ -20,8 +20,8 @@ const isAvailableOnDay = (availabilitySlots, day) => {
   const dayEnd   = new Date(day); dayEnd.setHours(23, 59, 59, 999);
   return availabilitySlots.some((slot) => {
     try {
-      const start = parseISO(slot.start_time || slot.startTime);
-      const end   = parseISO(slot.end_time   || slot.endTime);
+      const start = parseISO(slot.startTime);
+      const end   = parseISO(slot.endTime);
       return start <= dayEnd && end >= dayStart;
     } catch { return false; }
   });

@@ -69,7 +69,7 @@ const Messages = () => {
     setComposeMode('reply');
     setNewSubject(`Re: ${selectedMessage.subject}`);
     setNewMessage('');
-    setNewRecipientId(selectedMessage.sender_id);
+    setNewRecipientId(selectedMessage.senderId);
     setNewRecipientName(selectedMessage.from);
     setShowCompose(true);
   };

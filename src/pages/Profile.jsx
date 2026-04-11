@@ -124,7 +124,7 @@ const Profile = () => {
             <Card className="glass-effect border-slate-200" data-testid="profile-summary-card">
               <CardHeader className="text-center">
                 <Avatar className="mx-auto w-24 h-24 ring-4 ring-brand-orange mb-4">
-                  <AvatarImage src={user?.avatar_url} alt={user?.name} />
+                  <AvatarImage src={user?.avatarUrl} alt={user?.name} />
                   <AvatarFallback className="bg-slate-200 text-slate-800 text-3xl">
                     {user?.name?.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -145,7 +145,7 @@ const Profile = () => {
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                     <Trophy className="h-6 w-6 text-brand-orange mx-auto mb-1" />
-                    <p className="text-slate-900 font-semibold">{user?.games_officiated || 0}</p>
+                    <p className="text-slate-900 font-semibold">{user?.gamesOfficiated || 0}</p>
                     <p className="text-slate-600 text-xs">Games</p>
                   </div>
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">

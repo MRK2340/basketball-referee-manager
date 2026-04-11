@@ -45,7 +45,7 @@ const ManagerCard = ({ manager, connection, onRequest, onWithdraw, isDark }) => 
       {/* Header */}
       <div className="flex items-start gap-4">
         <img
-          src={manager.avatar_url}
+          src={manager.avatarUrl}
           alt={manager.name}
           className="h-14 w-14 rounded-2xl object-cover ring-2 ring-white shadow-sm flex-shrink-0"
         />
@@ -62,7 +62,7 @@ const ManagerCard = ({ manager, connection, onRequest, onWithdraw, isDark }) => 
             )}
           </div>
           <p className={`text-sm font-medium mt-0.5 ${isDark ? 'text-[#4DB8E8]' : 'text-[#0080C8]'}`}>
-            {manager.league_name}
+            {manager.leagueName}
           </p>
           <div className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-blue-300/60' : 'text-slate-500'}`}>
             <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -85,7 +85,7 @@ const ManagerCard = ({ manager, connection, onRequest, onWithdraw, isDark }) => 
         </div>
         <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-blue-200' : 'text-slate-700'}`}>
           <Trophy className="h-4 w-4 text-[#FF8C00] flex-shrink-0" />
-          <span className="font-semibold">{manager.active_tournaments}</span>
+          <span className="font-semibold">{manager.activeTournaments}</span>
           <span className={`text-xs ${isDark ? 'text-blue-300/50' : 'text-slate-400'}`}>active tournaments</span>
         </div>
         <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-blue-200' : 'text-slate-700'}`}>
@@ -179,11 +179,11 @@ const FindManagersPage = () => {
 
   const filtered = (managerProfiles || []).filter(m =>
     m.name?.toLowerCase().includes(search.toLowerCase()) ||
-    m.league_name?.toLowerCase().includes(search.toLowerCase()) ||
+    m.leagueName?.toLowerCase().includes(search.toLowerCase()) ||
     m.location?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getConnection = (managerId) => connections?.find(c => c.manager_id === managerId);
+  const getConnection = (managerId) => connections?.find(c => c.managerId === managerId);
 
   const handleRequest = (manager) => {
     setRequestTarget(manager);
@@ -333,7 +333,7 @@ const FindManagersPage = () => {
               Request to Join Roster
             </DialogTitle>
             <DialogDescription className={isDark ? 'text-blue-300/70' : ''}>
-              Send a request to <strong>{requestTarget?.name}</strong> — {requestTarget?.league_name}
+              Send a request to <strong>{requestTarget?.name}</strong> — {requestTarget?.leagueName}
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">

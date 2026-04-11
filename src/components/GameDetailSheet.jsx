@@ -38,7 +38,7 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
   let formattedDate = game.date;
   try { formattedDate = format(parseISO(game.date), 'EEEE, MMMM d, yyyy'); } catch { /* skip */ }
   let formattedTime = game.time;
-  try { formattedTime = format(new Date(`1970-01-01T${game.time || game.game_time}`), 'h:mm a'); } catch { /* skip */ }
+  try { formattedTime = format(new Date(`1970-01-01T${game.time}`), 'h:mm a'); } catch { /* skip */ }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -51,7 +51,7 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
             )}
           </div>
           <SheetTitle className="text-slate-900 text-xl font-black">
-            {game.homeTeam || game.home_team} vs {game.awayTeam || game.away_team}
+            {game.homeTeam} vs {game.awayTeam}
           </SheetTitle>
           <SheetDescription className="text-slate-600">
             {game.tournamentName || 'Independent Game'}
@@ -65,13 +65,13 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
               <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Final Score</p>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">
-                  <p className="text-xs text-slate-500 mb-1">{game.homeTeam || game.home_team}</p>
-                  <p className="text-4xl font-black text-slate-900">{game.homeScore ?? game.home_score}</p>
+                  <p className="text-xs text-slate-500 mb-1">{game.homeTeam}</p>
+                  <p className="text-4xl font-black text-slate-900">{game.homeScore}</p>
                 </div>
                 <span className="text-2xl font-black text-slate-400">–</span>
                 <div className="text-center">
-                  <p className="text-xs text-slate-500 mb-1">{game.awayTeam || game.away_team}</p>
-                  <p className="text-4xl font-black text-slate-900">{game.awayScore ?? game.away_score}</p>
+                  <p className="text-xs text-slate-500 mb-1">{game.awayTeam}</p>
+                  <p className="text-4xl font-black text-slate-900">{game.awayScore}</p>
                 </div>
               </div>
             </div>
@@ -82,7 +82,7 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
             <InfoRow icon={Calendar} label="Date" value={formattedDate} iconColor="text-brand-blue" />
             <InfoRow icon={Clock} label="Time" value={formattedTime} iconColor="text-brand-orange" />
             <InfoRow icon={MapPin} label="Venue" value={game.venue} iconColor="text-green-600" />
-            <InfoRow icon={DollarSign} label="Pay" value={`$${game.payment || game.payment_amount}`} iconColor="text-green-600" />
+            <InfoRow icon={DollarSign} label="Pay" value={`$${game.payment}`} iconColor="text-green-600" />
             <InfoRow icon={Trophy} label="Level" value={game.level || 'Standard'} iconColor="text-yellow-600" />
             <InfoRow icon={Users} label="Division" value={game.division || 'N/A'} iconColor="text-purple-600" />
           </div>
@@ -94,17 +94,17 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
               Officiating Crew
             </h4>
             <div className="space-y-2">
-              {(game.assignments || game.game_assignments || []).length === 0 ? (
+              {(game.assignments || []).length === 0 ? (
                 <div className="p-3 bg-slate-50 rounded-lg border border-dashed border-slate-300 text-center">
                   <p className="text-slate-500 text-sm">No referees assigned yet</p>
                 </div>
               ) : (
-                (game.assignments || game.game_assignments || []).map((a) => {
+                (game.assignments || []).map((a) => {
                   const asCfg = assignmentStatus[a.status] || assignmentStatus.assigned;
                   return (
                     <div key={a.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200" data-testid={`sheet-assignment-${a.id}`}>
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={a.referee?.avatarUrl || a.referee?.avatar_url} />
+                        <AvatarImage src={a.referee?.avatarUrl} />
                         <AvatarFallback className="bg-slate-200 text-slate-700 text-xs">
                           {a.referee?.name?.charAt(0) || 'R'}
                         </AvatarFallback>
@@ -121,14 +121,14 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
           </div>
 
           {/* Required Certs */}
-          {(game.requiredCertifications || game.required_certifications || []).length > 0 && (
+          {(game.requiredCertifications || []).length > 0 && (
             <div>
               <h4 className="text-slate-900 font-bold text-sm mb-2 flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 Required Certifications
               </h4>
               <div className="flex flex-wrap gap-2">
-                {(game.requiredCertifications || game.required_certifications).map((cert) => (
+                {(game.requiredCertifications || []).map((cert) => (
                   <Badge key={cert} variant="outline" className="border-slate-300 text-slate-700 text-xs">{cert}</Badge>
                 ))}
               </div>

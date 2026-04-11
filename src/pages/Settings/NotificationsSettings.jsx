@@ -38,6 +38,9 @@ const NotificationsSettings = ({ notifications, onNotificationChange }) => {
                     <span className="text-slate-700 font-medium">{item.label}</span>
                   </div>
                   <button
+                    role="switch"
+                    aria-checked={!!notifications[item.key]}
+                    aria-label={item.label}
                     onClick={() => onNotificationChange(item.key)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       notifications[item.key] ? 'bg-brand-orange' : 'bg-slate-300'
@@ -64,6 +67,9 @@ const NotificationsSettings = ({ notifications, onNotificationChange }) => {
                 <span className="text-slate-700 font-medium">New messages</span>
               </div>
               <button
+                role="switch"
+                aria-checked={!!notifications.messages}
+                aria-label="New messages"
                 onClick={() => onNotificationChange('messages')}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   notifications.messages ? 'bg-brand-orange' : 'bg-slate-300'
@@ -95,6 +101,9 @@ const NotificationsSettings = ({ notifications, onNotificationChange }) => {
                     <span className="text-slate-700 font-medium">{item.label}</span>
                   </div>
                   <button
+                    role="switch"
+                    aria-checked={!!notifications[item.key]}
+                    aria-label={item.label}
                     onClick={() => onNotificationChange(item.key)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       notifications[item.key] ? 'bg-brand-orange' : 'bg-slate-300'

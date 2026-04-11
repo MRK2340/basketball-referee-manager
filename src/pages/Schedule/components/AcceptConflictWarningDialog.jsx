@@ -31,7 +31,7 @@ const AcceptConflictWarningDialog = ({ open, onOpenChange, conflictInfo, onAccep
               <>
                 You are already assigned to{' '}
                 <strong className="text-slate-900">
-                  {conflicts[0].home_team} vs {conflicts[0].away_team}
+                  {conflicts[0].homeTeam} vs {conflicts[0].awayTeam}
                 </strong>{' '}
                 at the same time. Accepting both assignments may cause a conflict.
               </>

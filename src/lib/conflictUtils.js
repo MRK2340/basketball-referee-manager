@@ -1,115 +1,123 @@
-const GAME_DURATION_MINS = 90;
+const GAME_LEVEL_HOURS = { varsity: 2, jv: 1.5, recreational: 1 };
+const CERT_SCORE = { gold: 3, silver: 2, bronze: 1 };
 
-const toDate = (dateStr, timeStr) => {
-  if (!dateStr || !timeStr) return null;
-  // Append 'Z' for consistent UTC parsing and to avoid DST ambiguity
-  return new Date(`${dateStr}T${timeStr}Z`);
+const overlapMinutes = (s1, e1, s2, e2) => {
+  const start = Math.max(s1, s2);
+  const end   = Math.min(e1, e2);
+  return Math.max(0, (end - start) / 60000);
+};
+
+export const getScheduleConflicts = (targetGame, allGames, allAssignments, targetRefereeId) => {
+  const gStart = new Date(`${targetGame.date}T${targetGame.time}`);
+  const bufferHours = GAME_LEVEL_HOURS[targetGame.level?.toLowerCase()] ?? 1.5;
+  const gEnd = new Date(gStart.getTime() + bufferHours * 3600000);
+
+  return allAssignments
+    .filter(a => a.refereeId === targetRefereeId && a.game_id !== targetGame.id)
+    .map(a => allGames.find(g => g.id === a.game_id))
+    .filter(Boolean)
+    .filter(g => {
+      const s = new Date(`${g.date}T${g.time}`);
+      const hrs = GAME_LEVEL_HOURS[g.level?.toLowerCase()] ?? 1.5;
+      const e   = new Date(s.getTime() + hrs * 3600000);
+      return overlapMinutes(gStart, gEnd, s, e) > 0;
+    });
+};
+
+export const checkAvailabilitySlots = (referee, targetGame) => {
+  const slots = referee.availability || [];
+  if (!slots.length) return null;
+
+  const gStart = new Date(`${targetGame.date}T${targetGame.time}`);
+  const bufferHours = GAME_LEVEL_HOURS[targetGame.level?.toLowerCase()] ?? 1.5;
+  const gEnd = new Date(gStart.getTime() + bufferHours * 3600000);
+
+  for (const slot of slots) {
+    const sStart = new Date(slot.startTime);
+    const sEnd   = new Date(slot.endTime);
+    if (sStart <= gStart && sEnd >= gEnd) return 'available';
+  }
+
+  for (const slot of slots) {
+    const sStart = new Date(slot.startTime);
+    const sEnd   = new Date(slot.endTime);
+    if (overlapMinutes(gStart, gEnd, sStart, sEnd) > 0) return 'partial';
+  }
+
+  return 'unavailable';
 };
 
 /**
- * Returns games where the referee is already assigned that overlap with the target game.
+ * getRefereeStatus - returns { status, conflicts } for a single referee + game.
+ * Consumers: GameAssignmentsTab, Schedule/GameCard
  */
-export const getScheduleConflicts = (refereeId, targetGame, allGames) => {
-  const targetStart = toDate(
-    targetGame.game_date || targetGame.date,
-    targetGame.game_time || targetGame.time
+export const getRefereeStatus = (referee, targetGame, allGames) => {
+  if (!targetGame || !referee) return { status: 'no-data', conflicts: [] };
+
+  // Build all assignments across all games (add game_id for conflict lookup)
+  const allAssignments = (allGames || []).flatMap(g =>
+    (g.assignments || []).map(a => ({ ...a, game_id: g.id }))
   );
-  if (!targetStart) return [];
-  const duration = targetGame.duration_mins ?? GAME_DURATION_MINS;
-  const targetEnd = new Date(targetStart.getTime() + duration * 60000);
 
-  return allGames.filter((g) => {
-    if (g.id === targetGame.id) return false;
-    const assignments = g.game_assignments || g.assignments || [];
-    if (!assignments.some((a) => a.referee_id === refereeId)) return false;
-    const gStart = toDate(g.game_date || g.date, g.game_time || g.time);
-    if (!gStart) return false;
-    const gDuration = g.duration_mins ?? GAME_DURATION_MINS;
-    const gEnd = new Date(gStart.getTime() + gDuration * 60000);
-    return targetStart < gEnd && targetEnd > gStart;
-  });
-};
+  // 1. Schedule conflicts take highest priority
+  const conflicts = getScheduleConflicts(targetGame, allGames || [], allAssignments, referee.id);
+  if (conflicts.length > 0) {
+    return { status: 'conflict', conflicts };
+  }
 
-/**
- * Checks if the referee has a logged availability window covering the full game slot.
- * Returns true (available), false (unavailable during that window), or null (no data logged).
- */
-export const isRefereeAvailable = (referee, targetGame) => {
-  const slots = referee.referee_availability || [];
-  if (slots.length === 0) return null; // no data
-
-  const gameStart = toDate(
-    targetGame.game_date || targetGame.date,
-    targetGame.game_time || targetGame.time
-  );
-  if (!gameStart) return null;
-  const gameEnd = new Date(gameStart.getTime() + GAME_DURATION_MINS * 60000);
-
-  return slots.some((slot) => {
-    const slotStart = new Date(slot.start_time || slot.startTime);
-    const slotEnd = new Date(slot.end_time || slot.endTime);
-    return slotStart <= gameStart && slotEnd >= gameEnd;
-  });
-};
-
-/**
- * Returns true if the referee holds all certifications required for the game.
- */
-export const hasCertifications = (referee, game) => {
-  const required = game.required_certifications || game.requiredCertifications || [];
-  if (required.length === 0) return true;
-  const refCerts = new Set(referee.certifications || []);
-  return required.every((c) => refCerts.has(c));
-};
-
-/**
- * Returns a status object for a referee relative to a specific game.
- * status: 'conflict' | 'unavailable' | 'missing-certs' | 'no-data' | 'available'
- */
-export const getRefereeStatus = (referee, game, allGames) => {
-  const conflicts = getScheduleConflicts(referee.id, game, allGames);
-  if (conflicts.length > 0) return { status: 'conflict', conflicts };
-
-  const available = isRefereeAvailable(referee, game);
-  if (available === false) return { status: 'unavailable', conflicts: [] };
-
-  if (!hasCertifications(referee, game)) {
+  // 2. Missing required certifications
+  const gameRequired = targetGame.requiredCertifications || [];
+  const refCerts = referee.certifications || [];
+  if (gameRequired.length > 0 && !gameRequired.every(c => refCerts.includes(c))) {
     return { status: 'missing-certs', conflicts: [] };
   }
 
-  if (available === null) return { status: 'no-data', conflicts: [] };
+  // 3. Availability
+  const avail = checkAvailabilitySlots(referee, targetGame);
+  if (avail === 'available') return { status: 'available', conflicts: [] };
+  if (avail === 'partial')   return { status: 'partial',   conflicts: [] };
+  if (avail === 'unavailable') return { status: 'unavailable', conflicts: [] };
 
-  return { status: 'available', conflicts: [] };
+  return { status: 'no-data', conflicts: [] };
 };
 
-const STATUS_SCORE = {
-  available: 100,
-  'no-data': 60,
-  'missing-certs': 30,
-  unavailable: 10,
-  conflict: 0,
-};
+export const rankReferees = (referees, targetGame, allGames) => {
+  if (!targetGame) return referees;
 
-/**
- * Assigns a numeric fit score to a referee for ranking purposes.
- */
-export const scoreReferee = (referee, game, allGames) => {
-  const { status } = getRefereeStatus(referee, game, allGames);
-  const statusScore = STATUS_SCORE[status] ?? 0;
-  const ratingScore = (referee.rating || 0) * 5;
-  const expScore = (referee.games_officiated || 0) * 0.02;
-  return statusScore + ratingScore + expScore;
-};
+  const allAssignments = allGames.flatMap(g => (g.assignments || []).map(a => ({ ...a, game_id: g.id })));
 
-/**
- * Returns a copy of the referees array sorted from best fit to worst,
- * each decorated with `fitStatus` and `fitScore`.
- */
-export const rankReferees = (referees, game, allGames) =>
-  referees
-    .map((ref) => ({
-      ...ref,
-      fitStatus: getRefereeStatus(ref, game, allGames),
-      fitScore: scoreReferee(ref, game, allGames),
-    }))
+  return referees
+    .map(referee => {
+      const conflicts = getScheduleConflicts(targetGame, allGames, allAssignments, referee.id);
+      const availStatus = checkAvailabilitySlots(referee, targetGame);
+
+      let fitScore = 50;
+      if (availStatus === 'available')   fitScore += 30;
+      if (availStatus === 'partial')     fitScore += 10;
+      if (availStatus === 'unavailable') fitScore -= 20;
+      if (conflicts.length > 0)          fitScore -= 40;
+
+      const certLevel = (referee.certifications || []).reduce((best, c) => {
+        const s = CERT_SCORE[c?.toLowerCase()] ?? 0;
+        return s > best ? s : best;
+      }, 0);
+      fitScore += certLevel * 5;
+
+      const gameRequired = targetGame.requiredCertifications || [];
+      const refCerts     = referee.certifications || [];
+      const certsMet = gameRequired.every(c => refCerts.includes(c));
+      if (!certsMet && gameRequired.length > 0) fitScore -= 25;
+
+      const expScore = (referee.gamesOfficiated || 0) * 0.02;
+      fitScore += Math.min(expScore, 10);
+      fitScore += (referee.rating || 0) * 2;
+      fitScore = Math.max(0, Math.min(100, fitScore));
+
+      return {
+        ...referee,
+        fitScore,
+        fitStatus: { availStatus, conflicts, certsMet, certLevel },
+      };
+    })
     .sort((a, b) => b.fitScore - a.fitScore);
+};

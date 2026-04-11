@@ -68,9 +68,9 @@ const Calendar = () => {
     checkDate.setHours(0, 0, 0, 0);
 
     return availability.some(range => {
-      const startDate = new Date(range.start_time);
+      const startDate = new Date(range.startTime);
       startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(range.end_time);
+      const endDate = new Date(range.endTime);
       endDate.setHours(0, 0, 0, 0);
       return checkDate >= startDate && checkDate <= endDate;
     });
