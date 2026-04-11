@@ -13,13 +13,14 @@ import {
   Search,
   Plus,
   Reply,
-  Forward
+  Forward,
+  Loader2,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const Messages = () => {
   const { user } = useAuth();
-  const { messages, messageActions, referees, managerProfiles } = useData();
+  const { messages, messageActions, referees, managerProfiles, hasMoreMessages, loadMoreMessages, refreshing } = useData();
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [newSubject, setNewSubject] = useState('');
@@ -172,8 +173,8 @@ const Messages = () => {
                   />
                 </div>
               </CardHeader>
-              <CardContent className="p-0 flex-grow overflow-hidden">
-                <div className="h-full overflow-y-auto scrollbar-hide">
+              <CardContent className="p-0 flex-grow overflow-hidden flex flex-col">
+                <div className="flex-grow overflow-y-auto scrollbar-hide">
                   {filteredMessages.length > 0 ? (
                     filteredMessages.map((message) => (
                       <div
@@ -206,6 +207,27 @@ const Messages = () => {
                     </div>
                   )}
                 </div>
+                {hasMoreMessages && !searchTerm && (
+                  <div className="p-3 border-t border-slate-100 flex-shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid="messages-load-more-button"
+                      className="w-full border-slate-300 text-slate-600 hover:bg-slate-50"
+                      disabled={refreshing}
+                      onClick={() => loadMoreMessages(messages, referees, managerProfiles)}
+                    >
+                      {refreshing ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                          Loading…
+                        </>
+                      ) : (
+                        'Load older messages'
+                      )}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>

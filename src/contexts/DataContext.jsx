@@ -32,6 +32,7 @@ export const DataProvider = ({ children }) => {
     tournaments, referees, availability,
     gameReports, refereeRatings, notificationPreferences,
     connections, managerProfiles, independentGames,
+    hasMoreMessages, loadMoreMessages,
     fetchData,
   } = useDataFetching(user);
 
@@ -68,6 +69,7 @@ export const DataProvider = ({ children }) => {
     tournaments, referees, availability,
     gameReports, refereeRatings, notificationPreferences,
     connections, managerProfiles, independentGames,
+    hasMoreMessages, loadMoreMessages,
     fetchData,
     tournamentActions,
     gameActions,
