@@ -194,12 +194,38 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Eliminates namespace pollution in the context API; fulfills Code Review Issue #9
 - Testing: 17/17 flows passing (iteration_20.json)
 
+
+### Phase 18 - Firebase Storage (Profile Photo Upload) (Complete — Apr 2026)
+- Added `getStorage` export to `firebase.js`
+- Upgraded `uploadAvatar()` in `AuthContext.jsx` to upload to Firebase Storage `avatars/{userId}/photo`, store download URL (not base64). Limit raised to 5MB.
+- Created `storage.rules`, updated `firebase.json` with storage + functions configs
+- Testing: 100% pass (iteration_23.json)
+
+### Phase 19 - FCM Push Notifications (Complete — Apr 2026)
+- Created `public/firebase-messaging-sw.js` — FCM service worker for background push
+- Created `src/hooks/useFCM.js` — permission request, FCM token registration/clearing, auto-refresh
+- Wired `useFCM` into `Settings.jsx`; push toggle triggers real FCM permission flow
+- `NotificationsSettings.jsx` shows "Active" badge + "denied" warning based on real browser state
+- Created `functions/index.js` — Cloud Function on `notifications` collection → respects user prefs → sends FCM push
+- Fixed `firestoreService.js` bug: `notificationPreferences` now loaded from Firestore (was hardcoded defaults)
+- VAPID key in `.env` as `VITE_FIREBASE_VAPID_KEY`
+- **Deploy required**: `cd /app && firebase deploy --only functions,storage`
+- Testing: 100% pass (iteration_23.json)
+
+
 ## Test Credentials
 - Manager: `manager@demo.com` / `manager123`
 - Referee: `referee@demo.com` / `Referee123` (capital R)
 
 ## Prioritized Backlog
 
+### P0 (Deploy Cloud Functions — Required for push to send)
+- Run: `cd /app && firebase deploy --only functions` to activate Cloud Function push triggers
+- Run: `cd /app && firebase deploy --only storage` to activate Storage security rules
+
+### P1 (Optional Enhancement)
+- Public referee profile pages
+
 ### P2 (Future / Optional)
-- camelCase vs snake_case consolidation (Issue #10) — defer until further backend work
-- Add ARIA role='switch' + aria-checked to Settings toggle buttons (low-priority accessibility)
+- Context namespace refactor  
+- camelCase consolidation deferred
