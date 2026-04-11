@@ -207,6 +207,15 @@ export const fetchAppData = async (user) => {
   const connectionsRaw = docsToArr(connectionsSnap);
   const indGamesRaw = docsToArr(indGamesSnap);
 
+  // Read the current user's saved notification preferences (if any)
+  const currentUserDoc = allUserSnap.docs.find(d => d.id === user.id);
+  const savedPrefs = currentUserDoc?.data()?.notification_preferences || {};
+  const notificationPreferences = {
+    gameAssignments: true, scheduleChanges: true, paymentUpdates: true,
+    messages: true, emailNotifications: true, pushNotifications: false, smsNotifications: false,
+    ...savedPrefs,
+  };
+
   // 4. Map everything into the app's expected format
   const sortedGames = [...gamesRaw].sort((a, b) => {
     const aStamp = `${a.game_date}T${a.game_time}`;
@@ -229,10 +238,7 @@ export const fetchAppData = async (user) => {
     availability: availabilityRaw.map(mapAvailability),
     gameReports: gameReportsRaw.map(r => mapGameReport(r, gamesRaw, allUsers)),
     refereeRatings: ratingsRaw.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || '')),
-    notificationPreferences: {
-      gameAssignments: true, scheduleChanges: true, paymentUpdates: true,
-      messages: true, emailNotifications: true, pushNotifications: true, smsNotifications: false,
-    },
+    notificationPreferences,
     connections: connectionsRaw.map(mapConnection),
     managerProfiles: managerProfilesRaw,
     independentGames: indGamesRaw.sort((a, b) => (b.date || '').localeCompare(a.date || '')),

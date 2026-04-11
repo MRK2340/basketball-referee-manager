@@ -3,5 +3,11 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json",
     "database": "refereemanager"
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

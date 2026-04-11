@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, storage } from '@/lib/firebase';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -69,13 +70,6 @@ const mapFirebaseError = (error) => {
   };
   return new Error(codes[error.code] || error.message || 'An unexpected error occurred.');
 };
-
-const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = () => reject(new Error('Could not read the selected image.'));
-  reader.readAsDataURL(file);
-});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -217,13 +211,17 @@ export const AuthProvider = ({ children }) => {
 
   const uploadAvatar = async (file) => {
     if (!user) return;
-    if (file.size > 800_000) {
-      toast({ title: 'Image too large', description: 'Please upload a photo under 800 KB.', variant: 'destructive' });
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Image too large', description: 'Please upload a photo under 5 MB.', variant: 'destructive' });
       return;
     }
     setLoading(true);
     try {
-      const avatarUrl = await readFileAsDataUrl(file);
+      // Upload to Firebase Storage at avatars/{uid}/photo
+      const fileRef = storageRef(storage, `avatars/${user.id}/photo`);
+      await uploadBytes(fileRef, file);
+      const avatarUrl = await getDownloadURL(fileRef);
+      // Save the public download URL to Firestore (not a base64 blob)
       await updateDoc(doc(db, 'users', user.id), { avatar_url: avatarUrl });
       setUser(prev => ({ ...prev, avatar_url: avatarUrl, avatarUrl }));
       toast({ title: 'Profile photo updated!' });

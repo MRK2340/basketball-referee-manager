@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Profile avatar uploads — each user can only write their own avatar
+    match /avatars/{userId}/{allPaths=**} {
+      // Public read — avatars are displayed to all authenticated users
+      allow read: if request.auth != null;
+      // Authenticated write — owner only, 5 MB limit, images only
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

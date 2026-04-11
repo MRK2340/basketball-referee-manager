@@ -2,14 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
+import { useFCM } from '@/hooks/useFCM';
 import NotificationsSettings from './Settings/NotificationsSettings';
 import PreferencesSettings from './Settings/PreferencesSettings';
 import AccountSecuritySettings from './Settings/AccountSecuritySettings';
 import SupportSettings from './Settings/SupportSettings';
 
 const Settings = () => {
+  const { user } = useAuth();
   const { notificationPreferences, settingsActions } = useData();
+  const { pushEnabled, permissionStatus, enablePushNotifications, disablePushNotifications } = useFCM(user);
 
   const [notifications, setNotifications] = useState(() => ({
     gameAssignments: true,
@@ -38,7 +42,21 @@ const Settings = () => {
     autoRefresh: true,
   });
 
-  const handleNotificationChange = (key) => {
+  const handleNotificationChange = async (key) => {
+    // Push notifications: wire to actual FCM permission/token flow
+    if (key === 'pushNotifications') {
+      if (!notifications[key]) {
+        const success = await enablePushNotifications();
+        if (!success) return; // Don't update toggle if FCM setup failed
+      } else {
+        await disablePushNotifications();
+      }
+      const updated = { ...notifications, pushNotifications: !notifications.pushNotifications };
+      setNotifications(updated);
+      settingsActions.saveNotificationPreferences(updated);
+      return;
+    }
+    // All other toggles
     const updated = { ...notifications, [key]: !notifications[key] };
     setNotifications(updated);
     settingsActions.saveNotificationPreferences(updated);
@@ -93,7 +111,8 @@ const Settings = () => {
           >
             <NotificationsSettings 
               notifications={notifications} 
-              onNotificationChange={handleNotificationChange} 
+              onNotificationChange={handleNotificationChange}
+              fcm={{ pushEnabled, permissionStatus }}
             />
           </motion.div>
 
