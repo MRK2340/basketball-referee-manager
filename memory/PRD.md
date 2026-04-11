@@ -201,7 +201,16 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Created `storage.rules`, updated `firebase.json` with storage + functions configs
 - Testing: 100% pass (iteration_23.json)
 
-### Phase 23 - Error Handling & Query Optimisations (Complete — Apr 2026)
+### Phase 24 - A1/A2 Architectural Refactor (Complete — Apr 2026)
+- **A2** `src/lib/mappers.js` (new): extracted all 8 pure mapper functions (`mapProfile`, `mapConnection`, `mapGame`, `mapTournament`, `mapPayment`, `mapMessage`, `mapAvailability`, `mapGameReport`) from `firestoreService.js`. Pure JS — no Firestore SDK — immediately unit-testable.
+- **A2** `src/lib/firestoreService.js`: now imports from `./mappers`; ~100 lines shorter.
+- **A1** `src/contexts/DataContext.jsx`: rewritten as a thin 80-line wiring file — all inline functions moved to domain hooks.
+- **A1** 5 new hooks: `useNotificationActions`, `usePaymentActions`, `useConnectionActions`, `useSettingsActions`, `useIndependentGameActions`.
+- **A1** `useAssignmentActions.js` + `useReportActions.js`: absorbed `batchUnassignReferees` and `addReportResolution` respectively.
+- Context value shape unchanged — zero consumer-side changes required.
+- Testing: 100% pass, 0 regressions (iteration_26.json)
+
+
 - **E2** `DataContext.jsx`: `fetchData(false)` calls moved inside `try` blocks (now awaited on success only). `batchMarkPaymentsPaid` and `saveNotificationPreferences` wrapped in try/catch with error toasts.
 - **E4** `AuthContext.jsx`: silent profile-fetch logout now shows a "Could not load your profile" toast before `setUser(null)`.
 - **M2** `firestoreService.js`: full `getDocs(collection(db,'users'))` scan replaced with three parallel role-scoped reads (`where('role','==','referee')`, `where('role','==','manager')`, `getDoc(currentUser)`) — correct by design, scales to large user bases.
