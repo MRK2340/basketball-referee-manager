@@ -201,7 +201,14 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Created `storage.rules`, updated `firebase.json` with storage + functions configs
 - Testing: 100% pass (iteration_23.json)
 
-### Phase 22 - Performance & Architecture Fixes (Complete — Apr 2026)
+### Phase 23 - Error Handling & Query Optimisations (Complete — Apr 2026)
+- **E2** `DataContext.jsx`: `fetchData(false)` calls moved inside `try` blocks (now awaited on success only). `batchMarkPaymentsPaid` and `saveNotificationPreferences` wrapped in try/catch with error toasts.
+- **E4** `AuthContext.jsx`: silent profile-fetch logout now shows a "Could not load your profile" toast before `setUser(null)`.
+- **M2** `firestoreService.js`: full `getDocs(collection(db,'users'))` scan replaced with three parallel role-scoped reads (`where('role','==','referee')`, `where('role','==','manager')`, `getDoc(currentUser)`) — correct by design, scales to large user bases.
+- **M3** `firestoreService.js`: messages query now uses `orderBy('created_at','desc') + limit(50)`; notifications query uses `orderBy('created_at','desc') + limit(100)`. Added `limit` to Firestore imports.
+- Testing: 100% pass, 0 regressions (iteration_25.json)
+
+
 - **H1** `firestoreService.js:165` — Referee game fetch: replaced N individual `getDoc()` calls with a single `where(documentId(), 'in', gameIds)` batch query. Added `chunkArray(arr, 30)` helper for Firestore's 30-item `in` limit.
 - **H1** `firestoreService.js:463` — `batchUnassignRefereesRecord`: replaced N `getDocs(where game_id ==)` calls with `where('game_id', 'in', chunk)` batch.
 - **M1** `firestoreService.js:234` — Availability mapping: replaced O(n²) `.filter()` inside `.map()` with a pre-built `Map<referee_id, availability[]>` for O(1) lookups.
