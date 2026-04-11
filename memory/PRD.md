@@ -250,6 +250,14 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Testing: 100% pass (iteration_23.json)
 
 
+### Phase 25 - Message Pagination + Vitest Unit Tests (Complete — Apr 2026)
+- **M2/M3** `fetchMoreMessages` in `firestoreService.js`: cursor-based Firestore pagination using `startAfter(afterTimestamp) + limit(50)`.
+- `useDataFetching.js`: `hasMoreMessages` state + `loadMoreMessages` callback appends next page to inbox.
+- `DataContext.jsx`: exposes `hasMoreMessages` + `loadMoreMessages` to all consumers.
+- `Messages.jsx`: "Load older messages" button at bottom of inbox — only visible when `hasMoreMessages=true` AND search is empty; shows spinner during load.
+- `src/__tests__/mappers.test.js` (17 tests) + `src/__tests__/constants.test.js` (12 tests) — 29/29 Vitest unit tests passing via `yarn test`.
+- Testing: 100% pass — 13/13 UI scenarios + 29/29 unit tests (iteration_27.json)
+
 ## Test Credentials
 - Manager: `manager@demo.com` / `manager123`
 - Referee: `referee@demo.com` / `Referee123` (capital R)
