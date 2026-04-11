@@ -17,10 +17,11 @@ const { getMessaging } = require('firebase-admin/messaging');
 
 initializeApp();
 
-const db = getFirestore();
+// Named Firestore database (project uses 'refereemanager', not the default)
+const db = getFirestore('refereemanager');
 const fcm = getMessaging();
 
-// Maps Firestore notification.type → user preference key
+// Maps notification.type → user notification_preferences key
 const PREF_KEY_MAP = {
   assignment: 'gameAssignments',
   message: 'messages',
@@ -29,7 +30,11 @@ const PREF_KEY_MAP = {
 };
 
 exports.sendPushNotification = onDocumentCreated(
-  { document: 'notifications/{notificationId}', region: 'us-central1' },
+  {
+    document: 'notifications/{notificationId}',
+    database: 'refereemanager',
+    region: 'us-central1',
+  },
   async (event) => {
     const notification = event.data?.data();
     if (!notification) return;
@@ -37,7 +42,7 @@ exports.sendPushNotification = onDocumentCreated(
     const recipientId = notification.recipient_id;
     if (!recipientId) return;
 
-    // Fetch recipient's Firestore profile
+    // Fetch recipient's Firestore profile for FCM token + preferences
     const userSnap = await db.collection('users').doc(recipientId).get();
     if (!userSnap.exists) return;
 
@@ -45,15 +50,15 @@ exports.sendPushNotification = onDocumentCreated(
     const fcmToken = userData.fcmToken;
     if (!fcmToken) return;
 
-    // Respect the user's global push preference
+    // Respect global push preference
     const prefs = userData.notification_preferences || {};
     if (prefs.pushNotifications === false) return;
 
-    // Respect per-event type preferences
+    // Respect per-event preferences
     const prefKey = PREF_KEY_MAP[notification.type];
     if (prefKey && prefs[prefKey] === false) return;
 
-    // Build and send the FCM message
+    // Send the push notification
     try {
       await fcm.send({
         token: fcmToken,
@@ -73,7 +78,7 @@ exports.sendPushNotification = onDocumentCreated(
       });
     } catch (err) {
       console.error('[FCM send]', err.message);
-      // Stale token — clear it so we stop trying
+      // Clear stale tokens so we stop retrying
       if (err.code === 'messaging/registration-token-not-registered') {
         await db.collection('users').doc(recipientId).update({ fcmToken: null });
       }
