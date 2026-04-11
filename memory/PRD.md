@@ -159,6 +159,15 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 
 
 
+### Phase 17 - camelCase vs snake_case Consolidation (Complete — Apr 2026)
+- All mapper functions (`mapGame`, `mapTournament`, `mapPayment`, `mapMessage`, `mapAvailability`, `mapGameReport`) now return ONLY camelCase fields — zero snake_case duplicates
+- New `mapProfile` (avatarUrl, gamesOfficiated, leagueName, activeTournaments) and `mapConnection` (refereeId, managerId) mappers applied in `fetchAppData`
+- `conflictUtils.js` rewritten to use camelCase throughout; `getRefereeStatus` export preserved
+- `buildUser` in `AuthContext.jsx` exposes 4 camelCase aliases; avatar upload syncs both fields
+- `Settings/NotificationsSettings.jsx`: all toggle buttons now have `role='switch'` + `aria-checked` + `aria-label` (Issue #10 accessibility fix)
+- 22+ consumer files updated; 8 post-refactor regressions caught and fixed by testing agent
+- Testing: 15/15 scenarios passing, 0 console errors (iteration_22.json)
+
 ### Phase 16 - Firebase Security Rules & Performance Optimization (Complete — Apr 2026)
 **Security rules (apply in Firebase Console → Firestore → Rules):**
 - Blocks role-escalation: users can no longer modify their own `role` field
