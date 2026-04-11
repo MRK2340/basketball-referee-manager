@@ -1,5 +1,5 @@
 import { toast } from '@/components/ui/use-toast';
-import { submitGameReportRecord } from '@/lib/firestoreService';
+import { submitGameReportRecord, addReportResolutionRecord } from '@/lib/firestoreService';
 
 export const useReportActions = (user, fetchData) => {
   const submitGameReport = async (reportData) => {
@@ -15,5 +15,16 @@ export const useReportActions = (user, fetchData) => {
     }
   };
 
-  return { submitGameReport };
+  const addReportResolution = async (reportId, note) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = await addReportResolutionRecord(user, reportId, note);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Report resolved', description: 'Resolution note added and report marked as reviewed.' });
+      fetchData(false);
+    }
+  };
+
+  return { submitGameReport, addReportResolution };
 };

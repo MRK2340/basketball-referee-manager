@@ -1,0 +1,60 @@
+{
+  "summary": "Iteration 26: Regression testing for A1/A2 architectural refactor — 8 mapper functions extracted to src/lib/mappers.js; DataContext.jsx rewritten as thin wiring file using 11 domain hooks; batchUnassignReferees moved into useAssignmentActions; addReportResolution moved into useReportActions. All 12 test scenarios PASS. Zero regressions detected. Zero console errors related to missing exports or undefined context values.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "app_loads_login_page": "PASS — Login page renders at /login with iWhistle branding, email/password form, 'Try Demo Account' button",
+    "manager_demo_login": "PASS — 'Log in as Manager' click authenticates via Firebase and redirects to /manager",
+    "referee_demo_login": "PASS — 'Log in as Referee' click authenticates via Firebase and redirects to /dashboard",
+    "manager_dashboard_data": "PASS — Manager dashboard shows GAMES THIS MONTH: 5, TOTAL EARNINGS: 75.00, PENDING PAYMENTS: 0, RATING: 4.9, Upcoming Games, Recent Payments sections",
+    "referee_dashboard_data": "PASS — Referee dashboard shows 'Welcome back, Demo Referee', GAMES THIS MONTH: 2, TOTAL EARNINGS: 75.00, PENDING PAYMENTS: 0, RATING: 4.7, Upcoming Games, Quick Actions",
+    "messages_page_manager": "PASS — Messages page loads at /messages with multiple messages and '4 new' badge for manager",
+    "messages_page_referee": "PASS — Messages page loads with multiple messages and '4 new' badge for referee",
+    "notifications_bell_manager": "PASS — topbar-notifications-button opens panel with notification items; notifications rendering correctly",
+    "notifications_bell_referee": "PASS — topbar-notifications-button opens panel with 6 notification items including 'New message from Demo Manager', 'Game assigned', 'Payment processed'; unread count badge shows",
+    "settings_page_manager": "PASS — Settings page loads with 7 [role='switch'] toggles (New game assignments, Schedule changes, Payment updates, New messages, Email, Push, SMS) + Auto-refresh toggle",
+    "settings_page_referee": "PASS — Settings page loads with 7 [role='switch'] toggles under same categories",
+    "profile_manager": "PASS — /profile loads with 'Demo Manager', Change Photo button, Tournament Director certification, 4.9/5.0 rating",
+    "profile_referee": "PASS — /profile loads with 'Demo Referee', 45 Games, 3 years experience, NFHS Certified, Certified Official Level 2, Change Photo button, Performance Ratings with 5/5 rating",
+    "mark_all_notifications_read": "PASS — Clicking 'Mark all read' button (data-testid='notification-mark-all-read-button') navigates correctly without crash; button only shows when unreadCount > 0",
+    "notification_item_click": "PASS — Clicking individual notification item navigates correctly without crash",
+    "settings_toggle_save": "PASS — Toggling a notification setting shows 'Settings updated — Your notification preferences have been saved.' toast for both roles",
+    "console_errors_context": "PASS — Zero console errors related to missing exports, undefined context values, or TypeError. Only expected 'Fetch error from :' (Google Analytics in headless env) and React Router v7 future flag warnings"
+  },
+  "code_review": {
+    "DataContext.jsx": "PASS — Correctly imports 11 hooks; all namespace assignments (tournamentActions, gameActions, assignmentActions, messageActions, availabilityActions, reportActions, notificationActions, paymentActions, connectionActions, settingsActions, independentGameActions) present in context value",
+    "mappers.js": "PASS — Exports 8 pure functions: mapProfile, mapConnection, mapGame, mapTournament, mapPayment, mapMessage, mapAvailability, mapGameReport",
+    "firestoreService.js": "PASS — Imports all 8 mappers from ./mappers; ~100 lines shorter; uses chunkArray helper for batched Firestore in-queries",
+    "useAssignmentActions.js": "PASS — batchUnassignReferees function present and exported",
+    "useReportActions.js": "PASS — addReportResolution function present and exported",
+    "useNotificationActions.js": "PASS — markNotificationRead + markAllNotificationsRead present",
+    "usePaymentActions.js": "PASS — batchMarkPaymentsPaid + rateReferee present",
+    "useConnectionActions.js": "PASS — requestManagerConnection + respondToConnection + withdrawConnection present",
+    "useSettingsActions.js": "PASS — saveNotificationPreferences present with try/catch",
+    "useIndependentGameActions.js": "PASS — addIndependentGame + updateIndependentGame + deleteIndependentGame present"
+  },
+  "test_report_links": ["/app/test_reports/iteration_26.json"],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only, Firebase Firestore backend)",
+    "frontend": "100% (12/12 test scenarios pass, 0 console errors)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 26 all green. A1/A2 architectural refactor verified — DataContext.jsx thin wiring with 11 domain hooks, mappers.js with 8 pure functions, batchUnassignReferees in useAssignmentActions, addReportResolution in useReportActions. All context namespaces intact, identical shape to pre-refactor. Both manager and referee demo logins work. All dashboards, messages, notifications, settings, and profile pages work correctly. Settings toggle saves with 'Settings updated' toast (useSettingsActions.saveNotificationPreferences). Mark all notifications read works with data-testid='notification-mark-all-read-button'. Notification item click navigates without crash. Zero Firestore index or permission errors. Only expected console errors: 'Fetch error from :' (Google Analytics headless) + React Router v7 future flag warnings.",
+  "rca_of_issues": "N/A — No bugs found. Pure architectural refactor verified with zero behavioral changes."
+}

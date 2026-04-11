@@ -5,6 +5,7 @@ import {
   requestAssignment,
   unassignReferee,
   updateAssignment,
+  batchUnassignRefereesRecord,
 } from '@/lib/firestoreService';
 
 export const useAssignmentActions = (user, fetchData) => {
@@ -90,5 +91,16 @@ export const useAssignmentActions = (user, fetchData) => {
   };
 
 
-  return { assignRefereeToGame, unassignRefereeFromGame, updateAssignmentStatus, assignRefereesToCourt, requestGameAssignment };
+  const batchUnassignReferees = async (gameIds) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = await batchUnassignRefereesRecord(user, gameIds);
+    if (error) {
+      toast({ title: 'Batch unassign failed', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Referees Unassigned', description: `Removed all referee assignments from ${gameIds.length} game(s).` });
+      fetchData(false);
+    }
+  };
+
+  return { assignRefereeToGame, unassignRefereeFromGame, updateAssignmentStatus, assignRefereesToCourt, requestGameAssignment, batchUnassignReferees };
 };
