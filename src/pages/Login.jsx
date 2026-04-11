@@ -15,6 +15,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  DEMO_MANAGER_BASE,
+  DEMO_REFEREE_BASE,
+  DEMO_MANAGER_PASSWORD,
+  DEMO_REFEREE_PASSWORD,
+} from '@/lib/demoAccounts';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -49,8 +55,8 @@ const Login = () => {
     setIsDemoLoading(true);
     try {
       await createDemoAccounts();
-      const demoEmail = role === 'manager' ? 'manager@demo.com' : 'referee@demo.com';
-      const demoPassword = role === 'manager' ? 'manager123' : 'Referee123';
+      const demoEmail = role === 'manager' ? DEMO_MANAGER_BASE.email : DEMO_REFEREE_BASE.email;
+      const demoPassword = role === 'manager' ? DEMO_MANAGER_PASSWORD : DEMO_REFEREE_PASSWORD;
       const user = await login(demoEmail, demoPassword);
       toast({
         title: `Logged in as Demo ${role.charAt(0).toUpperCase() + role.slice(1)}!`,
@@ -181,7 +187,7 @@ const Login = () => {
 
 
           <div className="text-center text-slate-600 text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/register" className="font-bold transition-colors hover:underline" style={{color: '#0080C8'}}>
               Register here
             </Link>

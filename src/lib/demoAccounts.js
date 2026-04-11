@@ -1,14 +1,15 @@
 /**
- * Single source of truth for demo account base profiles.
- * Imported by both AuthContext.jsx (auth layer) and demoDataService.js (data layer)
- * so a schema change only needs to be made in one place.
- *
- * NOTE: passwords are NOT stored here — they are applied by AuthContext at runtime
- * using the current obfuscation scheme.
+ * Single source of truth for demo account credentials and base profiles.
+ * Imported by AuthContext.jsx (auth layer), Login.jsx (demo login), and demoDataService.js (data layer).
  */
 
 export const DEMO_MANAGER_ID = 'demo-manager';
 export const DEMO_REFEREE_ID = 'demo-referee';
+
+// Demo passwords — centralised here so they never get duplicated in component code.
+// These are intentionally public credentials for a demonstration account.
+export const DEMO_MANAGER_PASSWORD = 'manager123';
+export const DEMO_REFEREE_PASSWORD = 'Referee123';
 
 export const DEMO_MANAGER_BASE = {
   id: DEMO_MANAGER_ID,

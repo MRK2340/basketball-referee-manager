@@ -44,3 +44,6 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Emergent platform internal files — never commit
+memory/test_credentials.md

@@ -201,7 +201,14 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Created `storage.rules`, updated `firebase.json` with storage + functions configs
 - Testing: 100% pass (iteration_23.json)
 
-### Phase 20 - Firebase Analytics (Complete — Apr 2026)
+### Phase 21 - Critical / Security Audit Fixes (Complete — Apr 2026)
+- **C1** `Login.jsx`: demo passwords removed from component — now imported from `demoAccounts.js` (`DEMO_MANAGER_PASSWORD`, `DEMO_REFEREE_PASSWORD`)
+- **C2** `firebase.js`: startup env-var validation — throws with descriptive error if any `VITE_FIREBASE_*` var is missing; created `.env.example` template
+- **C3** `.gitignore`: added `memory/test_credentials.md` to prevent credential file from being committed
+- **H4** `firestore.rules`: tightened `notifications` create rule from `isAuth()` → requires `['recipient_id','type','title']` fields + only managers or message-type senders can create; deployed to production
+- **Q1** `vite.config.js`: removed global `console.warn = () => {}` suppressor that was silencing all development warnings
+
+
 - Added `getAnalytics(app)` export to `firebase.js`
 - Created `src/lib/analytics.js` — thin `Analytics` wrapper with named events: `login`, `signUp`, `logout`, `photoUploaded`, `profileUpdated`, `pushEnabled`, `pushDisabled`, `messageSent`, `gameReportSubmitted`, `independentGameLogged`, `exportGenerated`, `pageView`
 - Created `src/components/RouteTracker.jsx` — fires `page_view` on every React Router navigation (mounted inside `<Router>`)

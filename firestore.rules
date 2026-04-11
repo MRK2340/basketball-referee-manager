@@ -80,9 +80,17 @@ service cloud.firestore {
     }
 
     // ── Notifications ─────────────────────────────────────────────────────────
+    // H4 fix: tightened from `isAuth()` (any user could spam anyone)
+    // Rules now enforce:
+    //   • Required fields must be present on every new notification
+    //   • Managers can create any notification type (assignments, payments, etc.)
+    //   • Referees/others can only create 'message' type notifications (replies)
+    //   • Recipients can mark their own notifications as read (update)
     match /notifications/{notifId} {
       allow read: if isAuth() && request.auth.uid == resource.data.recipient_id;
-      allow create: if isAuth();
+      allow create: if isAuth()
+        && request.resource.data.keys().hasAll(['recipient_id', 'type', 'title'])
+        && (isManager() || request.resource.data.type == 'message');
       allow update: if isAuth() && request.auth.uid == resource.data.recipient_id;
     }
 

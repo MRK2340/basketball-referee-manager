@@ -264,7 +264,9 @@ const addTransformIndexHtml = {
 	},
 };
 
-console.warn = () => {};
+// ── Q1 fix: removed global console.warn = () => {} suppressor ──────────────
+// Silencing all warnings hides real issues during development.
+// PostCSS warnings are now only suppressed via the customLogger below.
 
 const logger = createLogger()
 const loggerError = logger.error
