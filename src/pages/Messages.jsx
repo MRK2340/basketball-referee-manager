@@ -37,11 +37,11 @@ const Messages = () => {
     return managerProfiles.map(m => ({ id: m.id, name: m.name }));
   }, [user?.role, referees, managerProfiles]);
 
-  const filteredMessages = messages.filter(message =>
+  const filteredMessages = useMemo(() => messages.filter(message =>
     (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (message.from && message.from.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (message.content && message.content.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  ), [messages, searchTerm]);
 
   const unreadCount = messages.filter(m => !m.read).length;
 

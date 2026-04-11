@@ -27,6 +27,13 @@ const safeHandle = async (fn) => {
 const docToObj = (snap) => snap.exists() ? { id: snap.id, ...snap.data() } : null;
 const docsToArr = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+// Split an array into chunks of `size` — needed for Firestore `in` queries (30-item limit)
+const chunkArray = (arr, size) => {
+  const chunks = [];
+  for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+  return chunks;
+};
+
 // ── Profile + Connection mappers ──────────────────────────────────────────────
 
 const mapProfile = (p) => ({
@@ -162,9 +169,14 @@ export const fetchAppData = async (user) => {
     assignmentsRaw = docsToArr(aSnap);
     const gameIds = [...new Set(assignmentsRaw.map(a => a.game_id))];
     if (gameIds.length > 0) {
-      const gPromises = gameIds.map(id => getDoc(doc(db, 'games', id)));
-      const gDocs = await Promise.all(gPromises);
-      gamesRaw = gDocs.filter(d => d.exists()).map(d => ({ id: d.id, ...d.data() }));
+      // H1 fix: single batch query per chunk instead of one getDoc() per game
+      const chunks = chunkArray(gameIds, 30);
+      const snapshots = await Promise.all(
+        chunks.map(chunk =>
+          getDocs(query(collection(db, 'games'), where(documentId(), 'in', chunk)))
+        )
+      );
+      gamesRaw = snapshots.flatMap(docsToArr);
     }
   }
 
@@ -216,6 +228,15 @@ export const fetchAppData = async (user) => {
     ...savedPrefs,
   };
 
+  // M1 fix: pre-build a Map<referee_id → availability[]> for O(1) lookups.
+  // Previous code ran availabilityRaw.filter() inside a .map() — O(n²).
+  const availabilityByReferee = new Map();
+  availabilityRaw.forEach(a => {
+    const list = availabilityByReferee.get(a.referee_id) || [];
+    list.push(mapAvailability(a));
+    availabilityByReferee.set(a.referee_id, list);
+  });
+
   // 4. Map everything into the app's expected format
   const sortedGames = [...gamesRaw].sort((a, b) => {
     const aStamp = `${a.game_date}T${a.game_time}`;
@@ -233,7 +254,7 @@ export const fetchAppData = async (user) => {
     tournaments: tournamentsRaw.map(t => mapTournament(t, gamesRaw)),
     referees: allReferees.map(r => ({
       ...r,
-      availability: availabilityRaw.filter(a => a.referee_id === r.id).map(mapAvailability),
+      availability: availabilityByReferee.get(r.id) || [],
     })),
     availability: availabilityRaw.map(mapAvailability),
     gameReports: gameReportsRaw.map(r => mapGameReport(r, gamesRaw, allUsers)),
@@ -460,10 +481,13 @@ export const batchMarkPaymentsPaidRecord = async (user, paymentIds) => safeHandl
 
 export const batchUnassignRefereesRecord = async (user, gameIds) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can batch-unassign.');
-  const promises = gameIds.map(gid =>
-    getDocs(query(collection(db, 'game_assignments'), where('game_id', '==', gid)))
+  // H1 fix: single batch query per chunk instead of one getDocs() per game
+  const chunks = chunkArray(gameIds, 30);
+  const snaps = await Promise.all(
+    chunks.map(chunk =>
+      getDocs(query(collection(db, 'game_assignments'), where('game_id', 'in', chunk)))
+    )
   );
-  const snaps = await Promise.all(promises);
   const batch = writeBatch(db);
   snaps.forEach(snap => snap.docs.forEach(d => batch.delete(d.ref)));
   await batch.commit();
