@@ -266,6 +266,29 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **Testing gap** already closed: 29 Vitest unit tests exist (`yarn test`) — pre-dates this audit comment.
 - Testing: 100% pass — 12/12 scenarios + 29/29 unit tests, lint clean (iteration_28.json)
 
+### Phase 27 - Full Security & Performance Audit (Complete — Feb 2026)
+**Security fixes:**
+- **S1** `firestoreService.js`: `markAllNotificationsReadRecord` now chunks writes into batches of 400 (prevents exceeding Firestore's 500-write limit)
+- **S2** `AuthContext.jsx`: `updateProfile` now whitelists allowed fields (`name`, `phone`, `experience`, `bio`, `location`) — prevents users writing arbitrary data like `rating`, `role`, `games_officiated`
+- **S3** `firestoreService.js`: `sendMessageRecord` and `assignReferee` notification use `serverTimestamp()` instead of client-side `new Date().toISOString()` — trustworthy ordering, not user-clock-spoofable. Added `toISOString()` normalizer for both Firestore Timestamps and ISO strings.
+- **S4** `useFCM.js`: Added missing `Analytics.pushEnabled()` call when FCM token is successfully registered
+- **S5** `Profile.jsx` + `Settings.jsx`: "Coming Soon" toasts now use neutral wording — removed AI-generation context ("request it in your next prompt")
+
+**Performance fixes:**
+- **P1** `useNotificationActions.js` + `useMessageActions.js`: Marking messages/notifications as read no longer triggers full `fetchData` refetch — realtime listeners handle the update
+- **P2** `firestoreService.js`: Aligned initial message fetch limit to 100 (was 50) to match `useRealtimeMessages` limit(100) — eliminates duplicate fetch on mount
+- **P3** `Dashboard.jsx`: All computed values (`upcomingGames`, `recentPayments`, `totalEarnings`, `pendingPayments`, `recentActivity`) wrapped in `useMemo`
+
+**Quality / Code cleanup:**
+- **Q1** `Dashboard.jsx`: Rating fallback changed from hardcoded `'4.8'` to `'N/A'`
+- **Q2** `useRealtimeMessages.js`: `useEffect` syncing `usersMapRef` now has `[usersMap]` dependency (was missing)
+- **Q3** Deleted dead code file `src/lib/demoDataService.js`
+- **Q4** Removed unused `@supabase/supabase-js` from `package.json`
+- Removed emoji characters from all toast messages in action hooks (per design guidelines)
+- Updated `mappers.js` `mapMessage` to normalize Firestore Timestamps
+
+- Testing: 100% pass — 17/17 audit items verified, 29/29 unit tests, all UI flows working (iteration_29.json)
+
 ## Test Credentials
 - Manager: `manager@demo.com` / `manager123`
 - Referee: `referee@demo.com` / `Referee123` (capital R)
@@ -279,6 +302,6 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 ### P1 (Optional Enhancement)
 - Public referee profile pages
 
-### P2 (Future / Optional)
-- Context namespace refactor  
-- camelCase consolidation deferred
+### P2 (Completed)
+- ~~Context namespace refactor~~ (Phase 15)
+- ~~camelCase consolidation~~ (Phase 17)
