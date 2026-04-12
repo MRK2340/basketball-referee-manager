@@ -1,42 +1,38 @@
-<analysis>**original_problem_statement**: Recreate the GitHub repository . PRODUCT REQUIREMENTS: Build an AAU youth basketball league manager app where Referees can view their schedule, log availability, and communicate with managers, while Managers can assign referees and manage tournaments. *Note: User explicitly requested to build all rich frontend UI/UX features FIRST using the mocked local storage backend, and connect the real backend (Supabase) at the very end.*
+<analysis>**original_problem_statement**: Recreate the GitHub repository . PRODUCT REQUIREMENTS: Build an AAU youth basketball league manager app (iWhistle) where Referees can view their schedule, log availability, and communicate with managers, while Managers can assign referees and manage tournaments. The backend uses Firebase Auth and Firestore.
 
-**User's preferred language**: English (INSTRUCT next agent to respond in English only).
+**User's preferred language**: English (INSTRUCT next agent to respond in English only)
 
 **what currently exists?** 
-A fully functional, rich React/Vite frontend with a mocked local browser-storage backend ( / ). All top-notch UI/UX features have been implemented, including Referee Post-Game Ratings, Tournament Standings, Referee Leaderboard, Live Activity Feeds, Game Detail Slide-outs, Enhanced Game Reports, Notification Preferences, Calendar Week Views, Smart Sorting, Skeleton Loading states, and a Referee Availability Calendar grid. The app is highly polished and currently operates entirely without a real backend.
+A highly polished React/Vite frontend with a live Firebase backend (Firestore, Auth, Storage, Cloud Functions, FCM, Analytics). The application features message pagination, push notifications, real-time sync, conflict warnings, and pure function mappers. A Vitest unit testing suite is fully functional with 29 passing tests. The app was recently hardened for security by moving demo credentials to environment variables, restricting  listeners, and enforcing strict ESLint rules.
 
 **Last working item**: 
-    - Last item agent was working: Building the Referee Availability Calendar tab for Managers and running regression testing using the testing agent. The agent successfully integrated the tab, fixed minor state issues, and completed the session.
-    - Status: NONE (Completed and finished tool called)
+    - Last item agent was working: Resolving the final 5 Security and Quality items from the code audit (C1: hardcoded demo passwords, H: insecure postMessage, M: missing , M: permissive ESLint rules, M: silent logout on auth state fail).
+    - Status: NONE (Completed)
     - Agent Testing Done: Y
-    - Which testing method agent to use? NA (Testing already done)
+    - Which testing method agent to use? NA (Testing already done via Vitest and )
     - User Testing Done: N
 
 **All Pending/In progress Issue list**: 
-None. All bugs identified by the testing agent during the session (such as missing preference states in Settings and undefined availability arrays in ) were successfully fixed and verified.
+None. All identified audit items, performance optimizations, and critical security issues have been successfully addressed.
 
 **In progress Task List**: 
 None.
 
 **Upcoming and Future Tasks**
-  Upcoming Tasks:
-  - Add real-time conflict warnings in the Availability grid (P1) - *The agent proposed this enhancement right before finishing the job; wait for user confirmation or propose it again in your plan.*
-
-  Future Tasks:
-  - Final Phase: Connect Supabase Backend (P0) - *Only to be done when the user confirms all frontend features are ready.* This involves stripping out  and hooking up the real Supabase REST/GraphQL APIs.
+    Future Tasks:
+    - Public referee profile pages (P1 - Optional enhancement)
+    - Context namespace refactor (P2 - Optional cleanup)
+    - camelCase vs snake_case consolidation (P2 - Optional cleanup)
 
 **Completed work in this session**
-- Referee Post-Game Rating System (DONE)
-- Tournament Standings Tab (DONE)
-- Referee Leaderboard (DONE)
-- Live Activity Feed on Dashboard (DONE)
-- Game Detail Slide-out Panel () (DONE)
-- Enhanced Game Reports (DONE)
-- Working Notification Preferences persisting to local storage (DONE)
-- Calendar Week View (DONE)
-- Open Games Smart Sorting (DONE)
-- Empty States & Skeleton Loading States (DONE)
-- Referee Availability Calendar Tab (DONE)
+- Implemented Message Pagination UI and Vitest Unit Tests (29/29 passing) (DONE)
+- Deployed FCM Cloud Functions () to live Firebase environment (DONE)
+- Upgraded Firebase Cloud Functions runtime to Node.js 22 (Gen 2) (DONE)
+- Moved hardcoded demo passwords to  and  (C1) (DONE)
+- Secured  wildcard domains in  (H) (DONE)
+- Created  file (M) (DONE)
+- Tightened ESLint rules (,  enabled) with scoped overrides (M) (DONE)
+- Improved auth state change error handling and retries in  (M) (DONE)
 
 **Earlier issues found/mentioned but not fixed**
 None.
@@ -50,59 +46,89 @@ None.
 
 
 **Key Technical Concepts**
-React, Vite, Tailwind CSS, Framer Motion, Shadcn UI, Browser Local Storage (Mocked Data layer).
+React, Vite, Tailwind CSS, Shadcn UI, Context API, Custom Hooks, Vitest, Firebase (Auth, Firestore, Storage, Cloud Functions, FCM, Analytics).
 
 **key DB schema**
-  - All data mocked via browser storage in : , , , , , , , .
+  - Firestore Collections (DB ID: ): , , , , , , , , , .
 
 **changes in tech stack**
-  - N/A. Still exclusively using local storage. 
+  - Added Vitest testing framework (yarn run v1.22.22
+$ vitest run
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/app[39m
+
+ [32m✓[39m src/__tests__/constants.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m src/__tests__/mappers.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m29 passed[39m[22m[90m (29)[39m
+[2m   Start at [22m 04:39:55
+[2m   Duration [22m 802ms[2m (transform 184ms, setup 0ms, import 371ms, tests 14ms, environment 34ms)[22m
+
+Done in 1.52s.).
+  - Upgraded Firebase Cloud Functions to Node 22 Gen 2 runtime.
 
 **All files of reference** 
--  (Core mocked database; controls all CRUD actions)
--  (Global state provider consuming the demo service)
--  (Manager tab routing hub; currently has 7 tabs)
--  (Most recently created file)
+  -  (Refactored to use env vars)
+  -  (Created)
+  -  (Hardened rules)
+  -  (Secured postMessage)
+  -  (Fixed auth silent logout)
 
 **Areas that need refactoring**: 
-None required. The code is modular and clean.
+None currently required. The application is in a very clean state post-audit. Future optional refactors include Context namespace refactor and camelCase consolidation.
 
 **key api endpoints**
-N/A - APIs are fully mocked locally.
+N/A - Native Firebase SDKs.
 
 **Critical Info for New Agent** 
-- **DO NOT CONNECT SUPABASE YET:** As explicitly stated by the user previously, the Supabase backend should only be integrated *at the end* once all frontend functionalities are perfectly polished and confirmed by the user. Ensure any new features continue to use the  local storage layer.
-- Keep updating  as new features are added.
-- The app utilizes Shadcn UI heavily; prefer checking  for existing components before creating raw HTML elements.
+- The app has been fully migrated to a live Firebase backend and thoroughly hardened according to a comprehensive code audit.
+- A robust Vitest unit test suite exists. You can run yarn run v1.22.22
+$ vitest run
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/app[39m
+
+ [32m✓[39m src/__tests__/constants.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m src/__tests__/mappers.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m29 passed[39m[22m[90m (29)[39m
+[2m   Start at [22m 04:39:57
+[2m   Duration [22m 876ms[2m (transform 251ms, setup 0ms, import 318ms, tests 13ms, environment 0ms)[22m
+
+Done in 1.75s. to verify pure functions ( and ). Currently, 29/29 tests pass.
+- Demo passwords are no longer hardcoded in source. They must be read from  via  and .
+- The Firebase CLI is installed and configured, and the Cloud Functions deployment uses a CI token provided by the user.
 
 **documents and test reports created in this job** 
-  -  (Updated with latest UI/UX features)
-  -  
-  -  (Test for the 10 top-notch features)
-  -  (Test for Availability Calendar)
+  -  (Pagination & Vitest UI tests)
+  -  (Security/Quality fixes verification)
+  -  (Updated)
 
 **Last 10 User Messages and any pending HUMAN messages** 
- - Yes let’s add The availability calendar - COMPLETED
- - Proceed with all 10 - COMPLETED
- - Let’s do A - COMPLETED
+ - Still Open — Critical C1: Passwords still hardcoded in demoAccounts.js... - COMPLETED
+ - Upgrade to node 22 - COMPLETED
+ - Deploy cloud functions for FCM - COMPLETED
+ - 1//01mwqFRRfpP57CgY... (Provided Firebase Auth Token) - COMPLETED
+ - Finish 1-4 - COMPLETED
 
 **Project Health Check:**
 Broken: NO
-Mocked: YES (Data layer completely mocked via local storage)
+Mocked: NO (Fully live Firebase)
 
-**3rd Party Integrations**
-None active. (Supabase is waiting for the final phase).
+**3rd Party Integrations** 
+- Firebase Auth/Firestore/Storage/Functions/Analytics — requires User API Key (Active)
 
 **Testing status**
-  - Testing agent used after significant changes: YES
+  - Testing agent used after significant changes: YES (Iterations 27, 28)
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None
+  - Test files created: , 
   - Known regressions: None
 
 **Credentials to test flow:**
-Available in 
+(Refer to  and )
 - Manager:  / 
 - Referee:  / 
 
 **What agent forgot to execute**
-The agent executed everything perfectly. The 10 top notch UI features and the requested Availability Calendar were fully integrated and passed QA.</analysis>
+Nothing. The agent successfully addressed every pending task, deployed the Firebase functions, and completed all audit items. The application is at a clean, stable state. Start by asking the user what new feature or enhancement they would like to pursue next.</analysis>
