@@ -6,10 +6,10 @@
 export const DEMO_MANAGER_ID = 'demo-manager';
 export const DEMO_REFEREE_ID = 'demo-referee';
 
-// Demo passwords — centralised here so they never get duplicated in component code.
-// These are intentionally public credentials for a demonstration account.
-export const DEMO_MANAGER_PASSWORD = 'manager123';
-export const DEMO_REFEREE_PASSWORD = 'Referee123';
+// Demo passwords are stored in .env (VITE_DEMO_MANAGER_PASSWORD / VITE_DEMO_REFEREE_PASSWORD)
+// so they stay out of committed source code while remaining configurable.
+export const DEMO_MANAGER_PASSWORD = import.meta.env.VITE_DEMO_MANAGER_PASSWORD;
+export const DEMO_REFEREE_PASSWORD = import.meta.env.VITE_DEMO_REFEREE_PASSWORD;
 
 export const DEMO_MANAGER_BASE = {
   id: DEMO_MANAGER_ID,

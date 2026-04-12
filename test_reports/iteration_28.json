@@ -1,0 +1,50 @@
+{
+  "summary": "Iteration 28: Verified all 5 security/quality fixes — demo passwords in env vars, vite.config.js postMessage guards, .env.example updated, ESLint no-unused-vars/prop-types warns, AuthContext retry logic. All demo + manual login flows work. 29/29 Vitest unit tests pass. yarn lint exits 0. Zero regressions on /messages, /dashboard, /schedule.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "yarn_lint": "PASS — `yarn lint --quiet` exits 0 in 7.82s. No errors, no warnings promoted to errors. no-unused-vars:warn + react/prop-types:warn configured correctly. Ignores include functions/**, public/**, vitest.config.js.",
+    "yarn_test": "PASS — 29/29 Vitest unit tests pass (12 in constants.test.js, 17 in mappers.test.js). Exits 0 in 0.97s.",
+    "demoAccounts_env_vars": "PASS — demoAccounts.js exports DEMO_MANAGER_PASSWORD = import.meta.env.VITE_DEMO_MANAGER_PASSWORD and DEMO_REFEREE_PASSWORD = import.meta.env.VITE_DEMO_REFEREE_PASSWORD. .env has both keys set (manager123, Referee123). No hardcoded passwords in source.",
+    "env_example_updated": "PASS — .env.example includes VITE_DEMO_MANAGER_PASSWORD= and VITE_DEMO_REFEREE_PASSWORD= keys with comments explaining they are optional/public.",
+    "vite_config_postMessage_guards": "PASS — All 3 postMessage('*') calls wrapped in window.self !== window.top: configHorizonsViteErrorHandler (line 50), configHorizonsRuntimeErrorHandler (line 71), configHorizonsConsoleErrorHandler (line 144). configNavigationHandler already had the guard.",
+    "eslint_config": "PASS — no-unused-vars: ['warn', {...}], react/prop-types: 'warn'. Ignores: node_modules/**, dist/**, build/**, vite.config.js, vitest.config.js, functions/**, public/**.",
+    "auth_context_retry": "PASS — Profile fetch retries once (attempt 1→2) with 1.5s delay. On double-failure, toast with title 'Could not load your profile' + inline 'Refresh now' button calling window.location.reload().",
+    "demo_manager_login": "PASS — Click 'Try Demo Account' → dialog opens → 'Log in as Manager' → navigates to /manager. 'League Management' page rendered. Toast 'Logged in as Demo Manager!' shown.",
+    "demo_referee_login": "PASS — Click 'Try Demo Account' → dialog opens → 'Log in as Referee' → navigates to /dashboard. 'Welcome back, Demo Referee' shown. Toast 'Logged in as Demo Referee!' shown.",
+    "manual_login_manager": "PASS — Enter manager@demo.com + manager123 → submit → redirects to /manager correctly.",
+    "regression_dashboard": "PASS — /dashboard loads 'Welcome back' with stats and Quick Actions",
+    "regression_schedule": "PASS — /schedule loads 'Game Schedule' with game listings",
+    "regression_messages": "PASS — /messages loads with Inbox, search input (data-testid='messages-search-input'), New Message button, message list visible"
+  },
+  "code_review": {
+    "demoAccounts.js": "PASS — Passwords sourced from import.meta.env.VITE_DEMO_* only, no hardcoded values in source",
+    "vite.config.js": "PASS — All 3 postMessage calls guarded by window.self !== window.top, no open postMessage('*') calls",
+    "eslint.config.mjs": "PASS — Dead-code rules set to warn not error, CI-safe. ignores correctly include functions/**, public/**, vitest.config.js",
+    "AuthContext.jsx": "PASS — Retry loop (2 attempts, 1.5s gap). Toast action is an inline <button> that calls window.location.reload(). setUser(null) on both-fail avoids stale partial state"
+  },
+  "test_report_links": ["/app/test_reports/iteration_28.json"],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (100% Firebase Firestore)",
+    "frontend": "100% (12/12 test scenarios pass, 29/29 unit tests pass, lint clean)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 28 all green. Security fixes verified: demo passwords moved to VITE_DEMO_* env vars (not hardcoded), all 3 vite.config.js postMessage calls guarded by window.self !== window.top, eslint warns on unused-vars/prop-types, AuthContext retries profile fetch once with 1.5s delay + Refresh now toast action. Demo login and manual login flows working correctly. 29 Vitest unit tests passing. Regression on /messages, /dashboard, /schedule all clean.",
+  "rca_of_issues": "N/A — No bugs found. All 5 security/quality fixes verified correctly."
+}

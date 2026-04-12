@@ -47,10 +47,12 @@ function handleViteOverlay(node) {
 		const fileText = fileElement ? fileElement.textContent.trim() : '';
 		const error = messageText + (fileText ? ' File:' + fileText : '');
 
-		window.parent.postMessage({
-			type: 'horizons-vite-error',
-			error,
-		}, '*');
+		if (window.self !== window.top) {
+			window.parent.postMessage({
+				type: 'horizons-vite-error',
+				error,
+			}, '*');
+		}
 	}
 }
 `;
@@ -66,11 +68,13 @@ window.onerror = (message, source, lineno, colno, errorObj) => {
 		colno,
 	}) : null;
 
-	window.parent.postMessage({
-		type: 'horizons-runtime-error',
-		message,
-		error: errorDetails
-	}, '*');
+	if (window.self !== window.top) {
+		window.parent.postMessage({
+			type: 'horizons-runtime-error',
+			message,
+			error: errorDetails
+		}, '*');
+	}
 };
 `;
 
@@ -137,10 +141,12 @@ console.error = function(...args) {
 		}
 	}
 
-	window.parent.postMessage({
-		type: 'horizons-console-error',
-		error: errorString
-	}, '*');
+	if (window.self !== window.top) {
+		window.parent.postMessage({
+			type: 'horizons-console-error',
+			error: errorString
+		}, '*');
+	}
 };
 `;
 

@@ -108,20 +108,40 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        try {
-          const profile = await getOrCreateProfile(firebaseUser.uid, firebaseUser.email);
-          if (profile) {
-            setUser(buildUser(firebaseUser.uid, firebaseUser.email, profile));
-          } else {
-            setUser(null);
+        // Retry profile fetch once before giving up — handles transient network hiccups
+        let profile = null;
+        let lastErr = null;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            profile = await getOrCreateProfile(firebaseUser.uid, firebaseUser.email);
+            lastErr = null;
+            break;
+          } catch (err) {
+            lastErr = err;
+            if (attempt < 2) await new Promise(r => setTimeout(r, 1500));
           }
-        } catch (err) {
-          console.error('Auth state profile fetch error:', err);
+        }
+
+        if (lastErr) {
+          console.error('Auth state profile fetch error (both attempts failed):', lastErr);
           toast({
             title: 'Could not load your profile',
-            description: 'There was a problem loading your account. Please refresh the page.',
+            description: 'There was a problem loading your account. Please refresh the page to try again.',
             variant: 'destructive',
+            duration: 10000,
+            action: (
+              <button
+                onClick={() => window.location.reload()}
+                className="text-xs underline font-medium"
+              >
+                Refresh now
+              </button>
+            ),
           });
+          setUser(null);
+        } else if (profile) {
+          setUser(buildUser(firebaseUser.uid, firebaseUser.email, profile));
+        } else {
           setUser(null);
         }
       } else {
