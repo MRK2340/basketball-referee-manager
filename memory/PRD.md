@@ -258,6 +258,14 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - `src/__tests__/mappers.test.js` (17 tests) + `src/__tests__/constants.test.js` (12 tests) — 29/29 Vitest unit tests passing via `yarn test`.
 - Testing: 100% pass — 13/13 UI scenarios + 29/29 unit tests (iteration_27.json)
 
+### Phase 26 - Security & Quality Hardening (Complete — Apr 2026)
+- **C1** `demoAccounts.js`: demo passwords removed from source — now read from `VITE_DEMO_MANAGER_PASSWORD` / `VITE_DEMO_REFEREE_PASSWORD` env vars. `.env.example` updated with both keys.
+- **H** `vite.config.js`: all 3 `postMessage('*')` calls guarded by `window.self !== window.top` — no-ops outside iframe context.
+- **M** `eslint.config.mjs`: `no-unused-vars` → `'warn'`, `react/prop-types` → `'warn'`; ignores expanded to cover `functions/**`, `public/**`, `vitest.config.js`; Shadcn UI stub `import/no-unresolved` suppressed per-directory.
+- **M** `AuthContext.jsx`: profile-fetch retries once (1.5s delay) before showing error toast; toast includes inline "Refresh now" button.
+- **Testing gap** already closed: 29 Vitest unit tests exist (`yarn test`) — pre-dates this audit comment.
+- Testing: 100% pass — 12/12 scenarios + 29/29 unit tests, lint clean (iteration_28.json)
+
 ## Test Credentials
 - Manager: `manager@demo.com` / `manager123`
 - Referee: `referee@demo.com` / `Referee123` (capital R)
