@@ -1,6 +1,6 @@
 /**
  * Single source of truth for demo account credentials and base profiles.
- * Imported by AuthContext.jsx (auth layer), Login.jsx (demo login), and demoDataService.js (data layer).
+ * Imported by AuthContext.jsx (auth layer) and Login.jsx (demo login).
  */
 
 export const DEMO_MANAGER_ID = 'demo-manager';

@@ -15,7 +15,7 @@ export const useAssignmentActions = (user, fetchData) => {
     if (error) {
         toast({ title: "Assignment Failed", description: error.message, variant: "destructive" });
     } else {
-        toast({ title: "Referee Assigned! ✅", description: "The referee has been assigned to the game." });
+        toast({ title: "Referee Assigned", description: "The referee has been assigned to the game." });
         fetchData(false);
     }
   };
@@ -57,7 +57,7 @@ export const useAssignmentActions = (user, fetchData) => {
       });
     } else {
       toast({
-        title: 'Court Schedule Saved! 🏀',
+        title: 'Court Schedule Saved',
         description: 'Referees have been assigned to the court schedule.',
       });
       fetchData(false);
@@ -83,7 +83,7 @@ export const useAssignmentActions = (user, fetchData) => {
     }
 
     toast({
-      title: "Request Sent! 👍",
+      title: "Request Sent",
       description: "Your request to officiate this game has been sent to the manager.",
     });
 

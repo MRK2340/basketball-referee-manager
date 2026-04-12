@@ -18,7 +18,7 @@ export const useTournamentActions = (user, fetchData) => {
       });
     } else {
       toast({
-        title: "Tournament Added! 🏆",
+        title: "Tournament Added",
         description: "The new tournament has been created successfully.",
       });
       fetchData(false);
@@ -37,7 +37,7 @@ export const useTournamentActions = (user, fetchData) => {
       });
     } else {
       toast({
-        title: "Tournament Updated! 📝",
+        title: "Tournament Updated",
         description: "The tournament details have been saved.",
       });
       fetchData(false);

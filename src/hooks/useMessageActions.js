@@ -14,9 +14,10 @@ export const useMessageActions = (user, fetchData) => {
       });
     } else {
       toast({
-        title: 'Message Sent! ✉️',
+        title: 'Message Sent',
         description: 'Your message has been sent successfully.',
       });
+      // Realtime listener will pick up the new message — only refetch for side effects
       fetchData(false);
     }
   };
@@ -31,9 +32,8 @@ export const useMessageActions = (user, fetchData) => {
         description: 'Could not mark message as read.',
         variant: 'destructive',
       });
-    } else {
-      fetchData(false);
     }
+    // P1 fix: no fetchData call — realtime listener handles the update
   };
 
   return { sendMessage, markMessageAsRead };

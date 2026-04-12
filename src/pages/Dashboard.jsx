@@ -39,17 +39,17 @@ const Dashboard = () => {
   const { games, payments, notifications, loading } = useData();
   const navigate = useNavigate();
 
-  const upcomingGames = games.filter(game => {
+  const upcomingGames = useMemo(() => games.filter(game => {
     if (user.role === 'referee') {
       return game.assignments.some(a => a.referee?.id === user.id && a.status === 'accepted') && new Date(game.date) >= new Date();
     }
     return new Date(game.date) >= new Date();
-  }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 3);
+  }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 3), [games, user]);
   
-  const recentPayments = payments.filter(payment => payment.status === 'paid').slice(0, 3);
-  const totalEarnings = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-  const pendingPayments = payments.filter(payment => payment.status === 'pending').length;
-  const recentActivity = (notifications || []).slice(0, 6);
+  const recentPayments = useMemo(() => payments.filter(payment => payment.status === 'paid').slice(0, 3), [payments]);
+  const totalEarnings = useMemo(() => payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0), [payments]);
+  const pendingPayments = useMemo(() => payments.filter(payment => payment.status === 'pending').length, [payments]);
+  const recentActivity = useMemo(() => (notifications || []).slice(0, 6), [notifications]);
 
   const stats = [
     {
@@ -75,7 +75,7 @@ const Dashboard = () => {
     },
     {
       title: 'Rating',
-      value: user?.rating || '4.8',
+      value: user?.rating || 'N/A',
       icon: Star,
       color: 'text-brand-orange',
       bgColor: 'bg-orange-100'

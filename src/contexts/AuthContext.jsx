@@ -221,15 +221,26 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
+  // S2 fix: whitelist allowed profile fields to prevent users writing arbitrary data
+  const ALLOWED_PROFILE_FIELDS = new Set(['name', 'phone', 'experience', 'bio', 'location']);
+
   const updateProfile = async (updates) => {
     if (!user) return;
     setLoading(true);
     try {
       const userRef = doc(db, 'users', user.id);
-      // Never write password or id to Firestore
-      const { password, id, ...safeUpdates } = updates;
+      const safeUpdates = {};
+      for (const key of Object.keys(updates)) {
+        if (ALLOWED_PROFILE_FIELDS.has(key)) safeUpdates[key] = updates[key];
+      }
+      if (Object.keys(safeUpdates).length === 0) {
+        toast({ title: 'No changes', description: 'Nothing to update.', variant: 'default' });
+        setLoading(false);
+        return;
+      }
       await updateDoc(userRef, safeUpdates);
       setUser(prev => ({ ...prev, ...safeUpdates }));
+      Analytics.profileUpdated();
       toast({ title: 'Profile updated!', description: 'Your changes have been saved.' });
     } catch (error) {
       toast({ title: 'Update failed', description: 'Could not save profile changes.', variant: 'destructive' });

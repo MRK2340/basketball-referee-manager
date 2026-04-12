@@ -82,6 +82,7 @@ export const useFCM = (user) => {
       if (token) {
         await updateDoc(doc(db, 'users', user.id), { fcmToken: token });
         setPushEnabled(true);
+        Analytics.pushEnabled();
         toast({
           title: 'Push notifications enabled!',
           description: "You'll receive alerts even when the app is closed.",

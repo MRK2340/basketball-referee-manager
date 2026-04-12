@@ -72,15 +72,15 @@ const Settings = () => {
       [key]: value
     }));
     toast({
-      title: "Settings updated! ✅",
+      title: "Settings updated",
       description: "Your preferences have been saved.",
     });
   };
 
   const handleFeatureClick = (feature) => {
     toast({
-      title: "🚧 Feature Coming Soon!",
-      description: "This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀",
+      title: "Coming Soon",
+      description: "This feature is on our roadmap and will be available in a future update.",
     });
   };
 

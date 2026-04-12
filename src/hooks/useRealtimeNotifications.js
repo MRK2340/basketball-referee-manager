@@ -10,6 +10,7 @@
 import { useEffect, useRef } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { toISOString } from '@/lib/firestoreService';
 import { toast } from '@/components/ui/use-toast';
 
 const TYPE_LABELS = {
@@ -49,7 +50,10 @@ export const useRealtimeNotifications = (user, setNotifications) => {
     let unsubscribe;
 
     const handleSnapshot = (snapshot, useFallbackSort = false) => {
-      let allNotifs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      let allNotifs = snapshot.docs.map(d => {
+        const data = d.data();
+        return { id: d.id, ...data, created_at: toISOString(data.created_at) };
+      });
       if (useFallbackSort) {
         allNotifs = allNotifs.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
       }

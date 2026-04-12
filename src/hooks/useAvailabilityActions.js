@@ -21,7 +21,7 @@ export const useAvailabilityActions = (user, fetchData) => {
         });
     } else {
         toast({
-            title: "Availability Saved! ✅",
+            title: "Availability Saved",
             description: "Your available dates have been updated.",
         });
         fetchData(false);

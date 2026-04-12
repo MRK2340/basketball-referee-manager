@@ -9,7 +9,7 @@ export const useReportActions = (user, fetchData) => {
       toast({ title: "Report Submission Failed", description: error.message, variant: "destructive" });
       return false;
     } else {
-      toast({ title: "Game Report Submitted! 📝", description: "Your report has been sent to the manager." });
+      toast({ title: "Game Report Submitted", description: "Your report has been sent to the manager." });
       fetchData(false);
       return true;
     }

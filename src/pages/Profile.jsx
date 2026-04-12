@@ -90,8 +90,8 @@ const Profile = () => {
 
   const handleFeatureClick = (feature) => {
     toast({
-      title: "🚧 This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀",
-      description: "You can find more info about this feature in our documentation.",
+      title: "Coming Soon",
+      description: "This feature is on our roadmap and will be available in a future update.",
     });
   };
 

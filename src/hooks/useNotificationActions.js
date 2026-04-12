@@ -5,7 +5,7 @@ export const useNotificationActions = (user, fetchData) => {
     if (!user) return;
     try {
       await markNotificationReadRecord(user, notificationId);
-      await fetchData(false);
+      // P1 fix: no fetchData — realtime listener handles the update
     } catch (e) {
       console.error('markNotificationRead error:', e);
     }
@@ -15,7 +15,7 @@ export const useNotificationActions = (user, fetchData) => {
     if (!user) return;
     try {
       await markAllNotificationsReadRecord(user);
-      await fetchData(false);
+      // P1 fix: no fetchData — realtime listener handles the update
     } catch (e) {
       console.error('markAllNotificationsRead error:', e);
     }

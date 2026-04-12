@@ -1,7 +1,6 @@
 /**
  * firestoreService.js
- * Async Firestore replacement for demoDataService.js.
- * Exports the same function signatures so no action-hook changes are needed.
+ * Async Firestore DB service.
  *
  * Pure data mappers live in ./mappers.js (testable in isolation).
  */
@@ -32,6 +31,15 @@ const safeHandle = async (fn) => {
 const docToObj = (snap) => snap.exists() ? { id: snap.id, ...snap.data() } : null;
 const docsToArr = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+// Normalize Firestore Timestamp or ISO string → ISO string for consistent sorting
+export const toISOString = (val) => {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val?.toDate === 'function') return val.toDate().toISOString();
+  if (val instanceof Date) return val.toISOString();
+  return '';
+};
+
 // Split an array into chunks of `size` — needed for Firestore `in` queries (30-item limit)
 const chunkArray = (arr, size) => {
   const chunks = [];
@@ -39,7 +47,7 @@ const chunkArray = (arr, size) => {
   return chunks;
 };
 
-// ── fetchAppData (replaces synchronous demoDataService version) ───────────────
+// ── fetchAppData ───────────────────────────────────────────────────
 
 export const fetchAppData = async (user) => {
   if (!user) return {};
@@ -95,11 +103,12 @@ export const fetchAppData = async (user) => {
       ? query(collection(db, 'payments'), where('manager_id', '==', user.id))
       : query(collection(db, 'payments'), where('referee_id', '==', user.id))),
     // M3 fix: server-side orderBy + limit — prevents unbounded reads for active users
+    // P2 fix: aligned with useRealtimeMessages limit(100) to avoid duplicate initial fetch
     getDocs(query(
       collection(db, 'messages'),
       where('participants', 'array-contains', user.id),
       orderBy('created_at', 'desc'),
-      limit(50),
+      limit(100),
     )),
     getDocs(query(
       collection(db, 'notifications'),
@@ -162,9 +171,9 @@ export const fetchAppData = async (user) => {
     games: sortedGames.map(g => mapGame(g.id, g, assignmentsRaw, allUsers, tournamentsRaw)),
     payments: paymentsRaw.map(mapPayment),
     messages: messagesRaw
-      .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
+      .sort((a, b) => toISOString(b.created_at).localeCompare(toISOString(a.created_at)))
       .map(m => mapMessage(m, allUsers)),
-    notifications: notificationsRaw.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || '')),
+    notifications: notificationsRaw.sort((a, b) => toISOString(b.created_at).localeCompare(toISOString(a.created_at))),
     tournaments: tournamentsRaw.map(t => mapTournament(t, gamesRaw)),
     referees: allReferees.map(r => ({
       ...r,
@@ -263,7 +272,7 @@ export const assignReferee = async (user, gameId, refereeId) => safeHandle(async
   await addDoc(collection(db, 'notifications'), {
     type: 'assignment', title: 'New game assignment',
     body: 'You have been assigned to a new game. Check your schedule.',
-    link: '/schedule', read: false, created_at: new Date().toISOString(),
+    link: '/schedule', read: false, created_at: serverTimestamp(),
     recipient_id: refereeId,
   });
 });
@@ -313,13 +322,13 @@ export const sendMessageRecord = async (user, messageData) => safeHandle(async (
     participants: [user.id, recipientId],
     subject: messageData.subject || 'No Subject',
     content: messageData.content || messageData.message || '',
-    created_at: new Date().toISOString(), is_read: false,
+    created_at: serverTimestamp(), is_read: false,
   });
   await addDoc(collection(db, 'notifications'), {
     type: 'message', title: `New message from ${user.name}`,
     body: messageData.subject || 'You have a new message.',
     link: '/messages', read: false,
-    created_at: new Date().toISOString(), recipient_id: recipientId,
+    created_at: serverTimestamp(), recipient_id: recipientId,
   });
 });
 
@@ -377,9 +386,13 @@ export const markAllNotificationsReadRecord = async (user) => safeHandle(async (
     where('recipient_id', '==', user.id),
     where('read', '==', false)
   ));
-  const batch = writeBatch(db);
-  snap.docs.forEach(d => batch.update(d.ref, { read: true }));
-  await batch.commit();
+  // S1 fix: chunk into batches of 400 to stay under Firestore's 500-write limit
+  const chunks = chunkArray(snap.docs, 400);
+  for (const chunk of chunks) {
+    const batch = writeBatch(db);
+    chunk.forEach(d => batch.update(d.ref, { read: true }));
+    await batch.commit();
+  }
 });
 
 // ── Payments ──────────────────────────────────────────────────────────────────

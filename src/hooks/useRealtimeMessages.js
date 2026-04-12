@@ -11,6 +11,7 @@
 import { useEffect, useRef } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { toISOString } from '@/lib/firestoreService';
 import { toast } from '@/components/ui/use-toast';
 
 const mapRawMessage = (id, data, usersMap, currentUserId) => {
@@ -22,7 +23,7 @@ const mapRawMessage = (id, data, usersMap, currentUserId) => {
     fromAvatar: sender.avatarUrl || '',
     subject: data.subject,
     content: data.content,
-    timestamp: data.created_at,
+    timestamp: toISOString(data.created_at),
     // Sender already "read" their own message — prevents false unread badge count
     read: data.is_read || isMine,
     senderId: data.sender_id,
@@ -38,7 +39,7 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
   const usersMapRef = useRef(usersMap);
   useEffect(() => {
     usersMapRef.current = usersMap;
-  });
+  }, [usersMap]);
 
   useEffect(() => {
     if (!user?.id) {

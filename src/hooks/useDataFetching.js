@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { fetchAppData, fetchMoreMessages } from '@/lib/firestoreService';
 
-const MESSAGE_PAGE_SIZE = 50;
+const MESSAGE_PAGE_SIZE = 100;
 
 export const useDataFetching = (user) => {
   const [loading, setLoading] = useState(true);
