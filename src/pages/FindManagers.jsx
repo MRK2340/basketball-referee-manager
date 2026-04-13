@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router';
 import {
   MapPin, Star, Trophy, Users, CheckCircle2, Clock, XCircle,
   Search, ChevronRight, Send, Shield, X
