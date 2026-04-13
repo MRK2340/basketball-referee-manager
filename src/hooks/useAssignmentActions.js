@@ -7,9 +7,10 @@ import {
   updateAssignment,
   batchUnassignRefereesRecord,
 } from '@/lib/firestoreService';
+import { guardAction } from '@/lib/rateLimit';
 
 export const useAssignmentActions = (user, fetchData) => {
-  const assignRefereeToGame = async (gameId, refereeId) => {
+  const assignRefereeToGame = guardAction('assignReferee', async (gameId, refereeId) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await assignReferee(user, gameId, refereeId);
     if (error) {
@@ -18,7 +19,7 @@ export const useAssignmentActions = (user, fetchData) => {
         toast({ title: "Referee Assigned", description: "The referee has been assigned to the game." });
         fetchData(false);
     }
-  };
+  });
 
   const unassignRefereeFromGame = async (assignmentId) => {
       if (!user || user.role !== 'manager') return;
@@ -39,57 +40,35 @@ export const useAssignmentActions = (user, fetchData) => {
       toast({ title: "Update Failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Assignment Updated!", description: `You have ${status} the game.` });
-
       fetchData(false);
     }
   };
 
   const assignRefereesToCourt = async (assignments) => {
     if (!user || user.role !== 'manager') return;
-
     const { error } = await assignCourtSchedule(user, assignments);
-
     if (error) {
-      toast({
-        title: 'Court Assignment Failed',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Court Assignment Failed', description: error.message, variant: 'destructive' });
     } else {
-      toast({
-        title: 'Court Schedule Saved',
-        description: 'Referees have been assigned to the court schedule.',
-      });
+      toast({ title: 'Court Schedule Saved', description: 'Referees have been assigned to the court schedule.' });
       fetchData(false);
     }
   };
 
-  const requestGameAssignment = async (gameId) => {
+  const requestGameAssignment = guardAction('requestAssignment', async (gameId) => {
     if (!user || user.role !== 'referee') return;
-
     const { error } = await requestAssignment(user, gameId);
-
     if (error) {
       if (error.code === '23505') {
         toast({ title: "Already Requested", description: "You have already requested to officiate this game.", variant: "default" });
       } else {
-        toast({
-          title: "Request Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast({ title: "Request Failed", description: error.message, variant: "destructive" });
       }
       return;
     }
-
-    toast({
-      title: "Request Sent",
-      description: "Your request to officiate this game has been sent to the manager.",
-    });
-
+    toast({ title: "Request Sent", description: "Your request to officiate this game has been sent to the manager." });
     fetchData(false);
-  };
-
+  });
 
   const batchUnassignReferees = async (gameIds) => {
     if (!user || user.role !== 'manager') return;

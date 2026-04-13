@@ -1,8 +1,9 @@
 import { toast } from '@/components/ui/use-toast';
 import { batchMarkPaymentsPaidRecord, rateRefereeRecord } from '@/lib/firestoreService';
+import { guardAction } from '@/lib/rateLimit';
 
 export const usePaymentActions = (user, fetchData) => {
-  const batchMarkPaymentsPaid = async (paymentIds) => {
+  const batchMarkPaymentsPaid = guardAction('batchPayments', async (paymentIds) => {
     if (!user) return;
     try {
       await batchMarkPaymentsPaidRecord(user, paymentIds);
@@ -11,7 +12,7 @@ export const usePaymentActions = (user, fetchData) => {
     } catch (e) {
       toast({ title: 'Update failed', description: e.message, variant: 'destructive' });
     }
-  };
+  });
 
   const rateReferee = async (gameId, refereeId, stars, feedback) => {
     if (!user || user.role !== 'manager') return;

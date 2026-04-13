@@ -55,6 +55,14 @@
         { "fieldPath": "referee_id", "order": "ASCENDING" },
         { "fieldPath": "manager_id", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "games",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "manager_id", "order": "ASCENDING" },
+        { "fieldPath": "game_date",  "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

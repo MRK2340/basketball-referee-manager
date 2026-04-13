@@ -1,8 +1,9 @@
 import { toast } from '@/components/ui/use-toast';
 import { markMessageRead, sendMessageRecord } from '@/lib/firestoreService';
+import { guardAction } from '@/lib/rateLimit';
 
 export const useMessageActions = (user, fetchData) => {
-  const sendMessage = async (messageData) => {
+  const sendMessage = guardAction('sendMessage', async (messageData) => {
     if (!user) return;
     const { error } = await sendMessageRecord(user, messageData);
 
@@ -17,10 +18,9 @@ export const useMessageActions = (user, fetchData) => {
         title: 'Message Sent',
         description: 'Your message has been sent successfully.',
       });
-      // Realtime listener will pick up the new message — only refetch for side effects
       fetchData(false);
     }
-  };
+  });
 
   const markMessageAsRead = async (messageId) => {
     if (!user) return;
