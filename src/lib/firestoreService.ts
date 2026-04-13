@@ -1,53 +1,63 @@
 /**
- * firestoreService.js
+ * firestoreService.ts
  * Async Firestore DB service.
  *
- * Pure data mappers live in ./mappers.js (testable in isolation).
+ * Pure data mappers live in ./mappers.ts (testable in isolation).
  */
 import { db } from './firebase';
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc,
   query, where, orderBy, limit, startAfter, documentId, serverTimestamp, writeBatch,
+  type DocumentSnapshot, type QuerySnapshot,
 } from 'firebase/firestore';
 import {
   mapProfile, mapConnection, mapGame, mapTournament,
   mapPayment, mapMessage, mapAvailability, mapGameReport,
+  type MappedProfile, type MappedMessage,
 } from './mappers';
+import type { SafeResult, ServiceUser } from './types';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 import { logger } from './logger';
 
-const createError = (message) => ({ message });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Doc = Record<string, any>;
 
-const safeHandle = async (fn) => {
+const createError = (message: string) => ({ message });
+
+const safeHandle = async <T = true>(fn: () => Promise<T>): Promise<SafeResult<T>> => {
   try {
     const result = await fn();
-    return { data: result ?? true };
-  } catch (err) {
-    logger.error('[Firestore]', err);
-    return { error: createError(err.message || 'An unexpected error occurred.') };
+    return { data: (result ?? true) as T };
+  } catch (err: unknown) {
+    const e = err as Error;
+    logger.error('[Firestore]', e);
+    return { error: createError(e.message || 'An unexpected error occurred.') };
   }
 };
 
-const docToObj = (snap) => snap.exists() ? { id: snap.id, ...snap.data() } : null;
-const docsToArr = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
+const docToObj = (snap: DocumentSnapshot): Doc | null =>
+  snap.exists() ? { id: snap.id, ...snap.data() } : null;
+
+const docsToArr = (snap: QuerySnapshot): Doc[] =>
+  snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
 // Normalize Firestore Timestamp or ISO string → ISO string for consistent sorting
 import { toISOString } from './timestampUtils';
 export { toISOString };
 
 // Split an array into chunks of `size` — needed for Firestore `in` queries (30-item limit)
-const chunkArray = (arr, size) => {
-  const chunks = [];
+const chunkArray = <T>(arr: T[], size: number): T[][] => {
+  const chunks: T[][] = [];
   for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
   return chunks;
 };
 
 // ── fetchAppData ───────────────────────────────────────────────────
 
-export const fetchAppData = async (user) => {
-  if (!user) return {};
+export const fetchAppData = async (user: ServiceUser) => {
+  if (!user) return {} as Doc;
   const isManager = user.role === 'manager';
 
   // 1. M2 fix: two role-scoped queries + current user doc in parallel
@@ -188,7 +198,7 @@ export const fetchAppData = async (user) => {
 
 // ── Tournaments ───────────────────────────────────────────────────────────────
 
-export const addTournament = async (user, tournamentData) => safeHandle(async () => {
+export const addTournament = async (user: ServiceUser, tournamentData: Doc) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can add tournaments.');
   await addDoc(collection(db, 'tournaments'), {
     name: tournamentData.name,
@@ -200,7 +210,7 @@ export const addTournament = async (user, tournamentData) => safeHandle(async ()
   });
 });
 
-export const updateTournamentRecord = async (user, tournamentId, tournamentData) => safeHandle(async () => {
+export const updateTournamentRecord = async (user: ServiceUser, tournamentId: string, tournamentData: Doc) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can update tournaments.');
   await updateDoc(doc(db, 'tournaments', tournamentId), {
     name: tournamentData.name,
@@ -211,14 +221,14 @@ export const updateTournamentRecord = async (user, tournamentId, tournamentData)
   });
 });
 
-export const deleteTournamentRecord = async (user, tournamentId) => safeHandle(async () => {
+export const deleteTournamentRecord = async (user: ServiceUser, tournamentId: string) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can delete tournaments.');
   await deleteDoc(doc(db, 'tournaments', tournamentId));
 });
 
 // ── Games ─────────────────────────────────────────────────────────────────────
 
-export const addGameRecord = async (user, gameData) => safeHandle(async () => {
+export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can schedule games.');
   await addDoc(collection(db, 'games'), {
     ...gameData,
@@ -227,7 +237,7 @@ export const addGameRecord = async (user, gameData) => safeHandle(async () => {
   });
 });
 
-export const markGameCompleted = async (user, gameId) => safeHandle(async () => {
+export const markGameCompleted = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can complete games.');
   await updateDoc(doc(db, 'games', gameId), { status: 'completed' });
   // Create payment records for active assignments
@@ -251,7 +261,7 @@ export const markGameCompleted = async (user, gameId) => safeHandle(async () => 
 
 // ── Assignments ───────────────────────────────────────────────────────────────
 
-export const assignReferee = async (user, gameId, refereeId) => safeHandle(async () => {
+export const assignReferee = async (user: ServiceUser, gameId: string, refereeId: string) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can assign referees.');
   // Check for existing assignment
   const existing = await getDocs(query(
@@ -274,19 +284,19 @@ export const assignReferee = async (user, gameId, refereeId) => safeHandle(async
   });
 });
 
-export const unassignReferee = async (user, assignmentId) => safeHandle(async () => {
+export const unassignReferee = async (user: ServiceUser, assignmentId: string) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can unassign referees.');
   await deleteDoc(doc(db, 'game_assignments', assignmentId));
 });
 
-export const updateAssignment = async (user, assignmentId, status, reason = null) => safeHandle(async () => {
+export const updateAssignment = async (user: ServiceUser, assignmentId: string, status: string, reason: string | null = null) => safeHandle(async () => {
   await updateDoc(doc(db, 'game_assignments', assignmentId), {
     status,
     decline_reason: reason,
   });
 });
 
-export const assignCourtSchedule = async (user, assignments) => safeHandle(async () => {
+export const assignCourtSchedule = async (user: ServiceUser, assignments: {gameId: string; refereeId: string}[]) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can assign court schedules.');
   const batch = writeBatch(db);
   assignments.forEach(({ gameId, refereeId }) => {
@@ -296,7 +306,7 @@ export const assignCourtSchedule = async (user, assignments) => safeHandle(async
   await batch.commit();
 });
 
-export const requestAssignment = async (user, gameId) => safeHandle(async () => {
+export const requestAssignment = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can request assignments.');
   const existing = await getDocs(query(
     collection(db, 'game_assignments'),
@@ -312,7 +322,7 @@ export const requestAssignment = async (user, gameId) => safeHandle(async () => 
 
 // ── Messages ──────────────────────────────────────────────────────────────────
 
-export const sendMessageRecord = async (user, messageData) => safeHandle(async () => {
+export const sendMessageRecord = async (user: ServiceUser, messageData: Doc) => safeHandle(async () => {
   const recipientId = messageData.recipientId || messageData.recipient_id;
   await addDoc(collection(db, 'messages'), {
     sender_id: user.id, recipient_id: recipientId,
@@ -329,13 +339,13 @@ export const sendMessageRecord = async (user, messageData) => safeHandle(async (
   });
 });
 
-export const markMessageRead = async (user, messageId) => safeHandle(async () => {
+export const markMessageRead = async (user: ServiceUser, messageId: string) => safeHandle(async () => {
   await updateDoc(doc(db, 'messages', messageId), { is_read: true });
 });
 
 // ── Availability ──────────────────────────────────────────────────────────────
 
-export const addAvailabilityRecord = async (user, startDate, endDate) => safeHandle(async () => {
+export const addAvailabilityRecord = async (user: ServiceUser, startDate: string, endDate: string) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can set availability.');
   await addDoc(collection(db, 'referee_availability'), {
     referee_id: user.id, start_time: startDate, end_time: endDate,
@@ -344,7 +354,7 @@ export const addAvailabilityRecord = async (user, startDate, endDate) => safeHan
 
 // ── Game Reports ──────────────────────────────────────────────────────────────
 
-export const submitGameReportRecord = async (user, reportData) => safeHandle(async () => {
+export const submitGameReportRecord = async (user: ServiceUser, reportData: Doc) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can submit game reports.');
   const existing = await getDocs(query(
     collection(db, 'game_reports'),
@@ -373,11 +383,11 @@ export const submitGameReportRecord = async (user, reportData) => safeHandle(asy
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
-export const markNotificationReadRecord = async (user, notificationId) => safeHandle(async () => {
+export const markNotificationReadRecord = async (user: ServiceUser, notificationId: string) => safeHandle(async () => {
   await updateDoc(doc(db, 'notifications', notificationId), { read: true });
 });
 
-export const markAllNotificationsReadRecord = async (user) => safeHandle(async () => {
+export const markAllNotificationsReadRecord = async (user: ServiceUser) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'notifications'),
     where('recipient_id', '==', user.id),
@@ -394,7 +404,7 @@ export const markAllNotificationsReadRecord = async (user) => safeHandle(async (
 
 // ── Payments ──────────────────────────────────────────────────────────────────
 
-export const batchMarkPaymentsPaidRecord = async (user, paymentIds) => safeHandle(async () => {
+export const batchMarkPaymentsPaidRecord = async (user: ServiceUser, paymentIds: string[]) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can process payments.');
   const batch = writeBatch(db);
   paymentIds.forEach(id => batch.update(doc(db, 'payments', id), { status: 'paid', payment_date: new Date().toISOString().slice(0, 10) }));
@@ -403,7 +413,7 @@ export const batchMarkPaymentsPaidRecord = async (user, paymentIds) => safeHandl
 
 // ── Batch Unassign ────────────────────────────────────────────────────────────
 
-export const batchUnassignRefereesRecord = async (user, gameIds) => safeHandle(async () => {
+export const batchUnassignRefereesRecord = async (user: ServiceUser, gameIds: string[]) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can batch-unassign.');
   // H1 fix: single batch query per chunk instead of one getDocs() per game
   const chunks = chunkArray(gameIds, 30);
@@ -419,7 +429,7 @@ export const batchUnassignRefereesRecord = async (user, gameIds) => safeHandle(a
 
 // ── Referee Ratings ───────────────────────────────────────────────────────────
 
-export const rateRefereeRecord = async (user, gameId, refereeId, stars, feedback) => safeHandle(async () => {
+export const rateRefereeRecord = async (user: ServiceUser, gameId: string, refereeId: string, stars: number, feedback: string) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can rate referees.');
   // Validate star rating bounds
   const s = Number(stars);
@@ -441,13 +451,13 @@ export const rateRefereeRecord = async (user, gameId, refereeId, stars, feedback
 
 // ── Notification Preferences ──────────────────────────────────────────────────
 
-export const saveNotificationPreferencesRecord = async (user, prefs) => safeHandle(async () => {
+export const saveNotificationPreferencesRecord = async (user: ServiceUser, prefs: Doc) => safeHandle(async () => {
   await updateDoc(doc(db, 'users', user.id), { notification_preferences: prefs });
 });
 
 // ── Report Resolution ─────────────────────────────────────────────────────────
 
-export const addReportResolutionRecord = async (user, reportId, note) => safeHandle(async () => {
+export const addReportResolutionRecord = async (user: ServiceUser, reportId: string, note: string) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can resolve reports.');
   await updateDoc(doc(db, 'game_reports', reportId), {
     resolution_note: note, resolved_by: user.id,
@@ -457,7 +467,7 @@ export const addReportResolutionRecord = async (user, reportId, note) => safeHan
 
 // ── Manager Connections ───────────────────────────────────────────────────────
 
-export const requestManagerConnectionRecord = async (user, managerId, note) => safeHandle(async () => {
+export const requestManagerConnectionRecord = async (user: ServiceUser, managerId: string, note: string) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can request connections.');
   const existing = await getDocs(query(
     collection(db, 'manager_connections'),
@@ -471,12 +481,12 @@ export const requestManagerConnectionRecord = async (user, managerId, note) => s
   });
 });
 
-export const respondToConnectionRecord = async (user, connectionId, newStatus) => safeHandle(async () => {
+export const respondToConnectionRecord = async (user: ServiceUser, connectionId: string, newStatus: string) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can respond to connections.');
   await updateDoc(doc(db, 'manager_connections', connectionId), { status: newStatus });
 });
 
-export const withdrawConnectionRecord = async (user, managerId) => safeHandle(async () => {
+export const withdrawConnectionRecord = async (user: ServiceUser, managerId: string) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can withdraw requests.');
   const snap = await getDocs(query(
     collection(db, 'manager_connections'),
@@ -489,7 +499,7 @@ export const withdrawConnectionRecord = async (user, managerId) => safeHandle(as
 
 // ── Independent Games ─────────────────────────────────────────────────────────
 
-export const addIndependentGameRecord = async (user, gameData) => safeHandle(async () => {
+export const addIndependentGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can log independent games.');
   await addDoc(collection(db, 'independent_games'), {
     referee_id: user.id, date: gameData.date, time: gameData.time || '',
@@ -499,7 +509,7 @@ export const addIndependentGameRecord = async (user, gameData) => safeHandle(asy
   });
 });
 
-export const updateIndependentGameRecord = async (user, gameId, gameData) => safeHandle(async () => {
+export const updateIndependentGameRecord = async (user: ServiceUser, gameId: string, gameData: Doc) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can update independent games.');
   await updateDoc(doc(db, 'independent_games', gameId), {
     date: gameData.date, time: gameData.time || '', location: gameData.location || '',
@@ -508,7 +518,7 @@ export const updateIndependentGameRecord = async (user, gameId, gameData) => saf
   });
 });
 
-export const deleteIndependentGameRecord = async (user, gameId) => safeHandle(async () => {
+export const deleteIndependentGameRecord = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
   if (user?.role !== 'referee') throw new Error('Only referees can delete independent games.');
   await deleteDoc(doc(db, 'independent_games', gameId));
 });
@@ -536,7 +546,7 @@ export const fetchMoreMessages = async (user, afterTimestamp, allUsers) => safeH
  * @param {string} managerId
  * @param {string} afterDatetime - "YYYY-MM-DDThh:mm" of the last loaded game
  */
-export const fetchMoreGames = async (managerId, afterDatetime) => safeHandle(async () => {
+export const fetchMoreGames = async (managerId: string, afterDatetime: string) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'games'),
     where('manager_id', '==', managerId),
@@ -552,7 +562,7 @@ export const fetchMoreGames = async (managerId, afterDatetime) => safeHandle(asy
  * @param {string} managerId
  * @param {string} afterName - name of the last loaded tournament (alphabetical cursor)
  */
-export const fetchMoreTournaments = async (managerId, afterName) => safeHandle(async () => {
+export const fetchMoreTournaments = async (managerId: string, afterName: string) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'tournaments'),
     where('manager_id', '==', managerId),

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDataFetching } from '@/hooks/useDataFetching';
 import { useTournamentActions } from '@/hooks/useTournamentActions';
@@ -14,8 +14,12 @@ import { useSettingsActions } from '@/hooks/useSettingsActions';
 import { useIndependentGameActions } from '@/hooks/useIndependentGameActions';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
+import type { MappedProfile } from '@/lib/mappers';
 
-const DataContext = createContext();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyRecord = Record<string, any>;
+
+const DataContext = createContext<AnyRecord | null>(null);
 
 export const useData = () => {
   const context = useContext(DataContext);
@@ -23,7 +27,7 @@ export const useData = () => {
   return context;
 };
 
-export const DataProvider = ({ children }) => {
+export const DataProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const {
     loading, refreshing,
@@ -38,9 +42,9 @@ export const DataProvider = ({ children }) => {
 
   // Stable id→profile map for resolving sender names in messages
   const usersMap = useMemo(() => {
-    const map = {};
-    [...referees, ...managerProfiles].forEach(u => { map[u.id] = u; });
-    if (user) map[user.id] = user;
+    const map: Record<string, MappedProfile> = {};
+    [...referees, ...managerProfiles].forEach((u: MappedProfile) => { map[u.id] = u; });
+    if (user) map[user.id] = user as unknown as MappedProfile;
     return map;
   }, [referees, managerProfiles, user]);
 

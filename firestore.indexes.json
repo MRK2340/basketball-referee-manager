@@ -63,6 +63,14 @@
         { "fieldPath": "manager_id", "order": "ASCENDING" },
         { "fieldPath": "game_date",  "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "tournaments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "manager_id", "order": "ASCENDING" },
+        { "fieldPath": "name",       "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

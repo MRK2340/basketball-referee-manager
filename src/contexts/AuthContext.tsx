@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -23,10 +23,27 @@ import {
 import { checkAndSeedDemoData } from '@/lib/seedFirestore';
 import { Analytics } from '@/lib/analytics';
 import { logger } from '@/lib/logger';
+import type { AppUser } from '@/lib/types';
 
-const AuthContext = createContext();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Doc = Record<string, any>;
 
-export const useAuth = () => {
+interface AuthContextValue {
+  user: AppUser | null;
+  login: (email: string, password: string) => Promise<AppUser>;
+  register: (userData: Doc) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (updates: Doc) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<void>;
+  loading: boolean;
+  createDemoAccounts: () => Promise<{ success: boolean }>;
+  isAuthenticated: boolean;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export const useAuth = (): AuthContextValue => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
@@ -35,7 +52,7 @@ export const useAuth = () => {
 // S2 fix: whitelist allowed profile fields — module-level constant (not recreated per render)
 const ALLOWED_PROFILE_FIELDS = new Set(['name', 'phone', 'experience', 'bio', 'location']);
 
-const DEMO_ACCOUNTS = {
+const DEMO_ACCOUNTS: Record<string, Doc> = {
   'manager@demo.com': {
     name: 'Demo Manager',
     role: 'manager',
@@ -64,8 +81,8 @@ const DEMO_ACCOUNTS = {
   },
 };
 
-const mapFirebaseError = (error) => {
-  const codes = {
+const mapFirebaseError = (error: { code?: string; message?: string }) => {
+  const codes: Record<string, string> = {
     'auth/user-not-found': 'No account found with this email.',
     'auth/wrong-password': 'Incorrect password. Please try again.',
     'auth/invalid-credential': 'Invalid email or password.',
@@ -78,12 +95,12 @@ const mapFirebaseError = (error) => {
   return new Error(codes[error.code] || error.message || 'An unexpected error occurred.');
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Build app user object from Firebase UID + Firestore profile
-  const buildUser = (uid, email, profile) => ({
+  const buildUser = (uid: string, email: string | null, profile: Doc): AppUser => ({
     id: uid,
     email,
     ...profile,
@@ -92,10 +109,10 @@ export const AuthProvider = ({ children }) => {
     gamesOfficiated: profile.games_officiated || 0,
     leagueName: profile.league_name || '',
     activeTournaments: profile.active_tournaments || 0,
-  });
+  } as AppUser);
 
   // Fetch or auto-create a Firestore user profile
-  const getOrCreateProfile = async (uid, email) => {
+  const getOrCreateProfile = async (uid: string, email: string | null): Promise<Doc | null> => {
     const userRef = doc(db, 'users', uid);
     const snap = await getDoc(userRef);
 
@@ -158,7 +175,7 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email: string, password: string): Promise<AppUser> => {
     setLoading(true);
     try {
       const { user: fbUser } = await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
@@ -180,7 +197,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (userData) => {
+  const register = async (userData: Doc) => {
     setLoading(true);
     try {
       const { user: fbUser } = await createUserWithEmailAndPassword(
@@ -221,7 +238,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const resetPassword = async (email) => {
+  const resetPassword = async (email: string) => {
     try {
       await sendPasswordResetEmail(auth, email.trim().toLowerCase());
       toast({ title: 'Reset email sent', description: 'Check your inbox for password reset instructions.' });
@@ -242,7 +259,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  const updateProfile = async (updates) => {
+  const updateProfile = async (updates: Doc) => {
     if (!user) return;
     setLoading(true);
     try {
@@ -257,7 +274,7 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       await updateDoc(userRef, safeUpdates);
-      setUser(prev => ({ ...prev, ...safeUpdates }));
+      setUser(prev => ({ ...prev!, ...safeUpdates }));
       Analytics.profileUpdated();
       toast({ title: 'Profile updated!', description: 'Your changes have been saved.' });
     } catch (error) {
@@ -267,7 +284,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const uploadAvatar = async (file) => {
+  const uploadAvatar = async (file: File) => {
     if (!user) return;
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: 'Image too large', description: 'Please upload a photo under 5 MB.', variant: 'destructive' });

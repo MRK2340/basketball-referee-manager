@@ -337,6 +337,16 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Testing: 100% pass — all 4 items verified, 29/29 unit tests, all UI flows working (iteration_33.json)
 - Deployed: Firestore rules/indexes + both Cloud Functions live
 
+### Phase 32 - TypeScript Migration Phase 2 (Complete — Feb 2026)
+**Core data layer migrated to TypeScript:**
+- `firestoreService.ts` — 30+ exported functions typed with `ServiceUser`, `SafeResult<T>`, `Doc` types. Firestore SDK types (`DocumentSnapshot`, `QuerySnapshot`) used for helpers.
+- `AuthContext.tsx` — Full `AuthContextValue` interface, `AppUser` type, typed login/register/resetPassword/updateProfile/uploadAvatar functions. `createContext<AuthContextValue | null>()`.
+- `DataContext.tsx` — Typed provider props, `MappedProfile` used for usersMap.
+- `types.ts` — Shared types: `AppUser`, `SafeResult<T>`, `NotificationPreferences`, `ServiceUser`
+- Total TS files: 8 (constants, timestampUtils, rateLimit, logger, mappers, types, firestoreService, AuthContext, DataContext)
+- Also deployed missing `tournaments(manager_id, name)` composite index
+- Testing: 29/29 unit tests pass, Manager dashboard loads correctly, demo login flows working
+
 ### P2 (Completed)
 - ~~Context namespace refactor~~ (Phase 15)
 - ~~camelCase consolidation~~ (Phase 17)
