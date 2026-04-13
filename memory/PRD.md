@@ -309,3 +309,12 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 ### P2 (Completed)
 - ~~Context namespace refactor~~ (Phase 15)
 - ~~camelCase consolidation~~ (Phase 17)
+
+### Phase 28 - Tier 2 Package Upgrades (Complete — Feb 2026)
+- **date-fns** 2.30 → 4.1.0 (21 files — no code changes needed, ESM imports compatible)
+- **framer-motion** 10.18 → **motion** 12.38.0 (34 files — import path changed from `'framer-motion'` to `'motion/react'`, old package removed)
+- **recharts** 2.15 → 3.8.1 (1 file — PerformanceAnalytics, standard Bar/PieChart APIs unchanged)
+- **react-day-picker** 8.10 → 9.14.0 (1 file — `calendar.jsx` rewritten for v9 API: class names, `Chevron` component)
+- **react-router-dom** 6.30 → **react-router** 7.14.0 (22 files — import path changed from `'react-router-dom'` to `'react-router'`, old package removed)
+- Note: After upgrades, Vite dep cache must be cleared (`rm -rf node_modules/.vite`) for date-fns v4 ESM resolution
+- Testing: 100% pass — all 5 upgrades verified, 29/29 unit tests, all pages + flows working (iteration_30.json)
