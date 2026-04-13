@@ -327,3 +327,22 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **@types/react** 18→19.2.14, **@types/react-dom** 18→19.2.3
 - Note: After TW4 migration, Vite dep cache must be cleared (`rm -rf node_modules/.vite`)
 - Testing: 100% pass — all 3 upgrades verified, brand colors intact, dark mode working, 29/29 unit tests (iteration_31.json)
+
+### Phase 30 - Code Audit Remediation (Complete — Feb 2026)
+**HIGH:**
+1. **Password reset flow** — `sendPasswordResetEmail` added to AuthContext. "Forgot password?" link on Login page, "Reset Password" button on Profile page (replaces "Change Password — Coming Soon")
+2. **Email verification** — `sendEmailVerification` called after registration. Toast updated to "A verification email has been sent"
+3. **Real-time listener error recovery** — Both `useRealtimeNotifications` and `useRealtimeMessages` now show "sync lost" toast on auth expiry/error instead of silent failure
+
+**BUGS:**
+4. **Null guard in handleForward()** — `Messages.jsx` checks `recipientOptions.length === 0` before forwarding; shows error toast if empty
+5. **Stale data on fetch error** — `useDataFetching` clears all state arrays on initial load failure
+6. **Vite error overlay production guard** — Debug scripts only injected when `isDev` is true
+
+**MEDIUM:**
+7. **Input validation** — AddGameDialog: payment 0–10000 + time format regex. Messages: content max 5000, subject max 200
+8. **Firestore rules bounds** — Payments: `amount >= 0 && amount <= 10000`. Ratings: `stars >= 1 && stars <= 5`
+9. **CSP headers** — `firebase.json` hosting config: Content-Security-Policy, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+10. **Production-safe logging** — `lib/logger.js` utility (silent in prod, verbose in dev). 14 `console.error` calls replaced; only 2 remain in main.jsx (DEV-guarded + fatal)
+
+- Testing: 100% pass — all 10 items verified, 29/29 unit tests, all UI flows working (iteration_32.json)
