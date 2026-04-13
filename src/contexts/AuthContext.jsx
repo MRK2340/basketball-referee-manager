@@ -29,6 +29,9 @@ export const useAuth = () => {
   return context;
 };
 
+// S2 fix: whitelist allowed profile fields — module-level constant (not recreated per render)
+const ALLOWED_PROFILE_FIELDS = new Set(['name', 'phone', 'experience', 'bio', 'location']);
+
 const DEMO_ACCOUNTS = {
   'manager@demo.com': {
     name: 'Demo Manager',
@@ -220,9 +223,6 @@ export const AuthProvider = ({ children }) => {
     toast({ title: 'Logged out', description: 'See you next time!' });
     setLoading(false);
   };
-
-  // S2 fix: whitelist allowed profile fields to prevent users writing arbitrary data
-  const ALLOWED_PROFILE_FIELDS = new Set(['name', 'phone', 'experience', 'bio', 'location']);
 
   const updateProfile = async (updates) => {
     if (!user) return;

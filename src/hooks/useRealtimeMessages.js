@@ -11,7 +11,7 @@
 import { useEffect, useRef } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { toISOString } from '@/lib/firestoreService';
+import { toISOString } from '@/lib/timestampUtils';
 import { toast } from '@/components/ui/use-toast';
 
 const mapRawMessage = (id, data, usersMap, currentUserId) => {

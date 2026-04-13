@@ -3,6 +3,7 @@
  * Pure Firestore-document → app-model transformers.
  * No Firestore SDK calls — easily unit-testable in isolation.
  */
+import { toISOString } from './timestampUtils';
 
 export const mapProfile = (p) => ({
   id: p.id, name: p.name, role: p.role,
@@ -74,13 +75,10 @@ export const mapPayment = (p) => ({
 
 export const mapMessage = (m, allUsers) => {
   const sender = allUsers.find(u => u.id === m.sender_id) || { name: 'System' };
-  // Normalize Firestore Timestamp or ISO string
-  const ts = m.created_at;
-  const timestamp = (!ts) ? '' : (typeof ts === 'string') ? ts : (typeof ts?.toDate === 'function') ? ts.toDate().toISOString() : '';
   return {
     id: m.id, from: sender.name, fromAvatar: sender.avatarUrl || '',
     subject: m.subject, content: m.content,
-    timestamp,
+    timestamp: toISOString(m.created_at),
     read: m.is_read,
     senderId: m.sender_id, recipientId: m.recipient_id,
   };

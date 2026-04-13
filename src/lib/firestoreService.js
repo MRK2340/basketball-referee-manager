@@ -32,13 +32,8 @@ const docToObj = (snap) => snap.exists() ? { id: snap.id, ...snap.data() } : nul
 const docsToArr = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
 // Normalize Firestore Timestamp or ISO string → ISO string for consistent sorting
-export const toISOString = (val) => {
-  if (!val) return '';
-  if (typeof val === 'string') return val;
-  if (typeof val?.toDate === 'function') return val.toDate().toISOString();
-  if (val instanceof Date) return val.toISOString();
-  return '';
-};
+import { toISOString } from './timestampUtils';
+export { toISOString };
 
 // Split an array into chunks of `size` — needed for Firestore `in` queries (30-item limit)
 const chunkArray = (arr, size) => {

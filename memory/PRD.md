@@ -286,6 +286,10 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **Q4** Removed unused `@supabase/supabase-js` from `package.json`
 - Removed emoji characters from all toast messages in action hooks (per design guidelines)
 - Updated `mappers.js` `mapMessage` to normalize Firestore Timestamps
+- Extracted `toISOString` into `src/lib/timestampUtils.js` shared utility — used by `mappers.js`, `firestoreService.js`, and realtime hooks (keeps mappers pure/unit-testable)
+- Cleaned up corrupted `.gitignore` (removed stray `-e` artifacts and duplicated credential blocks)
+- Moved `ALLOWED_PROFILE_FIELDS` to module-level constant in `AuthContext.jsx` (avoids recreating Set per render)
+- Untracked `memory/test_credentials.md` from git (`git rm --cached`)
 
 - Testing: 100% pass — 17/17 audit items verified, 29/29 unit tests, all UI flows working (iteration_29.json)
 
