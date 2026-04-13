@@ -442,3 +442,37 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 10. **Production-safe logging** — `lib/logger.js` utility (silent in prod, verbose in dev). 14 `console.error` calls replaced; only 2 remain in main.jsx (DEV-guarded + fatal)
 
 - Testing: 100% pass — all 10 items verified, 29/29 unit tests, all UI flows working (iteration_32.json)
+
+
+### Phase 36 - Schedule Import Features (Complete — Apr 2026)
+
+**Feature 1: Universal Schedule Import (Referee)**
+- "Import Schedule" button in Independent Log tab on Games page
+- Drag-and-drop file upload supporting CSV, Excel (.xlsx), and PDF formats
+- Auto-detects column headers from ArbiterSports, GameOfficials, Assigning.net exports
+- Preview table with checkboxes showing past/future classification
+- Past games → batch written to `independent_games` collection
+- Future dates → batch written to `referee_availability` collection
+- Success screen with counts (games logged + availability dates)
+- Libraries: `papaparse` (CSV), `xlsx` (Excel), `pdfjs-dist` (PDF)
+
+**Feature 2: Manager Bulk Game Schedule Import**
+- "Bulk Import Games" button on Tournaments tab in Manager hub
+- CSV and Excel file upload with column auto-detection
+- Tournament selection step: pick existing tournament OR create new one
+- New tournament creation with name, location, courts, date range
+- Preview table showing all parsed games with checkboxes
+- Batch writes games to Firestore `games` collection under selected tournament
+- Success screen with game count
+
+**New files:**
+- `src/lib/scheduleImportParsers.ts` — Parsing engine (CSV/Excel/PDF, column detection, date/time normalization)
+- `src/pages/Games/ScheduleImportDialog.tsx` — Referee import dialog (4-step wizard)
+- `src/pages/Manager/BulkGameImportDialog.tsx` — Manager import dialog (5-step wizard)
+
+**Modified files:**
+- `src/lib/firestoreService.ts` — Added `batchImportRefereeSchedule()` and `batchImportManagerGames()` batch write functions
+- `src/pages/Games/IndependentGamesTab.tsx` — Added Import Schedule button
+- `src/pages/Manager/TournamentsTab.tsx` — Added Bulk Import Games button
+
+- Testing: 100% pass — all 12 test cases verified (iteration_36.json)
