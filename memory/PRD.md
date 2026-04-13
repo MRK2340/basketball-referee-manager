@@ -306,6 +306,37 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 ### P1 (Optional Enhancement)
 - Public referee profile pages
 
+### Phase 31 - Backlog Items (Complete — Feb 2026)
+
+**1. Server-side Rate Limiting (Cloud Functions)**
+- `enforceMessageRateLimit`: Deletes messages exceeding 20/min per user (onDocumentCreated trigger)
+- `sendPushNotification`: Skips notifications exceeding 30/min per user
+- `checkRateLimit()`: Transaction-based per-user counters in `_rate_limits` collection (60s sliding window)
+- `_rate_limits` collection locked from client access (`allow read, write: if false`)
+- Both functions deployed to us-central1 (Node.js 22 Gen 2)
+
+**2. Collection Pagination at Scale**
+- `fetchMoreGames(managerId, afterDatetime)`: Cursor-based pagination by game_date
+- `fetchMoreTournaments(managerId, afterName)`: Cursor-based pagination by name
+- `PAGE_SIZE = 50` for all paginated queries
+- Initial `fetchAppData` now limits games and tournaments to 100 each (was unbounded)
+
+**3. Sentry Integration**
+- `logger.ts` initializes `@sentry/react` when `VITE_SENTRY_DSN` is set (production only)
+- `logger.error()` → `Sentry.captureException()` for Error objects, `captureMessage()` for strings
+- `logger.warn()` → `Sentry.captureMessage()` with warning level
+- `VITE_SENTRY_DSN` added to `.env.example`
+
+**4. TypeScript Migration (Phase 1 — Core Utilities)**
+- `tsconfig.json` added (strict, allowJs, bundler moduleResolution)
+- **5 files migrated**: `constants.ts`, `timestampUtils.ts`, `rateLimit.ts`, `logger.ts`, `mappers.ts`
+- 10 exported interfaces: `MappedProfile`, `MappedConnection`, `MappedGame`, `MappedAssignment`, `MappedTournament`, `MappedPayment`, `MappedMessage`, `MappedAvailability`, `MappedGameReport`
+- 6 exported type aliases: `Role`, `GameStatus`, `AssignmentStatus`, `ConnectionStatus`, `NotificationType`, `PaymentStatus`
+- All existing JS files continue to work (mixed JS/TS via Vite)
+
+- Testing: 100% pass — all 4 items verified, 29/29 unit tests, all UI flows working (iteration_33.json)
+- Deployed: Firestore rules/indexes + both Cloud Functions live
+
 ### P2 (Completed)
 - ~~Context namespace refactor~~ (Phase 15)
 - ~~camelCase consolidation~~ (Phase 17)
