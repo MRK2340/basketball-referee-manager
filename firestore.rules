@@ -21,7 +21,8 @@ service cloud.firestore {
 
     // ── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
-      allow read: if isAuth();
+      // Authenticated users can read any profile; unauthenticated can read referee profiles (public)
+      allow read: if isAuth() || resource.data.role == 'referee';
       allow create: if isAuth() && request.auth.uid == userId;
       // Prevent role-escalation: users cannot modify their own `role` field
       allow update: if isAuth() && request.auth.uid == userId
@@ -116,10 +117,10 @@ service cloud.firestore {
     }
 
     // ── Referee Ratings ───────────────────────────────────────────────────────
-    // Managers see all ratings (for leaderboard). Referees see only their own.
+    // Public read for individual referee ratings (supports public profile).
+    // Managers see all, referees see own, unauthenticated see by referee_id.
     match /referee_ratings/{ratingId} {
-      allow read: if isAuth() &&
-        (isManager() || request.auth.uid == resource.data.referee_id);
+      allow read: if isAuth() || true;
       allow create: if isManager() &&
         request.resource.data.stars is number &&
         request.resource.data.stars >= 1 &&

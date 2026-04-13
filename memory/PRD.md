@@ -369,6 +369,39 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **Final count: 102 TS/TSX files | 57 JS/JSX (Shadcn only)**
 - Testing: 100% pass — all pages render, navigation works, 29/29 unit tests, no TS compilation errors (iteration_34.json)
 
+### Phase 35 - Future/Backlog Complete (Complete — Feb 2026)
+
+**1. Public Referee Profile Pages (P1)**
+- New `/referee/:id` route — no auth required, shows name, avatar, location, bio, rating, games, experience, certifications
+- Private data (email, phone, FCM token) excluded from `fetchPublicRefereeProfile`
+- "Share Public Profile" button on Profile page (copies URL to clipboard, referee-only)
+- Firestore rules updated: referee profiles readable publicly (`resource.data.role == 'referee'`)
+- Referee ratings collection now publicly readable for profile display
+
+**2. Stricter Prop Types**
+- 13 app components typed: ProtectedRoute, PublicRoute, Layout, Sidebar, TopBar, LoadingSpinner, NotificationPanel, SkeletonCard, GameDetailSheet, ErrorBoundary, AccountSecuritySettings, etc.
+- Interfaces: `ProtectedRouteProps`, `NotificationPanelProps`
+
+**3. Audit Logging**
+- `writeAuditLog(userId, action, target, details)` function in firestoreService.ts
+- Wired to login, profile updates, referee assignments
+- `_audit_log` Firestore collection: append-only (create: if isAuth(); read/update/delete: if false)
+
+**4. GDPR Data Export/Deletion**
+- "Export My Data" button in Settings → downloads JSON with all user data (profile, messages, assignments, reports, ratings, availability, connections, payments)
+- "Delete Account" button → double-confirmation → deletes all data across 8 collections + user profile → auto-logout
+- `exportUserData` and `deleteUserData` functions in firestoreService.ts
+
+**5. Two-Factor Authentication**
+- TwoFactorDialog component: password → QR code → verify → done flow
+- Uses Firebase `TotpMultiFactorGenerator` for TOTP enrollment
+- MFA challenge handling in login: catches `auth/multi-factor-auth-required`, shows TOTP verification
+- `mfaResolver` and `verifyMFA` exposed in AuthContext
+- Note: Requires Firebase Identity Platform enabled in Firebase Console
+
+- Deployed: Updated Firestore rules (public referee reads, audit log, ratings)
+- Testing: All 5 items verified, 29/29 unit tests pass (iteration_35.json)
+
 ### P2 (Completed)
 - ~~Context namespace refactor~~ (Phase 15)
 - ~~camelCase consolidation~~ (Phase 17)
