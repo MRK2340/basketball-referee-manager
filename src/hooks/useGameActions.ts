@@ -1,8 +1,9 @@
+import type { AppUser } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { addGameRecord, markGameCompleted } from '@/lib/firestoreService';
 
-export const useGameActions = (user, fetchData) => {
-  const addGame = async (gameData) => {
+export const useGameActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
+  const addGame = async (gameData: Record<string, unknown>) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await addGameRecord(user, gameData);
 
@@ -21,7 +22,7 @@ export const useGameActions = (user, fetchData) => {
     }
   };
 
-  const markGameAsCompleted = async (gameId) => {
+  const markGameAsCompleted = async (gameId: string) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await markGameCompleted(user, gameId);
     if (error) {

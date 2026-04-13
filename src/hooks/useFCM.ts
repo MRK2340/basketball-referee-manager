@@ -1,9 +1,6 @@
 /**
- * useFCM.js
+ * useFCM.ts
  * Manages Firebase Cloud Messaging token registration and browser permission.
- * - Requests notification permission
- * - Registers / refreshes FCM token and saves it to Firestore
- * - Handles enabling / disabling push from the Settings page
  */
 import { useState, useEffect, useCallback } from 'react';
 import { getToken, isSupported } from 'firebase/messaging';
@@ -13,16 +10,16 @@ import app, { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
 import { Analytics } from '@/lib/analytics';
+import type { AppUser } from '@/lib/types';
 
-const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string;
 
-export const useFCM = (user) => {
+export const useFCM = (user: AppUser | null) => {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState(
-    () => (typeof Notification !== 'undefined' ? Notification.permission : 'not-supported')
+    () => (typeof Notification !== 'undefined' ? Notification.permission : 'not-supported' as string)
   );
 
-  // On mount: if browser permission was already granted, silently refresh the token
   useEffect(() => {
     if (!user?.id || typeof Notification === 'undefined') return;
     if (Notification.permission !== 'granted') return;
@@ -38,18 +35,14 @@ export const useFCM = (user) => {
           setPushEnabled(true);
         }
       } catch {
-        // Token refresh is best-effort — silently ignore failures
+        // Token refresh is best-effort
       }
     })();
   }, [user?.id]);
 
   const enablePushNotifications = useCallback(async () => {
     if (typeof Notification === 'undefined') {
-      toast({
-        title: 'Not supported',
-        description: 'Push notifications are not supported in this browser.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Not supported', description: 'Push notifications are not supported in this browser.', variant: 'destructive' });
       return false;
     }
     if (!user?.id) return false;
@@ -57,24 +50,14 @@ export const useFCM = (user) => {
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
-
       if (permission !== 'granted') {
-        toast({
-          title: 'Permission denied',
-          description:
-            'Allow notifications in your browser settings to receive push alerts.',
-          variant: 'destructive',
-        });
+        toast({ title: 'Permission denied', description: 'Allow notifications in your browser settings to receive push alerts.', variant: 'destructive' });
         return false;
       }
 
       const supported = await isSupported();
       if (!supported) {
-        toast({
-          title: 'Not supported',
-          description: 'FCM push notifications are not supported in this browser.',
-          variant: 'destructive',
-        });
+        toast({ title: 'Not supported', description: 'FCM push notifications are not supported in this browser.', variant: 'destructive' });
         return false;
       }
 
@@ -84,20 +67,13 @@ export const useFCM = (user) => {
         await updateDoc(doc(db, 'users', user.id), { fcmToken: token });
         setPushEnabled(true);
         Analytics.pushEnabled();
-        toast({
-          title: 'Push notifications enabled!',
-          description: "You'll receive alerts even when the app is closed.",
-        });
+        toast({ title: 'Push notifications enabled!', description: "You'll receive alerts even when the app is closed." });
         return true;
       }
       return false;
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('[FCM]', error);
-      toast({
-        title: 'Failed to enable push notifications',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Failed to enable push notifications', description: (error as Error).message, variant: 'destructive' });
       return false;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +86,7 @@ export const useFCM = (user) => {
       setPushEnabled(false);
       Analytics.pushDisabled();
       toast({ title: 'Push notifications disabled' });
-    } catch (error) {
+    } catch (error: unknown) {
       logger.error('[FCM disable]', error);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,4 +94,3 @@ export const useFCM = (user) => {
 
   return { pushEnabled, permissionStatus, enablePushNotifications, disablePushNotifications };
 };
-

@@ -1,8 +1,9 @@
+import type { AppUser } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { addAvailabilityRecord } from '@/lib/firestoreService';
 
-export const useAvailabilityActions = (user, fetchData) => {
-  const addAvailability = async (startDate, endDate) => {
+export const useAvailabilityActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
+  const addAvailability = async (startDate: string | Date, endDate: string | Date) => {
     if (!user || user.role !== 'referee') return;
     
     const startOfDay = new Date(startDate);

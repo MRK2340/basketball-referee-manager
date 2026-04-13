@@ -1,20 +1,19 @@
 /**
- * useRealtimeNotifications.js
- *
+ * useRealtimeNotifications.ts
  * Attaches a Firestore onSnapshot listener to the current user's notifications.
- * - Keeps the notifications array in real-time (bell badge updates immediately)
- * - Shows an in-app toast for each NEW notification that arrives after login
- * - Uses an indexed query (orderBy) with automatic fallback to client-side sort
- *   while the composite index is still building.
  */
-import { useEffect, useRef } from 'react';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
+import { collection, query, where, orderBy, limit, onSnapshot, type QuerySnapshot, type Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toISOString } from '@/lib/timestampUtils';
 import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
+import type { AppUser } from '@/lib/types';
 
-const TYPE_LABELS = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Notification = Record<string, any>;
+
+const TYPE_LABELS: Record<string, string> = {
   assignment:   'Game Assignment',
   message:      'New Message',
   payment:      'Payment Update',
@@ -22,9 +21,12 @@ const TYPE_LABELS = {
   report:       'Report Update',
 };
 
-export const useRealtimeNotifications = (user, setNotifications) => {
+export const useRealtimeNotifications = (
+  user: AppUser | null,
+  setNotifications: Dispatch<SetStateAction<Notification[]>>,
+) => {
   const isInitialized = useRef(false);
-  const knownIds = useRef(new Set());
+  const knownIds = useRef(new Set<string>());
 
   useEffect(() => {
     if (!user?.id) {
@@ -33,7 +35,6 @@ export const useRealtimeNotifications = (user, setNotifications) => {
       return;
     }
 
-    // Preferred query: Firestore-side sort (requires composite index).
     const indexedQ = query(
       collection(db, 'notifications'),
       where('recipient_id', '==', user.id),
@@ -41,17 +42,16 @@ export const useRealtimeNotifications = (user, setNotifications) => {
       limit(100)
     );
 
-    // Fallback query: used while the composite index is still building.
     const fallbackQ = query(
       collection(db, 'notifications'),
       where('recipient_id', '==', user.id),
       limit(100)
     );
 
-    let unsubscribe;
+    let unsubscribe: Unsubscribe | undefined;
 
-    const handleSnapshot = (snapshot, useFallbackSort = false) => {
-      let allNotifs = snapshot.docs.map(d => {
+    const handleSnapshot = (snapshot: QuerySnapshot, useFallbackSort = false) => {
+      let allNotifs: Notification[] = snapshot.docs.map(d => {
         const data = d.data();
         return { id: d.id, ...data, created_at: toISOString(data.created_at) };
       });
@@ -70,32 +70,22 @@ export const useRealtimeNotifications = (user, setNotifications) => {
       allNotifs.forEach(n => {
         if (!knownIds.current.has(n.id)) {
           knownIds.current.add(n.id);
-          toast({
-            title: TYPE_LABELS[n.type] || 'Notification',
-            description: n.body || n.title || 'You have a new notification.',
-            duration: 5000,
-          });
+          toast({ title: TYPE_LABELS[n.type] || 'Notification', description: n.body || n.title || 'You have a new notification.', duration: 5000 });
         }
       });
     };
 
-    const subscribe = (q, useFallbackSort = false) => {
+    const subscribe = (q: ReturnType<typeof query>, useFallbackSort = false) => {
       unsubscribe = onSnapshot(
         q,
         (snapshot) => handleSnapshot(snapshot, useFallbackSort),
         (err) => {
           if (!useFallbackSort && err.message?.includes('requires an index')) {
-            // Index still building — silently switch to fallback query
             unsubscribe?.();
             subscribe(fallbackQ, true);
           } else {
             logger.error('[useRealtimeNotifications] Listener error:', err);
-            toast({
-              title: 'Notification sync lost',
-              description: 'Live updates paused. Refresh the page to reconnect.',
-              variant: 'destructive',
-              duration: 10000,
-            });
+            toast({ title: 'Notification sync lost', description: 'Live updates paused. Refresh the page to reconnect.', variant: 'destructive', duration: 10000 });
           }
         }
       );

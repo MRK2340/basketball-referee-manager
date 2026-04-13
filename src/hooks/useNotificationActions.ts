@@ -1,8 +1,9 @@
+import type { AppUser } from '@/lib/types';
 import { markNotificationReadRecord, markAllNotificationsReadRecord } from '@/lib/firestoreService';
 import { logger } from '@/lib/logger';
 
-export const useNotificationActions = (user, fetchData) => {
-  const markNotificationRead = async (notificationId) => {
+export const useNotificationActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
+  const markNotificationRead = async (notificationId: string) => {
     if (!user) return;
     try {
       await markNotificationReadRecord(user, notificationId);

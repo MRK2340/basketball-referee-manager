@@ -1,3 +1,4 @@
+import type { AppUser } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import {
   requestManagerConnectionRecord,
@@ -5,8 +6,8 @@ import {
   withdrawConnectionRecord,
 } from '@/lib/firestoreService';
 
-export const useConnectionActions = (user, fetchData) => {
-  const requestManagerConnection = async (managerId, note) => {
+export const useConnectionActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
+  const requestManagerConnection = async (managerId: string, note: string) => {
     if (!user || user.role !== 'referee') return;
     const { error } = await requestManagerConnectionRecord(user, managerId, note);
     if (error) {
@@ -17,7 +18,7 @@ export const useConnectionActions = (user, fetchData) => {
     }
   };
 
-  const respondToConnection = async (connectionId, status) => {
+  const respondToConnection = async (connectionId: string, status: string) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await respondToConnectionRecord(user, connectionId, status);
     if (error) {
@@ -29,7 +30,7 @@ export const useConnectionActions = (user, fetchData) => {
     }
   };
 
-  const withdrawConnection = async (managerId) => {
+  const withdrawConnection = async (managerId: string) => {
     if (!user || user.role !== 'referee') return;
     const { error } = await withdrawConnectionRecord(user, managerId);
     if (error) {

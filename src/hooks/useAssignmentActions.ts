@@ -1,3 +1,4 @@
+import type { AppUser } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import {
   assignCourtSchedule,
@@ -9,8 +10,8 @@ import {
 } from '@/lib/firestoreService';
 import { guardAction } from '@/lib/rateLimit';
 
-export const useAssignmentActions = (user, fetchData) => {
-  const assignRefereeToGame = guardAction('assignReferee', async (gameId, refereeId) => {
+export const useAssignmentActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
+  const assignRefereeToGame = guardAction('assignReferee', async (gameId: string, refereeId: string) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await assignReferee(user, gameId, refereeId);
     if (error) {
@@ -21,7 +22,7 @@ export const useAssignmentActions = (user, fetchData) => {
     }
   });
 
-  const unassignRefereeFromGame = async (assignmentId) => {
+  const unassignRefereeFromGame = async (assignmentId: string) => {
       if (!user || user.role !== 'manager') return;
       const { error } = await unassignReferee(user, assignmentId);
       if (error) {
@@ -32,7 +33,7 @@ export const useAssignmentActions = (user, fetchData) => {
       }
   };
 
-  const updateAssignmentStatus = async (assignmentId, status, reason = null) => {
+  const updateAssignmentStatus = async (assignmentId: string, status: string, reason: string | null = null) => {
     if (!user || user.role !== 'referee') return;
     const { error } = await updateAssignment(user, assignmentId, status, reason);
 
@@ -44,7 +45,7 @@ export const useAssignmentActions = (user, fetchData) => {
     }
   };
 
-  const assignRefereesToCourt = async (assignments) => {
+  const assignRefereesToCourt = async (assignments: {gameId: string; refereeId: string}[]) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await assignCourtSchedule(user, assignments);
     if (error) {
@@ -59,7 +60,7 @@ export const useAssignmentActions = (user, fetchData) => {
     if (!user || user.role !== 'referee') return;
     const { error } = await requestAssignment(user, gameId);
     if (error) {
-      if (error.code === '23505') {
+      if ((error as { code?: string }).code === '23505') {
         toast({ title: "Already Requested", description: "You have already requested to officiate this game.", variant: "default" });
       } else {
         toast({ title: "Request Failed", description: error.message, variant: "destructive" });
@@ -70,7 +71,7 @@ export const useAssignmentActions = (user, fetchData) => {
     fetchData(false);
   });
 
-  const batchUnassignReferees = async (gameIds) => {
+  const batchUnassignReferees = async (gameIds: string[]) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await batchUnassignRefereesRecord(user, gameIds);
     if (error) {

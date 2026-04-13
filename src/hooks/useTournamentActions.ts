@@ -1,3 +1,4 @@
+import type { AppUser } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import {
   addTournament as addTournamentRecord,
@@ -5,8 +6,8 @@ import {
   deleteTournamentRecord,
 } from '@/lib/firestoreService';
 
-export const useTournamentActions = (user, fetchData) => {
-  const addTournament = async (tournamentData) => {
+export const useTournamentActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
+  const addTournament = async (tournamentData: Record<string, unknown>) => {
     if (!user) return;
     const { error } = await addTournamentRecord(user, tournamentData);
 
@@ -25,7 +26,7 @@ export const useTournamentActions = (user, fetchData) => {
     }
   };
 
-  const updateTournament = async (tournamentId, tournamentData) => {
+  const updateTournament = async (tournamentId: string, tournamentData: Record<string, unknown>) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await updateTournamentRecord(user, tournamentId, tournamentData);
 
@@ -44,7 +45,7 @@ export const useTournamentActions = (user, fetchData) => {
     }
   };
 
-  const deleteTournament = async (tournamentId) => {
+  const deleteTournament = async (tournamentId: string) => {
     if (!user || user.role !== 'manager') return;
     const { error } = await deleteTournamentRecord(user, tournamentId);
 

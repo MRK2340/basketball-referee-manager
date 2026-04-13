@@ -1,9 +1,10 @@
+import type { AppUser } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { markMessageRead, sendMessageRecord } from '@/lib/firestoreService';
 import { guardAction } from '@/lib/rateLimit';
 
-export const useMessageActions = (user, fetchData) => {
-  const sendMessage = guardAction('sendMessage', async (messageData) => {
+export const useMessageActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
+  const sendMessage = guardAction('sendMessage', async (messageData: Record<string, unknown>) => {
     if (!user) return;
     const { error } = await sendMessageRecord(user, messageData);
 
@@ -22,7 +23,7 @@ export const useMessageActions = (user, fetchData) => {
     }
   });
 
-  const markMessageAsRead = async (messageId) => {
+  const markMessageAsRead = async (messageId: string) => {
     if (!user) return;
     const { error } = await markMessageRead(user, messageId);
 

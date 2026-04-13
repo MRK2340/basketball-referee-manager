@@ -347,6 +347,17 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - Also deployed missing `tournaments(manager_id, name)` composite index
 - Testing: 29/29 unit tests pass, Manager dashboard loads correctly, demo login flows working
 
+### Phase 33 - TypeScript Migration Phase 3: Hooks (Complete — Feb 2026)
+**15 custom hooks migrated to TypeScript:**
+- `useDataFetching.ts` — Full state types (`MappedMessage[]`, `MappedProfile[]`, `AnyArr`), typed `fetchData` and `loadMoreMessages`
+- `useFCM.ts` — Typed FCM token management, `AppUser` param
+- `useRealtimeMessages.ts` — Typed Firestore `QuerySnapshot`, `Unsubscribe`, `Dispatch<SetStateAction<MappedMessage[]>>`
+- `useRealtimeNotifications.ts` — Typed Firestore listener with `Notification` record type
+- 11 action hooks typed with `(user: AppUser | null, fetchData: (...) => Promise<void>)` pattern and typed inner function params
+- Skipped: `use-toast.js`, `use-mobile.jsx` (Shadcn UI internals)
+- **Total TS files: 24** (was 9) | JS/JSX remaining: 135 (pages + components)
+- Testing: 29/29 unit tests pass, both demo login flows working
+
 ### P2 (Completed)
 - ~~Context namespace refactor~~ (Phase 15)
 - ~~camelCase consolidation~~ (Phase 17)

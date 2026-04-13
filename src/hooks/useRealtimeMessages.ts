@@ -1,21 +1,20 @@
 /**
- * useRealtimeMessages.js
- *
+ * useRealtimeMessages.ts
  * Attaches a Firestore onSnapshot listener to the current user's messages.
- * - Keeps the messages list in real-time (inbox updates without a page refresh)
- * - Shows an in-app toast for each NEW incoming message (not sent by this user)
- * - Uses a ref for usersMap so the listener never re-subscribes on re-renders
- * - Uses an indexed query (orderBy) with automatic fallback to client-side sort
- *   while the composite index is still building.
  */
-import { useEffect, useRef } from 'react';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
+import { collection, query, where, orderBy, limit, onSnapshot, type QuerySnapshot, type Unsubscribe } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toISOString } from '@/lib/timestampUtils';
 import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
+import type { AppUser } from '@/lib/types';
+import type { MappedMessage, MappedProfile } from '@/lib/mappers';
 
-const mapRawMessage = (id, data, usersMap, currentUserId) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Doc = Record<string, any>;
+
+const mapRawMessage = (id: string, data: Doc, usersMap: Record<string, MappedProfile>, currentUserId: string): MappedMessage => {
   const sender = usersMap[data.sender_id] || { name: 'System', avatarUrl: '' };
   const isMine = data.sender_id === currentUserId;
   return {
@@ -25,22 +24,21 @@ const mapRawMessage = (id, data, usersMap, currentUserId) => {
     subject: data.subject,
     content: data.content,
     timestamp: toISOString(data.created_at),
-    // Sender already "read" their own message — prevents false unread badge count
     read: data.is_read || isMine,
     senderId: data.sender_id,
     recipientId: data.recipient_id,
   };
 };
 
-export const useRealtimeMessages = (user, setMessages, usersMap) => {
+export const useRealtimeMessages = (
+  user: AppUser | null,
+  setMessages: Dispatch<SetStateAction<MappedMessage[]>>,
+  usersMap: Record<string, MappedProfile>,
+) => {
   const isInitialized = useRef(false);
-  const knownIds = useRef(new Set());
-  // Keep latest usersMap in a ref so the listener closure is always fresh
-  // without needing to re-subscribe when the map changes.
+  const knownIds = useRef(new Set<string>());
   const usersMapRef = useRef(usersMap);
-  useEffect(() => {
-    usersMapRef.current = usersMap;
-  }, [usersMap]);
+  useEffect(() => { usersMapRef.current = usersMap; }, [usersMap]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -49,7 +47,6 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       return;
     }
 
-    // Preferred query: Firestore-side sort (requires composite index).
     const indexedQ = query(
       collection(db, 'messages'),
       where('participants', 'array-contains', user.id),
@@ -57,16 +54,15 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       limit(100)
     );
 
-    // Fallback query: used while the composite index is still building.
     const fallbackQ = query(
       collection(db, 'messages'),
       where('participants', 'array-contains', user.id),
       limit(100)
     );
 
-    let unsubscribe;
+    let unsubscribe: Unsubscribe | undefined;
 
-    const handleSnapshot = (snapshot, useFallbackSort = false) => {
+    const handleSnapshot = (snapshot: QuerySnapshot, useFallbackSort = false) => {
       let allMessages = snapshot.docs
         .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id));
       if (useFallbackSort) {
@@ -84,34 +80,24 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
       allMessages.forEach(m => {
         if (!knownIds.current.has(m.id) && m.senderId !== user.id) {
           knownIds.current.add(m.id);
-          toast({
-            title: `New message from ${m.from}`,
-            description: m.subject,
-            duration: 5000,
-          });
+          toast({ title: `New message from ${m.from}`, description: m.subject, duration: 5000 });
         } else {
           knownIds.current.add(m.id);
         }
       });
     };
 
-    const subscribe = (q, useFallbackSort = false) => {
+    const subscribe = (q: ReturnType<typeof query>, useFallbackSort = false) => {
       unsubscribe = onSnapshot(
         q,
         (snapshot) => handleSnapshot(snapshot, useFallbackSort),
         (err) => {
           if (!useFallbackSort && err.message?.includes('requires an index')) {
-            // Index still building — silently switch to fallback query
             unsubscribe?.();
             subscribe(fallbackQ, true);
           } else {
             logger.error('[useRealtimeMessages] Listener error:', err);
-            toast({
-              title: 'Message sync lost',
-              description: 'Live updates paused. Refresh the page to reconnect.',
-              variant: 'destructive',
-              duration: 10000,
-            });
+            toast({ title: 'Message sync lost', description: 'Live updates paused. Refresh the page to reconnect.', variant: 'destructive', duration: 10000 });
           }
         }
       );
