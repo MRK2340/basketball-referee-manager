@@ -5,13 +5,15 @@ import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { useFCM } from '@/hooks/useFCM';
+import { exportUserData, deleteUserData, writeAuditLog } from '@/lib/firestoreService';
 import NotificationsSettings from './Settings/NotificationsSettings';
 import PreferencesSettings from './Settings/PreferencesSettings';
 import AccountSecuritySettings from './Settings/AccountSecuritySettings';
 import SupportSettings from './Settings/SupportSettings';
+import TwoFactorDialog from './Settings/TwoFactorDialog';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, resetPassword, logout } = useAuth();
   const { notificationPreferences, settingsActions } = useData();
   const { pushEnabled, permissionStatus, enablePushNotifications, disablePushNotifications } = useFCM(user);
 
@@ -41,6 +43,8 @@ const Settings = () => {
     timezone: 'America/New_York',
     autoRefresh: true,
   });
+
+  const [show2FADialog, setShow2FADialog] = useState(false);
 
   const handleNotificationChange = async (key) => {
     // Push notifications: wire to actual FCM permission/token flow
@@ -77,7 +81,43 @@ const Settings = () => {
     });
   };
 
-  const handleFeatureClick = (feature) => {
+  const handleFeatureClick = async (feature: string) => {
+    if (feature === 'change-password' && user?.email) {
+      resetPassword(user.email);
+      return;
+    }
+    if (feature === 'export-data' && user) {
+      toast({ title: 'Exporting data...', description: 'This may take a moment.' });
+      const { data, error } = await exportUserData(user);
+      if (error) {
+        toast({ title: 'Export failed', description: error.message, variant: 'destructive' });
+      } else {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `iwhistle-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click(); URL.revokeObjectURL(url);
+        writeAuditLog(user.id, 'export_data', 'gdpr');
+        toast({ title: 'Data exported', description: 'Your data has been downloaded as JSON.' });
+      }
+      return;
+    }
+    if (feature === 'delete-account' && user) {
+      if (!window.confirm('Are you sure you want to permanently delete your account and all associated data? This action cannot be undone.')) return;
+      if (!window.confirm('This is your FINAL confirmation. All your data will be permanently erased. Continue?')) return;
+      const { error } = await deleteUserData(user);
+      if (error) {
+        toast({ title: 'Deletion failed', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Account deleted', description: 'All your data has been permanently removed.' });
+        logout();
+      }
+      return;
+    }
+    if (feature === 'two-factor-auth' && user) {
+      setShow2FADialog(true);
+      return;
+    }
     toast({
       title: "Coming Soon",
       description: "This feature is on our roadmap and will be available in a future update.",
@@ -144,6 +184,7 @@ const Settings = () => {
           <SupportSettings onFeatureClick={handleFeatureClick} />
         </motion.div>
       </div>
+      {user && <TwoFactorDialog open={show2FADialog} setOpen={setShow2FADialog} user={user} />}
     </>
   );
 };

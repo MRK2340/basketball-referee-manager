@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
-const SkeletonBox = ({ className = '' }) => (
+const SkeletonBox = ({ className = '' }: { className?: string }) => (
   <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
 );
 
@@ -64,7 +64,7 @@ export const SkeletonMessage = () => (
   </div>
 );
 
-const SkeletonCard = ({ variant = 'game', count = 3 }) => {
+const SkeletonCard = ({ variant = 'game', count = 3 }: { variant?: string; count?: number }) => {
   const Component = {
     game: SkeletonGameCard,
     stat: SkeletonStatCard,

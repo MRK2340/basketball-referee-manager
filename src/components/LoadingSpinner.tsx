@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 
-const LoadingSpinner = ({ clockwise = true }) => {
+const LoadingSpinner = ({ clockwise = true }: { clockwise?: boolean }) => {
   const rotateValues = clockwise ? [0, 180, 360] : [0, -180, -360];
   const borderClass = clockwise ? 'border-[#FF8C00]' : 'border-[#0080C8]';
   const innerBgClass = clockwise ? 'bg-[#0080C8]' : 'bg-[#FF8C00]';

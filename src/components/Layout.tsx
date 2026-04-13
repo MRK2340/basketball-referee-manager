@@ -6,7 +6,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 import TopBar from '@/components/TopBar';
 import Sidebar from '@/components/Sidebar';
 
-const Layout = ({ children }) => {
+const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);

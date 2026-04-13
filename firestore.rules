@@ -155,5 +155,11 @@ service cloud.firestore {
     match /_rate_limits/{docId} {
       allow read, write: if false;
     }
+
+    // ── Audit Log (append-only for authenticated users, read for admins) ────
+    match /_audit_log/{logId} {
+      allow create: if isAuth();
+      allow read, update, delete: if false;
+    }
   }
 }

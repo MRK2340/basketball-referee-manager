@@ -28,7 +28,8 @@ const TYPE_CONFIG = {
   report:       { icon: FileText,      color: 'text-slate-600',  bg: 'bg-slate-100', label: 'Report' },
 };
 
-const NotificationItem = ({ notification, onRead }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const NotificationItem = ({ notification, onRead }: { notification: any; onRead: (id: string) => void }) => {
   const navigate = useNavigate();
   const cfg = TYPE_CONFIG[notification.type] || TYPE_CONFIG.message;
   const Icon = cfg.icon;
@@ -67,7 +68,12 @@ const NotificationItem = ({ notification, onRead }) => {
   );
 };
 
-const NotificationPanel = ({ open, onOpenChange }) => {
+interface NotificationPanelProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+const NotificationPanel = ({ open, onOpenChange }: NotificationPanelProps) => {
   const { notifications, notificationActions } = useData();
   const { markNotificationRead, markAllNotificationsRead } = notificationActions;
   const unreadCount = notifications.filter(n => !n.read).length;

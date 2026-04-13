@@ -3,7 +3,12 @@ import { Navigate, useLocation } from 'react-router';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
-const ProtectedRoute = ({ children, roles }) => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  roles?: string[];
+}
+
+const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -16,7 +21,7 @@ const ProtectedRoute = ({ children, roles }) => {
   }
 
   if (roles && !roles.includes(user.role)) {
-    const ROLE_HOME = { manager: '/manager', referee: '/dashboard' };
+    const ROLE_HOME: Record<string, string> = { manager: '/manager', referee: '/dashboard' };
     return <Navigate to={ROLE_HOME[user.role] ?? '/dashboard'} replace />;
   }
 

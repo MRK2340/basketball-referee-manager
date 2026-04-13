@@ -31,6 +31,7 @@ const AboutPage          = lazy(() => import('@/pages/AboutPage'));
 const ContactPage        = lazy(() => import('@/pages/ContactPage'));
 const NotFound           = lazy(() => import('@/pages/NotFound'));
 const FindManagersPage   = lazy(() => import('@/pages/FindManagers'));
+const RefereePublicProfile = lazy(() => import('@/pages/RefereePublicProfile'));
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
                 <Route path="/contact" element={<PublicRoute><ContactPage /></PublicRoute>} />
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+                <Route path="/referee/:id" element={<RefereePublicProfile />} />
                 
                 {/* Protected Routes - Referees & Managers */}
                 <Route path="/dashboard" element={

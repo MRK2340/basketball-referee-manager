@@ -9,6 +9,9 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   sendEmailVerification,
+  getMultiFactorResolver,
+  TotpMultiFactorGenerator,
+  type MultiFactorResolver,
 } from 'firebase/auth';
 import {
   doc,
@@ -23,6 +26,7 @@ import {
 import { checkAndSeedDemoData } from '@/lib/seedFirestore';
 import { Analytics } from '@/lib/analytics';
 import { logger } from '@/lib/logger';
+import { writeAuditLog } from '@/lib/firestoreService';
 import type { AppUser } from '@/lib/types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +43,8 @@ interface AuthContextValue {
   loading: boolean;
   createDemoAccounts: () => Promise<{ success: boolean }>;
   isAuthenticated: boolean;
+  mfaResolver: MultiFactorResolver | null;
+  verifyMFA: (code: string) => Promise<AppUser>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -98,6 +104,7 @@ const mapFirebaseError = (error: { code?: string; message?: string }) => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
 
   // Build app user object from Firebase UID + Firestore profile
   const buildUser = (uid: string, email: string | null, profile: Doc): AppUser => ({
@@ -188,13 +195,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Trigger demo seed (no-op if already done or both users not yet registered)
       checkAndSeedDemoData().catch(e => logger.error('[Auth] Demo seed error:', e));
       Analytics.login();
+      writeAuditLog(userData.id, 'login', 'auth');
 
       setLoading(false);
       return userData;
-    } catch (error) {
+    } catch (error: unknown) {
       setLoading(false);
-      throw mapFirebaseError(error);
+      // Handle MFA challenge
+      const err = error as { code?: string };
+      if (err.code === 'auth/multi-factor-auth-required') {
+        const resolver = getMultiFactorResolver(auth, error as never);
+        setMfaResolver(resolver);
+        throw new Error('MFA_REQUIRED');
+      }
+      throw mapFirebaseError(error as { code?: string; message?: string });
     }
+  };
+
+  const verifyMFA = async (code: string): Promise<AppUser> => {
+    if (!mfaResolver) throw new Error('No MFA challenge pending.');
+    const hint = mfaResolver.hints.find(h => h.factorId === TotpMultiFactorGenerator.FACTOR_ID);
+    if (!hint) throw new Error('No TOTP factor found. Contact support.');
+    const assertion = TotpMultiFactorGenerator.assertionForSignIn(hint.uid, code);
+    const { user: fbUser } = await mfaResolver.resolveSignIn(assertion);
+    const profile = await getOrCreateProfile(fbUser.uid, fbUser.email);
+    if (!profile) throw new Error('Profile not found.');
+    const userData = buildUser(fbUser.uid, fbUser.email, profile);
+    setUser(userData);
+    setMfaResolver(null);
+    writeAuditLog(userData.id, 'login_mfa', 'auth');
+    return userData;
   };
 
   const register = async (userData: Doc) => {
@@ -276,6 +306,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await updateDoc(userRef, safeUpdates);
       setUser(prev => ({ ...prev!, ...safeUpdates }));
       Analytics.profileUpdated();
+      writeAuditLog(user.id, 'update_profile', 'profile', Object.keys(safeUpdates).join(','));
       toast({ title: 'Profile updated!', description: 'Your changes have been saved.' });
     } catch (error) {
       toast({ title: 'Update failed', description: 'Could not save profile changes.', variant: 'destructive' });
@@ -311,7 +342,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Kept for backward-compat with Login.jsx — now a no-op since accounts exist in Firebase
   const createDemoAccounts = async () => ({ success: true });
 
-  const value = {
+  const value: AuthContextValue = {
     user,
     login,
     register,
@@ -322,6 +353,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     createDemoAccounts,
     isAuthenticated: !!user,
+    mfaResolver,
+    verifyMFA,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

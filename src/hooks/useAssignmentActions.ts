@@ -7,6 +7,7 @@ import {
   unassignReferee,
   updateAssignment,
   batchUnassignRefereesRecord,
+  writeAuditLog,
 } from '@/lib/firestoreService';
 import { guardAction } from '@/lib/rateLimit';
 
@@ -18,6 +19,7 @@ export const useAssignmentActions = (user: AppUser | null, fetchData: (isInitial
         toast({ title: "Assignment Failed", description: error.message, variant: "destructive" });
     } else {
         toast({ title: "Referee Assigned", description: "The referee has been assigned to the game." });
+        writeAuditLog(user.id, 'assign_referee', `game:${gameId}`, `referee:${refereeId}`);
         fetchData(false);
     }
   });

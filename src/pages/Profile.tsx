@@ -192,6 +192,20 @@ const Profile = () => {
                   )}
                   Change Photo
                 </Button>
+                {user?.role === 'referee' && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2"
+                    data-testid="profile-share-button"
+                    onClick={() => {
+                      const url = `${window.location.origin}/referee/${user.id}`;
+                      navigator.clipboard.writeText(url);
+                      toast({ title: 'Link copied', description: 'Your public profile link has been copied to clipboard.' });
+                    }}
+                  >
+                    Share Public Profile
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </motion.div>

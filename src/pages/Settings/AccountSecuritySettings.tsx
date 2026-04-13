@@ -8,7 +8,7 @@ import {
   Settings as SettingsIcon
 } from 'lucide-react';
 
-const AccountSecuritySettings = ({ onFeatureClick }) => {
+const AccountSecuritySettings = ({ onFeatureClick }: { onFeatureClick: (feature: string) => void }) => {
   return (
     <Card className="glass-effect border-slate-200 shadow-xs" data-testid="settings-account-security-card">
       <CardHeader>

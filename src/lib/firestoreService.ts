@@ -572,3 +572,118 @@ export const fetchMoreTournaments = async (managerId: string, afterName: string)
   ));
   return { docs: docsToArr(snap), hasMore: snap.docs.length === PAGE_SIZE };
 });
+
+
+// ── Public Profile ────────────────────────────────────────────────────────────
+
+/**
+ * Fetch a referee's public profile (no auth required).
+ * Returns only safe-to-share fields — no email, phone, or FCM token.
+ */
+export const fetchPublicRefereeProfile = async (refereeId: string) => safeHandle(async () => {
+  const userSnap = await getDoc(doc(db, 'users', refereeId));
+  if (!userSnap.exists()) throw new Error('Referee not found.');
+  const data = userSnap.data();
+  if (data.role !== 'referee') throw new Error('Profile not available.');
+
+  // Fetch ratings for this referee
+  const ratingsSnap = await getDocs(query(
+    collection(db, 'referee_ratings'),
+    where('referee_id', '==', refereeId),
+  ));
+  const ratings = docsToArr(ratingsSnap);
+  const avgRating = ratings.length > 0
+    ? ratings.reduce((sum, r) => sum + (r.stars || 0), 0) / ratings.length
+    : data.rating || 0;
+
+  return {
+    id: refereeId,
+    name: data.name,
+    avatarUrl: data.avatar_url || '',
+    bio: data.bio || '',
+    location: data.location || '',
+    certifications: data.certifications || [],
+    gamesOfficiated: data.games_officiated || 0,
+    rating: Math.round(avgRating * 10) / 10,
+    totalRatings: ratings.length,
+    experience: data.experience || '',
+    createdAt: data.created_at || '',
+  };
+});
+
+// ── Audit Logging ─────────────────────────────────────────────────────────────
+
+export const writeAuditLog = async (
+  userId: string, action: string, target: string, details: string = '',
+) => {
+  try {
+    await addDoc(collection(db, '_audit_log'), {
+      user_id: userId,
+      action,
+      target,
+      details,
+      timestamp: serverTimestamp(),
+    });
+  } catch {
+    // Audit logging is best-effort — never block the main operation
+  }
+};
+
+// ── GDPR Data Export ──────────────────────────────────────────────────────────
+
+export const exportUserData = async (user: ServiceUser) => safeHandle(async () => {
+  const [
+    profileSnap, messagesSnap, assignmentsSnap, reportsSnap,
+    ratingsSnap, availabilitySnap, connectionsSnap, indGamesSnap, paymentsSnap,
+  ] = await Promise.all([
+    getDoc(doc(db, 'users', user.id)),
+    getDocs(query(collection(db, 'messages'), where('participants', 'array-contains', user.id))),
+    getDocs(query(collection(db, 'game_assignments'), where('referee_id', '==', user.id))),
+    getDocs(query(collection(db, 'game_reports'), where('referee_id', '==', user.id))),
+    getDocs(query(collection(db, 'referee_ratings'), where('referee_id', '==', user.id))),
+    getDocs(query(collection(db, 'referee_availability'), where('referee_id', '==', user.id))),
+    getDocs(query(collection(db, 'manager_connections'), where('referee_id', '==', user.id))),
+    getDocs(query(collection(db, 'independent_games'), where('referee_id', '==', user.id))),
+    getDocs(query(collection(db, 'payments'), where('referee_id', '==', user.id))),
+  ]);
+
+  return {
+    profile: profileSnap.exists() ? { id: profileSnap.id, ...profileSnap.data() } : null,
+    messages: docsToArr(messagesSnap),
+    assignments: docsToArr(assignmentsSnap),
+    gameReports: docsToArr(reportsSnap),
+    ratings: docsToArr(ratingsSnap),
+    availability: docsToArr(availabilitySnap),
+    connections: docsToArr(connectionsSnap),
+    independentGames: docsToArr(indGamesSnap),
+    payments: docsToArr(paymentsSnap),
+    exportedAt: new Date().toISOString(),
+  };
+});
+
+/** Delete all user data across collections (GDPR right to erasure). */
+export const deleteUserData = async (user: ServiceUser) => safeHandle(async () => {
+  const collections = [
+    { name: 'messages', field: 'participants', op: 'array-contains' as const },
+    { name: 'game_assignments', field: 'referee_id', op: '==' as const },
+    { name: 'game_reports', field: 'referee_id', op: '==' as const },
+    { name: 'referee_ratings', field: 'referee_id', op: '==' as const },
+    { name: 'referee_availability', field: 'referee_id', op: '==' as const },
+    { name: 'manager_connections', field: 'referee_id', op: '==' as const },
+    { name: 'independent_games', field: 'referee_id', op: '==' as const },
+    { name: 'notifications', field: 'recipient_id', op: '==' as const },
+  ];
+
+  for (const col of collections) {
+    const snap = await getDocs(query(collection(db, col.name), where(col.field, col.op, user.id)));
+    const chunks = chunkArray(snap.docs, 400);
+    for (const chunk of chunks) {
+      const batch = writeBatch(db);
+      chunk.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }
+  }
+
+  // Delete user profile last
+  await deleteDoc(doc(db, 'users', user.id));
+});

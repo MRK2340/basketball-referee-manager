@@ -21,7 +21,8 @@ const assignmentStatus = {
   requested: { color: 'bg-purple-100 text-purple-700', label: 'Requested' },
 };
 
-const InfoRow = ({ icon: Icon, label, value, iconColor = 'text-slate-500' }) => (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const InfoRow = ({ icon: Icon, label, value, iconColor = 'text-slate-500' }: { icon: any; label: string; value: string | number | null; iconColor?: string }) => (
   <div className="flex items-start gap-3">
     <div className={`mt-0.5 ${iconColor}`}><Icon className="h-4 w-4" /></div>
     <div>
@@ -31,7 +32,8 @@ const InfoRow = ({ icon: Icon, label, value, iconColor = 'text-slate-500' }) => 
   </div>
 );
 
-const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const GameDetailSheet = ({ open, setOpen, game, gameReport }: { open: boolean; setOpen: (v: boolean) => void; game: any; gameReport?: any }) => {
   if (!game) return null;
 
   const cfg = statusConfig[game.status] || statusConfig.scheduled;

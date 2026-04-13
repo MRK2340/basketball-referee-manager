@@ -10,7 +10,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import NotificationPanel from '@/components/NotificationPanel';
 
-const TopBar = ({ onMenuClick }) => {
+const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const { user } = useAuth();
   const { notifications } = useData();
   const { isDark, toggleTheme } = useTheme();
