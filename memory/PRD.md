@@ -318,3 +318,12 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **react-router-dom** 6.30 → **react-router** 7.14.0 (22 files — import path changed from `'react-router-dom'` to `'react-router'`, old package removed)
 - Note: After upgrades, Vite dep cache must be cleared (`rm -rf node_modules/.vite`) for date-fns v4 ESM resolution
 - Testing: 100% pass — all 5 upgrades verified, 29/29 unit tests, all pages + flows working (iteration_30.json)
+
+### Phase 29 - Tier 1 Package Upgrades (Complete — Feb 2026)
+- **Vite** 4.5 → 8.0.8 (Rolldown Rust bundler replaces esbuild/Rollup, `@vitejs/plugin-react` 4→6.0.1)
+- **TailwindCSS** 3.4 → 4.2.2 (CSS-first config: `tailwind.config.js` removed, `@theme` directives in `index.css`, `@tailwindcss/postcss` replaces PostCSS plugin, `autoprefixer` removed, `tailwindcss-animate` migrated to `@plugin`)
+- **React** 18.3 → 19.2.5 + **react-dom** 19.2.5 (new ref handling, improved concurrent rendering)
+- **react-helmet** → **react-helmet-async** 3.0.0 (20 files updated, `HelmetProvider` wrapper added in App.jsx)
+- **@types/react** 18→19.2.14, **@types/react-dom** 18→19.2.3
+- Note: After TW4 migration, Vite dep cache must be cleared (`rm -rf node_modules/.vite`)
+- Testing: 100% pass — all 3 upgrades verified, brand colors intact, dark mode working, 29/29 unit tests (iteration_31.json)
