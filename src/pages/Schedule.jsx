@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -42,7 +42,7 @@ const Schedule = () => {
         
         {user.role === 'referee' ? (
           <Tabs defaultValue="my-schedule" className="w-full" data-testid="schedule-tabs-root">
-            <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+            <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-xs">
               <TabsTrigger value="my-schedule" data-testid="schedule-tab-my-schedule"><ClipboardList className="mr-2 h-4 w-4" /> My Schedule</TabsTrigger>
               <TabsTrigger value="open-games" data-testid="schedule-tab-open-games"><ThumbsUp className="mr-2 h-4 w-4" /> Open Games</TabsTrigger>
             </TabsList>

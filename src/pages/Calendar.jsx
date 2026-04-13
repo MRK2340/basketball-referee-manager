@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -259,7 +259,7 @@ export default function Calendar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="calendar-toolbar-card">
+          <Card className="glass-effect border-slate-200 shadow-xs" data-testid="calendar-toolbar-card">
             <CardContent className="p-4">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <div className="flex items-center space-x-4">
@@ -297,7 +297,7 @@ export default function Calendar() {
                     <Button
                       key={viewType}
                       data-testid={`calendar-view-${viewType}-button`}
-                      variant={view === viewType ? 'default' : 'outline'}
+                      variant={view === viewType ? 'default' : 'outline-solid'}
                       size="sm"
                       onClick={() => setView(viewType)}
                       className={view === viewType 
@@ -319,7 +319,7 @@ export default function Calendar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="calendar-grid-card">
+          <Card className="glass-effect border-slate-200 shadow-xs" data-testid="calendar-grid-card">
             <CardContent className="p-6">
               {view === 'month' && (
                 <>
@@ -368,7 +368,7 @@ export default function Calendar() {
                           </div>
                           <div className="space-y-1.5">
                             {dayGames.slice(0, 2).map((game) => (
-                              <div key={game.id} className={`p-1.5 rounded text-xs shadow-sm border border-transparent ${getStatusColor(game.status)}`}>
+                              <div key={game.id} className={`p-1.5 rounded text-xs shadow-xs border border-transparent ${getStatusColor(game.status)}`}>
                                 <div className="font-bold truncate">{game.homeTeam} vs {game.awayTeam}</div>
                                 <div className="flex items-center space-x-1 opacity-90 font-medium">
                                   <Clock className="h-3 w-3" /><span>{game.time}</span>
@@ -376,7 +376,7 @@ export default function Calendar() {
                               </div>
                             ))}
                             {dayIndGames.slice(0, dayGames.length >= 2 ? 0 : 2 - dayGames.length).map((g) => (
-                              <div key={g.id} className="p-1.5 rounded text-xs shadow-sm border border-transparent bg-purple-600 text-white">
+                              <div key={g.id} className="p-1.5 rounded text-xs shadow-xs border border-transparent bg-purple-600 text-white">
                                 <div className="font-bold truncate">{g.organization || 'Independent'}</div>
                                 <div className="opacity-90 text-[10px] font-medium">Indep.{g.time ? ` · ${g.time}` : ''}</div>
                               </div>
@@ -485,7 +485,7 @@ export default function Calendar() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="calendar-upcoming-games-card">
+          <Card className="glass-effect border-slate-200 shadow-xs" data-testid="calendar-upcoming-games-card">
             <CardHeader>
               <CardTitle className="text-slate-900">Upcoming Games This Month</CardTitle>
               <CardDescription className="text-slate-600">
@@ -608,7 +608,7 @@ export default function Calendar() {
                 {selectedDateGames.map(game => {
                   const statusInfo = getStatusInfo(game.status);
                   return (
-                    <div key={game.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 shadow-sm">
+                    <div key={game.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 shadow-xs">
                       <div className="flex justify-between items-start">
                         <h4 className="text-slate-900 font-bold flex-1 pr-2 text-lg">
                           {game.homeTeam} vs {game.awayTeam}
@@ -648,7 +648,7 @@ export default function Calendar() {
                   <div className="h-px flex-1 bg-slate-200" />
                 </div>
                 {selectedDateIndGames.map(g => (
-                  <div key={g.id} className="p-4 bg-purple-50 rounded-lg border border-purple-200 shadow-sm">
+                  <div key={g.id} className="p-4 bg-purple-50 rounded-lg border border-purple-200 shadow-xs">
                     <div className="flex justify-between items-start mb-2">
                       <h4 className="text-slate-900 font-bold flex-1 pr-2">
                         {g.organization || 'Independent Game'}

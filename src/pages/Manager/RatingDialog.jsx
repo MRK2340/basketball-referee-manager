@@ -9,10 +9,10 @@ import { useData } from '@/contexts/DataContext';
 const StarRating = ({ value, onChange }) => (
   <div className="flex items-center gap-1">
     {[1, 2, 3, 4, 5].map((star) => (
-      <button key={star} type="button" onClick={() => onChange(star)} className="focus:outline-none">
+      <button key={star} type="button" onClick={() => onChange(star)} className="focus:outline-hidden">
         <Star
           className={`h-8 w-8 transition-all hover:scale-110 ${
-            value >= star ? 'text-yellow-400 fill-yellow-400 drop-shadow-sm' : 'text-slate-300 hover:text-yellow-300'
+            value >= star ? 'text-yellow-400 fill-yellow-400 drop-shadow-xs' : 'text-slate-300 hover:text-yellow-300'
           }`}
         />
       </button>

@@ -148,7 +148,7 @@ const MyScheduleTab = ({ games, referees, independentGames = [] }) => {
                     transition={{ delay: index * 0.05 }}
                     data-testid={`schedule-ind-game-${game.id}`}
                   >
-                    <Card className={`border-slate-200 bg-white/80 shadow-sm hover:shadow-md transition-shadow ${isUpcoming ? 'ring-1 ring-brand-blue/20' : ''}`}>
+                    <Card className={`border-slate-200 bg-white/80 shadow-xs hover:shadow-md transition-shadow ${isUpcoming ? 'ring-1 ring-brand-blue/20' : ''}`}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">

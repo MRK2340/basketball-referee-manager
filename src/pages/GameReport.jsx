@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -150,7 +150,7 @@ const GameReport = () => {
                     <Star
                       key={star}
                       className={`h-10 w-10 cursor-pointer transition-all hover:scale-110 ${
-                        professionalismRating >= star ? 'text-yellow-400 fill-yellow-400 drop-shadow-sm' : 'text-slate-300'
+                        professionalismRating >= star ? 'text-yellow-400 fill-yellow-400 drop-shadow-xs' : 'text-slate-300'
                       }`}
                       onClick={() => setProfessionalismRating(star)}
                     />

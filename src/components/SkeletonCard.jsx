@@ -6,7 +6,7 @@ const SkeletonBox = ({ className = '' }) => (
 );
 
 export const SkeletonGameCard = () => (
-  <Card className="glass-effect border-slate-200 shadow-sm">
+  <Card className="glass-effect border-slate-200 shadow-xs">
     <CardContent className="p-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex-1 space-y-3">
@@ -28,7 +28,7 @@ export const SkeletonGameCard = () => (
 );
 
 export const SkeletonStatCard = () => (
-  <Card className="glass-effect border-slate-200 shadow-sm">
+  <Card className="glass-effect border-slate-200 shadow-xs">
     <CardContent className="p-5">
       <div className="flex justify-between items-center">
         <div className="space-y-2 flex-1">

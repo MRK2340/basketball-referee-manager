@@ -26,7 +26,7 @@ const NotificationsSettings = ({ notifications, onNotificationChange, fcm }) => 
       }`}
     >
       <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform ${
           checked ? 'translate-x-6' : 'translate-x-1'
         }`}
       />
@@ -34,7 +34,7 @@ const NotificationsSettings = ({ notifications, onNotificationChange, fcm }) => 
   );
 
   return (
-    <Card className="glass-effect border-slate-200 shadow-sm" data-testid="settings-notifications-card">
+    <Card className="glass-effect border-slate-200 shadow-xs" data-testid="settings-notifications-card">
       <CardHeader>
         <CardTitle className="text-slate-900 flex items-center space-x-2">
           <Bell className="h-5 w-5 text-brand-blue" />
@@ -122,7 +122,7 @@ const NotificationsSettings = ({ notifications, onNotificationChange, fcm }) => 
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform ${
                       notifications.pushNotifications ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />

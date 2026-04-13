@@ -61,7 +61,7 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }) => {
         <div className="py-6 space-y-6">
           {/* Final Score */}
           {game.status === 'completed' && game.homeScore !== undefined && (
-            <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200 text-center">
+            <div className="p-4 bg-linear-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200 text-center">
               <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Final Score</p>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">

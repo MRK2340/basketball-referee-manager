@@ -142,9 +142,9 @@ const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
     <button
       data-testid={`assign-referee-card-${referee.id}`}
       onClick={() => onSelect(referee)}
-      className={`w-full text-left rounded-xl border-2 p-3 transition-all duration-150 hover:shadow-sm ${
+      className={`w-full text-left rounded-xl border-2 p-3 transition-all duration-150 hover:shadow-xs ${
         isSelected
-          ? 'border-brand-blue bg-blue-50 shadow-sm'
+          ? 'border-brand-blue bg-blue-50 shadow-xs'
           : `${cfg.border} ${cfg.bg} hover:border-slate-300`
       }`}
     >
@@ -152,14 +152,14 @@ const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
         <img
           src={referee.avatarUrl}
           alt={referee.name}
-          className="h-10 w-10 rounded-full ring-2 ring-white shadow-sm flex-shrink-0"
+          className="h-10 w-10 rounded-full ring-2 ring-white shadow-xs shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-1">
             <p className={`font-semibold text-sm truncate ${isSelected ? 'text-brand-blue' : 'text-slate-900'}`}>
               {referee.name}
             </p>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               <Star className="h-3.5 w-3.5 text-yellow-400 fill-current" />
               <span className="text-xs font-bold text-slate-700">{referee.rating?.toFixed(1)}</span>
             </div>
@@ -175,7 +175,7 @@ const RefereeCard = ({ referee, game, allGames, isSelected, onSelect }) => {
             <span className="text-xs text-slate-500">{referee.gamesOfficiated} games</span>
           </div>
         </div>
-        {isSelected && <ChevronRight className="h-4 w-4 text-brand-blue flex-shrink-0" />}
+        {isSelected && <ChevronRight className="h-4 w-4 text-brand-blue shrink-0" />}
       </div>
 
       {/* Conflict detail inline */}
@@ -295,7 +295,7 @@ const AssignRefereeDialog = ({ open, setOpen, game, referees, games, onAssign })
               className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-2.5"
               data-testid="best-fit-referee-banner"
             >
-              <Trophy className="h-4 w-4 text-green-600 flex-shrink-0" />
+              <Trophy className="h-4 w-4 text-green-600 shrink-0" />
               <p className="text-sm text-green-800 font-medium">
                 <strong>{bestFit.name}</strong> is the best match — available, certified, and rated{' '}
                 {bestFit.rating?.toFixed(1)}.

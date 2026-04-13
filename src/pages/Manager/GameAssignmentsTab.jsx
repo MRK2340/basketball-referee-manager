@@ -143,7 +143,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
 
   return (
     <>
-      <Card className="glass-effect border-slate-200 shadow-sm" data-testid="manager-game-assignments-card">
+      <Card className="glass-effect border-slate-200 shadow-xs" data-testid="manager-game-assignments-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -251,7 +251,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                           {conflictLevel && (
                             <span
                               data-testid={`game-conflict-indicator-${game.id}`}
-                              className={`flex-shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold mt-0.5 ${
+                              className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold mt-0.5 ${
                                 conflictLevel === 'conflict'
                                   ? 'bg-orange-100 text-orange-700 border-orange-200'
                                   : 'bg-red-100 text-red-700 border-red-200'
@@ -276,7 +276,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                             ? game.assignments.map((assignment) => (
                                 <div
                                   key={assignment.id}
-                                  className="flex items-center flex-wrap bg-slate-100 text-slate-800 border border-slate-200 rounded-full px-2 py-1 text-xs font-bold shadow-sm gap-0.5"
+                                  className="flex items-center flex-wrap bg-slate-100 text-slate-800 border border-slate-200 rounded-full px-2 py-1 text-xs font-bold shadow-xs gap-0.5"
                                 >
                                   <span>{assignment.referee?.name || '...'}</span>
                                   {getAssignmentStatusBadge(assignment.status)}
@@ -302,7 +302,7 @@ const GameAssignmentsTab = ({ games, referees, assignRefereeToGame, unassignRefe
                             <Button
                               size="sm"
                               data-testid={`manager-assign-referee-${game.id}`}
-                              className="basketball-gradient hover:opacity-90 text-white shadow-sm font-semibold"
+                              className="basketball-gradient hover:opacity-90 text-white shadow-xs font-semibold"
                               onClick={() => handleOpenAssignDialog(game)}
                             >
                               Assign

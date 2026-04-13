@@ -38,7 +38,7 @@ const ReportDetailsDialog = ({ open, setOpen, report, onResolve }) => {
 
         <div className="mt-2 space-y-4 max-h-[60vh] overflow-y-auto pr-1">
           {/* Final Score */}
-          <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200 text-center">
+          <div className="p-4 bg-linear-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200 text-center">
             <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Final Score</p>
             <p className="text-2xl font-black text-slate-900">
               {report.homeScore} – {report.awayScore}
@@ -195,7 +195,7 @@ const GameReportsTab = ({ gameReports }) => {
 
   if (gameReports.length === 0) {
     return (
-      <Card className="glass-effect border-slate-200 shadow-sm mt-4" data-testid="manager-game-reports-card">
+      <Card className="glass-effect border-slate-200 shadow-xs mt-4" data-testid="manager-game-reports-card">
         <CardContent className="p-12 text-center">
           <FileText className="h-14 w-14 text-slate-300 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-slate-900 mb-2">No Reports Yet</h3>
@@ -207,7 +207,7 @@ const GameReportsTab = ({ gameReports }) => {
 
   return (
     <>
-      <Card className="glass-effect border-slate-200 shadow-sm mt-4" data-testid="manager-game-reports-card">
+      <Card className="glass-effect border-slate-200 shadow-xs mt-4" data-testid="manager-game-reports-card">
         <CardHeader>
           <CardTitle className="text-slate-900">Game Reports</CardTitle>
           <CardDescription className="text-slate-600">Review and resolve post-game reports submitted by referees.</CardDescription>

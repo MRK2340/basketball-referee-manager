@@ -73,7 +73,7 @@ const StandingsTab = ({ tournaments, games }) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="glass-effect border-slate-200 shadow-sm">
+        <Card className="glass-effect border-slate-200 shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-blue-100"><Trophy className="h-5 w-5 text-brand-blue" /></div>
             <div>
@@ -82,7 +82,7 @@ const StandingsTab = ({ tournaments, games }) => {
             </div>
           </CardContent>
         </Card>
-        <Card className="glass-effect border-slate-200 shadow-sm">
+        <Card className="glass-effect border-slate-200 shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-green-100"><TrendingUp className="h-5 w-5 text-green-600" /></div>
             <div>
@@ -91,7 +91,7 @@ const StandingsTab = ({ tournaments, games }) => {
             </div>
           </CardContent>
         </Card>
-        <Card className="glass-effect border-slate-200 shadow-sm">
+        <Card className="glass-effect border-slate-200 shadow-xs">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-orange-100"><Target className="h-5 w-5 text-orange-600" /></div>
             <div>
@@ -102,7 +102,7 @@ const StandingsTab = ({ tournaments, games }) => {
         </Card>
       </div>
 
-      <Card className="glass-effect border-slate-200 shadow-sm">
+      <Card className="glass-effect border-slate-200 shadow-xs">
         <CardHeader>
           <CardTitle className="text-slate-900">Team Standings</CardTitle>
           <CardDescription className="text-slate-600">Sorted by wins, then point differential</CardDescription>
@@ -166,7 +166,7 @@ const StandingsTab = ({ tournaments, games }) => {
       </Card>
 
       {completedGames.length > 0 && (
-        <Card className="glass-effect border-slate-200 shadow-sm">
+        <Card className="glass-effect border-slate-200 shadow-xs">
           <CardHeader>
             <CardTitle className="text-slate-900">Game Results</CardTitle>
             <CardDescription className="text-slate-600">Completed game scores for this tournament</CardDescription>

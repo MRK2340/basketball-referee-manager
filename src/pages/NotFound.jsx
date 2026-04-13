@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { Home, ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -19,7 +19,7 @@ const NotFound = () => {
             transition={{ duration: 0.5 }}
             className="bg-white p-12 rounded-3xl shadow-xl border border-slate-100"
           >
-            <h1 className="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-orange drop-shadow-sm">
+            <h1 className="text-9xl font-black text-transparent bg-clip-text bg-linear-to-r from-brand-blue to-brand-orange drop-shadow-xs">
               404
             </h1>
             <h2 className="text-3xl font-bold text-slate-900 mt-6 mb-3">Out of Bounds!</h2>

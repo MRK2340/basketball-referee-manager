@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ const AboutPage = () => {
         <meta name="description" content="Learn about the mission and vision behind iWhistle, the leading platform for basketball officiating." />
       </Helmet>
       <div className="min-h-screen text-white animated-background">
-        <header className="container mx-auto px-6 py-4 flex justify-between items-center backdrop-blur-sm bg-black/20 sticky top-0 z-50">
+        <header className="container mx-auto px-6 py-4 flex justify-between items-center backdrop-blur-xs bg-black/20 sticky top-0 z-50">
           <Link to="/" className="text-2xl font-bold flex items-center">
             <div className="w-8 h-8 mr-2">
               <img  alt="iWhistle logo" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 5px rgba(255,107,53,0.7))' }} src="https://images.unsplash.com/photo-1633335380138-a64bcef84efe" />

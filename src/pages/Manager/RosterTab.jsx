@@ -21,7 +21,7 @@ const RefereeProfileCard = ({ referee, connection, isDark }) => {
         <img
           src={referee.avatarUrl}
           alt={referee.name}
-          className="h-12 w-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-white shadow-sm"
+          className="h-12 w-12 rounded-xl object-cover shrink-0 ring-2 ring-white shadow-xs"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -74,13 +74,13 @@ const RefereeProfileCard = ({ referee, connection, isDark }) => {
           >
             {referee.phone && (
               <div className="flex items-center gap-2">
-                <Phone className="h-3 w-3 flex-shrink-0" />
+                <Phone className="h-3 w-3 shrink-0" />
                 {referee.phone}
               </div>
             )}
             {referee.email && (
               <div className="flex items-center gap-2">
-                <Mail className="h-3 w-3 flex-shrink-0" />
+                <Mail className="h-3 w-3 shrink-0" />
                 {referee.email}
               </div>
             )}
@@ -105,7 +105,7 @@ const RequestCard = ({ request, referee, onAccept, onDecline, isDark }) => (
       <img
         src={referee?.avatarUrl}
         alt={referee?.name}
-        className="h-12 w-12 rounded-xl object-cover flex-shrink-0 ring-2 ring-white shadow-sm"
+        className="h-12 w-12 rounded-xl object-cover shrink-0 ring-2 ring-white shadow-xs"
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">

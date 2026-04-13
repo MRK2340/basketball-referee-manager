@@ -158,7 +158,7 @@ export const IndependentGamesTab = () => {
               transition={{ delay: i * 0.08 }}
               data-testid={`ind-stat-${stat.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
             >
-              <Card className="glass-effect border-slate-200 shadow-sm">
+              <Card className="glass-effect border-slate-200 shadow-xs">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className={`p-2.5 rounded-xl ${stat.bg}`}>
@@ -219,7 +219,7 @@ export const IndependentGamesTab = () => {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 border border-blue-100"
         data-testid="ind-export-banner"
       >
         <div className="flex items-center gap-3">
@@ -287,7 +287,7 @@ export const IndependentGamesTab = () => {
             exit={{ opacity: 0 }}
             data-testid="ind-empty-state"
           >
-            <Card className="glass-effect border-slate-200 border-dashed shadow-sm">
+            <Card className="glass-effect border-slate-200 border-dashed shadow-xs">
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <ClipboardList className="h-14 w-14 text-slate-300 mb-4" />
                 <h3 className="text-slate-700 font-semibold text-lg mb-1">
@@ -321,7 +321,7 @@ export const IndependentGamesTab = () => {
                 transition={{ delay: index * 0.04 }}
                 data-testid={`ind-game-card-${game.id}`}
               >
-                <Card className={`glass-effect border-slate-200 shadow-sm hover:shadow-md transition-shadow ${upcoming ? 'ring-1 ring-brand-blue/30' : ''}`}>
+                <Card className={`glass-effect border-slate-200 shadow-xs hover:shadow-md transition-shadow ${upcoming ? 'ring-1 ring-brand-blue/30' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">

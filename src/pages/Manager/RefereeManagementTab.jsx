@@ -15,7 +15,7 @@ const RefereeManagementTab = ({ referees }) => {
   };
 
   return (
-    <Card className="glass-effect border-slate-200 shadow-sm" data-testid="manager-referees-card">
+    <Card className="glass-effect border-slate-200 shadow-xs" data-testid="manager-referees-card">
       <CardHeader>
         <CardTitle className="text-slate-900">Referee Management</CardTitle>
         <CardDescription className="text-slate-600">View and manage all registered referees.</CardDescription>

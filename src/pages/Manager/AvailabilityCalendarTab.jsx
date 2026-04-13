@@ -67,7 +67,7 @@ const ConflictSummaryPanel = ({ conflicts, isDark }) => {
         onClick={() => setOpen(o => !o)}
       >
         <div className="flex items-center gap-2">
-          <div className="relative flex-shrink-0">
+          <div className="relative shrink-0">
             <AlertTriangle className={`h-5 w-5 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
             <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
@@ -106,7 +106,7 @@ const ConflictSummaryPanel = ({ conflicts, isDark }) => {
                   }`}
                   data-testid={`conflict-item-${c.refereeId}-${format(c.day, 'yyyy-MM-dd')}`}
                 >
-                  <AlertTriangle className={`h-4 w-4 flex-shrink-0 mt-0.5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
+                  <AlertTriangle className={`h-4 w-4 shrink-0 mt-0.5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
                   <div className="min-w-0">
                     <p className={`text-sm font-bold ${isDark ? 'text-red-200' : 'text-red-700'}`}>
                       {c.refereeName} — {format(c.day, 'EEEE, MMM d')}
@@ -181,7 +181,7 @@ const QuickAssignPopover = ({ referee, day, openGames, existingGames, onAssign }
         {hasConflict && (
           <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-2.5" data-testid={`popover-conflict-warning-${referee.id}`}>
             <div className="flex items-start gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
               <div>
                 <p className="text-xs font-bold text-red-700">Scheduling Conflict</p>
                 <p className="text-xs text-red-600 mt-0.5">Already assigned to:</p>
@@ -342,7 +342,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
               ))}
             </SelectContent>
           </Select>
-          <div className={`flex items-center gap-1 border rounded-xl p-1 shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
+          <div className={`flex items-center gap-1 border rounded-xl p-1 shadow-xs ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
             <Button size="sm" variant="ghost" onClick={() => setWeekOffset((w) => w - 1)} className={`h-7 w-7 p-0 rounded-lg ${isDark ? 'text-blue-200 hover:bg-white/10' : 'hover:bg-slate-100'}`} data-testid="avail-prev-week">
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -389,9 +389,9 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
         ].map((s) => {
           const Icon = s.icon;
           return (
-            <Card key={s.label} className={`border shadow-sm ${isDark ? 'bg-[#002849] border-white/10' : 'bg-white border-slate-200'}`} data-testid={s.testId}>
+            <Card key={s.label} className={`border shadow-xs ${isDark ? 'bg-[#002849] border-white/10' : 'bg-white border-slate-200'}`} data-testid={s.testId}>
               <CardContent className="p-3 flex items-center gap-2.5">
-                <div className={`p-2 rounded-lg ${s.bg} flex-shrink-0 relative`}>
+                <div className={`p-2 rounded-lg ${s.bg} shrink-0 relative`}>
                   <Icon className={`h-4 w-4 ${s.color}`} />
                   {s.label === 'Conflicts' && weekConflicts.length > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
@@ -428,7 +428,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
       </div>
 
       {/* Calendar Grid */}
-      <div className={`rounded-2xl border overflow-hidden shadow-sm ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+      <div className={`rounded-2xl border overflow-hidden shadow-xs ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
         <div className="overflow-x-auto">
           <div style={{ minWidth: 720 }}>
             {/* Header row */}
@@ -443,7 +443,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`p-3 text-center border-r ${headerBg} ${isToday ? (isDark ? '!bg-blue-900/30' : '!bg-blue-50') : ''}`}
+                    className={`p-3 text-center border-r ${headerBg} ${isToday ? (isDark ? 'bg-blue-900/30!' : 'bg-blue-50!') : ''}`}
                     data-testid={`avail-day-header-${format(day, 'yyyy-MM-dd')}`}
                   >
                     <p className={`text-xs font-bold uppercase tracking-wider ${isToday ? 'text-brand-blue' : textHead}`}>
@@ -492,7 +492,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
                 >
                   {/* Referee name cell */}
                   <div className={`p-3 border-r flex items-center gap-2.5 ${nameCellBg}`}>
-                    <Avatar className="h-8 w-8 flex-shrink-0">
+                    <Avatar className="h-8 w-8 shrink-0">
                       <AvatarFallback className={`text-xs ${isDark ? 'bg-blue-900 text-blue-200' : 'bg-slate-200 text-slate-700'}`}>
                         {referee.name?.charAt(0)}
                       </AvatarFallback>
@@ -532,7 +532,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
                           </span>
                         )}
 
-                        <Icon className={`h-5 w-5 ${cfg.iconColor} flex-shrink-0 relative z-10`} />
+                        <Icon className={`h-5 w-5 ${cfg.iconColor} shrink-0 relative z-10`} />
                         <span className={`text-[10px] font-semibold ${cfg.iconColor} leading-none relative z-10`}>
                           {cfg.label}
                         </span>

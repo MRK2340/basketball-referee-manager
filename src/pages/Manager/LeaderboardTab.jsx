@@ -128,7 +128,7 @@ const LeaderboardTab = ({ referees, games }) => {
         ].map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} className="glass-effect border-slate-200 shadow-sm">
+            <Card key={stat.label} className="glass-effect border-slate-200 shadow-xs">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${stat.bg}`}><Icon className={`h-5 w-5 ${stat.color}`} /></div>
                 <div>
@@ -141,7 +141,7 @@ const LeaderboardTab = ({ referees, games }) => {
         })}
       </div>
 
-      <Card className="glass-effect border-slate-200 shadow-sm">
+      <Card className="glass-effect border-slate-200 shadow-xs">
         <CardContent className="p-0">
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <Table>

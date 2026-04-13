@@ -46,7 +46,7 @@ const NotificationItem = ({ notification, onRead }) => {
         !notification.read ? 'bg-blue-50/40' : ''
       }`}
     >
-      <div className={`flex-shrink-0 h-9 w-9 rounded-xl flex items-center justify-center ${cfg.bg}`}>
+      <div className={`shrink-0 h-9 w-9 rounded-xl flex items-center justify-center ${cfg.bg}`}>
         <Icon className={`h-4 w-4 ${cfg.color}`} />
       </div>
       <div className="flex-1 min-w-0">
@@ -55,7 +55,7 @@ const NotificationItem = ({ notification, onRead }) => {
             {notification.title}
           </p>
           {!notification.read && (
-            <span className="flex-shrink-0 h-2 w-2 rounded-full bg-brand-orange" />
+            <span className="shrink-0 h-2 w-2 rounded-full bg-brand-orange" />
           )}
         </div>
         <p className="text-xs text-slate-500 truncate mb-1">{notification.body}</p>
@@ -79,7 +79,7 @@ const NotificationPanel = ({ open, onOpenChange }) => {
         className="w-full sm:w-96 p-0 flex flex-col bg-white"
         data-testid="notification-panel"
       >
-        <SheetHeader className="px-5 py-4 border-b border-slate-200 bg-white flex-shrink-0">
+        <SheetHeader className="px-5 py-4 border-b border-slate-200 bg-white shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <SheetTitle className="text-slate-900 text-lg font-bold">Notifications</SheetTitle>

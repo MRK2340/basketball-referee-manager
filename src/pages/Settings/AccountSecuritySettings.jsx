@@ -10,7 +10,7 @@ import {
 
 const AccountSecuritySettings = ({ onFeatureClick }) => {
   return (
-    <Card className="glass-effect border-slate-200 shadow-sm" data-testid="settings-account-security-card">
+    <Card className="glass-effect border-slate-200 shadow-xs" data-testid="settings-account-security-card">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2 text-slate-900">
           <Shield className="h-5 w-5 text-red-500" />

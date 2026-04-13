@@ -11,7 +11,7 @@ const NoGamesFound = ({ userRole, hasFilter, onScheduleGame }) => {
       animate={{ opacity: 1 }}
       transition={{ delay: 0.1 }}
     >
-      <Card className="glass-effect border-slate-200 shadow-sm">
+      <Card className="glass-effect border-slate-200 shadow-xs">
         <CardContent className="p-12 text-center">
           {hasFilter ? (
             <Search className="h-14 w-14 text-slate-300 mx-auto mb-4" />

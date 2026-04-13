@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -84,7 +84,7 @@ const PerformanceAnalytics = () => {
         </motion.div>
 
         <div className={`grid gap-4 ${acceptanceRate !== null ? 'grid-cols-1 md:grid-cols-4' : 'grid-cols-1 md:grid-cols-3'}`}>
-            <Card className="glass-effect border-slate-200 shadow-sm">
+            <Card className="glass-effect border-slate-200 shadow-xs">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Total Earnings</CardTitle>
                     <DollarSign className="h-5 w-5 text-green-600" />
@@ -93,7 +93,7 @@ const PerformanceAnalytics = () => {
                     <div className="text-3xl font-black text-slate-900">${totalEarnings.toFixed(2)}</div>
                 </CardContent>
             </Card>
-             <Card className="glass-effect border-slate-200 shadow-sm">
+             <Card className="glass-effect border-slate-200 shadow-xs">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Total Games</CardTitle>
                     <Trophy className="h-5 w-5 text-brand-blue" />
@@ -102,7 +102,7 @@ const PerformanceAnalytics = () => {
                     <div className="text-3xl font-black text-slate-900">{totalGames}</div>
                 </CardContent>
             </Card>
-             <Card className="glass-effect border-slate-200 shadow-sm">
+             <Card className="glass-effect border-slate-200 shadow-xs">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Average Rating</CardTitle>
                     <Star className="h-5 w-5 text-brand-orange" />
@@ -112,7 +112,7 @@ const PerformanceAnalytics = () => {
                 </CardContent>
             </Card>
             {acceptanceRate !== null && (
-              <Card className="glass-effect border-slate-200 shadow-sm">
+              <Card className="glass-effect border-slate-200 shadow-xs">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-bold text-slate-600 uppercase tracking-wider">Acceptance Rate</CardTitle>
                     <TrendingUp className="h-5 w-5 text-brand-blue" />
@@ -126,7 +126,7 @@ const PerformanceAnalytics = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="glass-effect border-slate-200 shadow-sm">
+            <Card className="glass-effect border-slate-200 shadow-xs">
               <CardHeader>
                 <CardTitle className="text-slate-900">Monthly Earnings</CardTitle>
                 <CardDescription className="text-slate-600">Your total income per month.</CardDescription>
@@ -146,7 +146,7 @@ const PerformanceAnalytics = () => {
           </motion.div>
           
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="glass-effect border-slate-200 shadow-sm">
+            <Card className="glass-effect border-slate-200 shadow-xs">
               <CardHeader>
                 <CardTitle className="text-slate-900">Games Per Month</CardTitle>
                 <CardDescription className="text-slate-600">Number of games officiated each month.</CardDescription>
@@ -167,7 +167,7 @@ const PerformanceAnalytics = () => {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="glass-effect border-slate-200 shadow-sm">
+            <Card className="glass-effect border-slate-200 shadow-xs">
               <CardHeader>
                 <CardTitle className="text-slate-900">Rating Distribution</CardTitle>
                 <CardDescription className="text-slate-600">Breakdown of professionalism ratings from game reports.</CardDescription>

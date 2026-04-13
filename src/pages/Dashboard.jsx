@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -126,7 +126,7 @@ const Dashboard = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="glass-effect border-slate-200 hover:-translate-y-0.5 transition-all duration-300 shadow-sm" data-testid={`dashboard-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+                  <Card className="glass-effect border-slate-200 hover:-translate-y-0.5 transition-all duration-300 shadow-xs" data-testid={`dashboard-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
                     <CardContent className="p-5">
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -147,7 +147,7 @@ const Dashboard = () => {
 
         <div className="grid lg:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="glass-effect border-slate-200 shadow-sm" data-testid="dashboard-upcoming-games-card">
+            <Card className="glass-effect border-slate-200 shadow-xs" data-testid="dashboard-upcoming-games-card">
               <CardHeader>
                 <CardTitle className="text-slate-900 flex items-center space-x-2">
                   <Calendar className="h-5 w-5 text-brand-orange" />
@@ -202,7 +202,7 @@ const Dashboard = () => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="glass-effect border-slate-200 shadow-sm" data-testid="dashboard-recent-payments-card">
+            <Card className="glass-effect border-slate-200 shadow-xs" data-testid="dashboard-recent-payments-card">
               <CardHeader>
                 <CardTitle className="text-slate-900 flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5 text-green-600" />
@@ -255,7 +255,7 @@ const Dashboard = () => {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="dashboard-quick-actions-card">
+          <Card className="glass-effect border-slate-200 shadow-xs" data-testid="dashboard-quick-actions-card">
             <CardHeader>
               <CardTitle className="text-slate-900">Quick Actions</CardTitle>
               <CardDescription className="text-slate-600">
@@ -307,7 +307,7 @@ const Dashboard = () => {
 
         {/* Live Activity Feed */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="dashboard-activity-feed-card">
+          <Card className="glass-effect border-slate-200 shadow-xs" data-testid="dashboard-activity-feed-card">
             <CardHeader>
               <CardTitle className="text-slate-900 flex items-center gap-2">
                 <Activity className="h-5 w-5 text-brand-blue" />
@@ -341,7 +341,7 @@ const Dashboard = () => {
                         className="relative flex gap-4 pb-5 last:pb-0"
                         data-testid={`dashboard-activity-${item.id}`}
                       >
-                        <div className={`relative z-10 flex-shrink-0 w-10 h-10 rounded-full ${cfg.bg} flex items-center justify-center shadow-sm`}>
+                        <div className={`relative z-10 shrink-0 w-10 h-10 rounded-full ${cfg.bg} flex items-center justify-center shadow-xs`}>
                           <Icon className={`h-4 w-4 ${cfg.color}`} />
                         </div>
                         <div className="flex-1 pt-1.5">
@@ -350,9 +350,9 @@ const Dashboard = () => {
                               <p className="font-semibold text-slate-900 text-sm">{item.title}</p>
                               <p className="text-slate-600 text-sm mt-0.5">{item.body}</p>
                             </div>
-                            <div className="flex-shrink-0 flex items-center gap-2 mt-0.5">
+                            <div className="shrink-0 flex items-center gap-2 mt-0.5">
                               {!item.read && (
-                                <span className="inline-block w-2 h-2 rounded-full bg-brand-orange flex-shrink-0" />
+                                <span className="inline-block w-2 h-2 rounded-full bg-brand-orange shrink-0" />
                               )}
                               <span className="text-xs text-slate-400 whitespace-nowrap">{timeAgo}</span>
                             </div>

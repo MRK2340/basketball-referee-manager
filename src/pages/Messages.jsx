@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -156,7 +156,7 @@ const Messages = () => {
             transition={{ delay: 0.1 }}
             className="lg:col-span-1"
           >
-            <Card className="glass-effect border-slate-200 h-full flex flex-col shadow-sm">
+            <Card className="glass-effect border-slate-200 h-full flex flex-col shadow-xs">
               <CardHeader>
                 <CardTitle className="text-slate-900 flex items-center space-x-2">
                   <MessageSquare className="h-5 w-5 text-brand-blue" />
@@ -173,8 +173,8 @@ const Messages = () => {
                   />
                 </div>
               </CardHeader>
-              <CardContent className="p-0 flex-grow overflow-hidden flex flex-col">
-                <div className="flex-grow overflow-y-auto scrollbar-hide">
+              <CardContent className="p-0 grow overflow-hidden flex flex-col">
+                <div className="grow overflow-y-auto scrollbar-hide">
                   {filteredMessages.length > 0 ? (
                     filteredMessages.map((message) => (
                       <div
@@ -208,7 +208,7 @@ const Messages = () => {
                   )}
                 </div>
                 {hasMoreMessages && !searchTerm && (
-                  <div className="p-3 border-t border-slate-100 flex-shrink-0">
+                  <div className="p-3 border-t border-slate-100 shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
@@ -239,7 +239,7 @@ const Messages = () => {
             className="lg:col-span-2"
           >
             {showCompose ? (
-              <Card className="glass-effect border-slate-200 h-full shadow-sm">
+              <Card className="glass-effect border-slate-200 h-full shadow-xs">
                 <CardHeader>
                   <CardTitle className="text-slate-900">{composeTitles[composeMode]}</CardTitle>
                   <CardDescription className="text-slate-600">
@@ -269,7 +269,7 @@ const Messages = () => {
                           setNewRecipientId(opt?.id || null);
                           setNewRecipientName(opt?.name || '');
                         }}
-                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       >
                         {recipientOptions.length === 0 ? (
                           <option value="">No contacts available</option>
@@ -299,7 +299,7 @@ const Messages = () => {
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Type your message here..."
                       rows={8}
-                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-blue resize-none scrollbar-hide"
+                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-brand-blue resize-none scrollbar-hide"
                     />
                   </div>
                   <div className="flex space-x-3">
@@ -323,7 +323,7 @@ const Messages = () => {
                 </CardContent>
               </Card>
             ) : selectedMessage ? (
-              <Card className="glass-effect border-slate-200 h-full flex flex-col shadow-sm">
+              <Card className="glass-effect border-slate-200 h-full flex flex-col shadow-xs">
                 <CardHeader>
                   <CardTitle className="text-slate-900">{selectedMessage.subject}</CardTitle>
                   <CardDescription className="text-slate-600 mt-1">
@@ -331,7 +331,7 @@ const Messages = () => {
                     {new Date(selectedMessage.timestamp).toLocaleString()}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-grow overflow-hidden">
+                <CardContent className="grow overflow-hidden">
                   <div className="prose max-w-none text-slate-800 leading-relaxed whitespace-pre-wrap h-full overflow-y-auto scrollbar-hide">
                     {selectedMessage.content}
                   </div>
@@ -359,7 +359,7 @@ const Messages = () => {
                 </div>
               </Card>
             ) : (
-              <Card className="glass-effect border-slate-200 h-full shadow-sm">
+              <Card className="glass-effect border-slate-200 h-full shadow-xs">
                 <CardContent className="p-12 text-center flex flex-col justify-center items-center h-full">
                   <MessageSquare className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-slate-900 mb-2">Select a Message</h3>

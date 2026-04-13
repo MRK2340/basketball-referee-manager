@@ -27,7 +27,7 @@
   "code_review": {
     "constants.js": "PASS — All 6 enums with Object.freeze() — matches test expectations exactly",
     "mappers.js": "PASS — All 8 pure mapper functions with correct field mappings and safe defaults",
-    "Messages.jsx": "PASS — Correctly destructures hasMoreMessages + loadMoreMessages from useData(). Load More button renders at bottom of CardContent inside flex-shrink-0 div, correctly guarded by {hasMoreMessages && !searchTerm}. data-testid='messages-load-more-button' present. disabled={refreshing} during loading. loadMoreMessages called with (messages, referees, managerProfiles) args matching useDataFetching signature",
+    "Messages.jsx": "PASS — Correctly destructures hasMoreMessages + loadMoreMessages from useData(). Load More button renders at bottom of CardContent inside shrink-0 div, correctly guarded by {hasMoreMessages && !searchTerm}. data-testid='messages-load-more-button' present. disabled={refreshing} during loading. loadMoreMessages called with (messages, referees, managerProfiles) args matching useDataFetching signature",
     "DataContext.jsx": "PASS — hasMoreMessages + loadMoreMessages destructured from useDataFetching and included in context value object",
     "useDataFetching.js": "PASS — hasMoreMessages state initialized false. fetchData sets hasMoreMessages=(data.messages.length === MESSAGE_PAGE_SIZE). loadMoreMessages callback fetches next page via fetchMoreMessages, appends to messages state, updates hasMoreMessages. Both exported in return object",
     "firestoreService.js": "PASS — fetchMoreMessages function present at bottom, uses startAfter(afterTimestamp) + limit(50) for cursor-based pagination. Returns mapped messages via safeHandle wrapper"

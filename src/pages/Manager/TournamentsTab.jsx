@@ -88,7 +88,7 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className="glass-effect border-slate-200 shadow-sm" data-testid="manager-tournaments-card">
+      <Card className="glass-effect border-slate-200 shadow-xs" data-testid="manager-tournaments-card">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>

@@ -19,7 +19,7 @@ const AcceptConflictWarningDialog = ({ open, onOpenChange, conflictInfo, onAccep
       <AlertDialogContent data-testid="accept-conflict-warning-dialog" className="bg-white border-slate-200">
         <AlertDialogHeader>
           <div className="flex items-center gap-3 mb-1">
-            <div className="h-10 w-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
               <AlertTriangle className="h-5 w-5 text-orange-600" />
             </div>
             <AlertDialogTitle className="text-slate-900">

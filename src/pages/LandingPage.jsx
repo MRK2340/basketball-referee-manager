@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ const FeatureCard = ({ icon, label, title, description, delay }) => (
     transition={{ duration: 0.5, delay }}
   >
     <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4 mb-6">
-        <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 shadow-sm shrink-0">
+        <div className="flex items-center justify-center h-16 w-16 rounded-xl bg-slate-50 border border-slate-100 shadow-xs shrink-0">
           {icon}
         </div>
         {label && (
@@ -33,7 +33,7 @@ const FeatureCard = ({ icon, label, title, description, delay }) => (
 
 const HowItWorksStep = ({ icon, label, title, description, delay, colorClass }) => (
   <motion.div
-    className="flex flex-col items-center text-center p-8 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+    className="flex flex-col items-center text-center p-8 bg-slate-50 rounded-2xl border border-slate-100 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden"
     initial={{ opacity: 0, y: 50 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
@@ -62,7 +62,7 @@ const TestimonialCard = ({ avatar, name, role, quote, delay }) => (
     transition={{ duration: 0.5, delay }}
   >
     <div className="flex items-center mb-6">
-      <img  alt={avatar} className="w-14 h-14 rounded-full mr-4 border-2 border-brand-orange shadow-sm object-cover" src="https://images.unsplash.com/photo-1653055270282-029e5ba3e3a6" />
+      <img  alt={avatar} className="w-14 h-14 rounded-full mr-4 border-2 border-brand-orange shadow-xs object-cover" src="https://images.unsplash.com/photo-1653055270282-029e5ba3e3a6" />
       <div>
         <p className="font-bold text-slate-900 text-lg">{name}</p>
         <p className="text-sm font-medium text-brand-orange">{role}</p>
@@ -70,7 +70,7 @@ const TestimonialCard = ({ avatar, name, role, quote, delay }) => (
     </div>
     <p className="text-slate-700 italic leading-relaxed mb-4">"{quote}"</p>
     <div className="flex">
-      {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 text-yellow-400 fill-yellow-400 drop-shadow-sm" />)}
+      {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 text-yellow-400 fill-yellow-400 drop-shadow-xs" />)}
     </div>
   </motion.div>
 );
@@ -105,7 +105,7 @@ const LandingPage = () => {
         <div className="relative z-10">
           <header className="container mx-auto px-6 py-4 flex justify-between items-center backdrop-blur-md bg-slate-900/80 sticky top-0 z-50 border-b border-slate-800">
             <Link to="/" className="text-2xl font-bold flex items-center">
-              <div className="w-8 h-8 mr-2 bg-white rounded-full p-1 shadow-sm flex items-center justify-center">
+              <div className="w-8 h-8 mr-2 bg-white rounded-full p-1 shadow-xs flex items-center justify-center">
                 <img  alt="iWhistle logo" className="w-full h-full object-contain" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
               </div>
               <span className="font-black tracking-tight" style={{color: '#0080C8'}}>i<span style={{color: '#FF8C00'}}>Whistle</span></span>
@@ -188,12 +188,12 @@ const LandingPage = () => {
             </section>
 
             <section id="how-it-works" className="py-24 bg-white rounded-[3rem] p-8 md:p-16 my-12 shadow-2xl relative overflow-hidden">
-               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-blue via-brand-orange to-brand-blue"></div>
+               <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-brand-blue via-brand-orange to-brand-blue"></div>
               <h2 className="text-4xl md:text-5xl font-bold mb-20 text-slate-900 tracking-tight">Get Started in Minutes</h2>
               <div className="grid md:grid-cols-2 gap-16">
                 <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100">
                   <h3 className="text-3xl font-bold mb-10 text-brand-orange flex items-center justify-center">
-                      <span className="w-10 h-10 rounded-full bg-orange-100 text-brand-orange flex items-center justify-center mr-4 text-xl shadow-sm">1</span>
+                      <span className="w-10 h-10 rounded-full bg-orange-100 text-brand-orange flex items-center justify-center mr-4 text-xl shadow-xs">1</span>
                       For Referees
                   </h3>
                   <div className="space-y-8">
@@ -225,7 +225,7 @@ const LandingPage = () => {
                 </div>
                 <div className="bg-slate-50/50 p-8 rounded-3xl border border-slate-100">
                   <h3 className="text-3xl font-bold mb-10 text-brand-blue flex items-center justify-center">
-                      <span className="w-10 h-10 rounded-full bg-blue-100 text-brand-blue flex items-center justify-center mr-4 text-xl shadow-sm">2</span>
+                      <span className="w-10 h-10 rounded-full bg-blue-100 text-brand-blue flex items-center justify-center mr-4 text-xl shadow-xs">2</span>
                       For Managers
                   </h3>
                    <div className="space-y-8">
@@ -271,7 +271,7 @@ const LandingPage = () => {
               <h2 className="text-3xl md:text-5xl font-bold mb-12 text-white tracking-tight">Frequently Asked Questions</h2>
               <Accordion type="single" collapsible className="w-full text-left space-y-4">
                 {faqs.map((faq, index) => (
-                  <AccordionItem value={`item-${index}`} key={index} className="bg-white border border-slate-200 rounded-xl px-6 py-2 shadow-sm">
+                  <AccordionItem value={`item-${index}`} key={index} className="bg-white border border-slate-200 rounded-xl px-6 py-2 shadow-xs">
                     <AccordionTrigger className="text-xl font-bold text-slate-900 hover:no-underline hover:text-brand-blue transition-colors">
                         <span className="flex items-center text-left">
                             {faq.q}

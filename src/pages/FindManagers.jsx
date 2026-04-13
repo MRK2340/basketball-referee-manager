@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -47,7 +47,7 @@ const ManagerCard = ({ manager, connection, onRequest, onWithdraw, isDark }) => 
         <img
           src={manager.avatarUrl}
           alt={manager.name}
-          className="h-14 w-14 rounded-2xl object-cover ring-2 ring-white shadow-sm flex-shrink-0"
+          className="h-14 w-14 rounded-2xl object-cover ring-2 ring-white shadow-xs shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -65,7 +65,7 @@ const ManagerCard = ({ manager, connection, onRequest, onWithdraw, isDark }) => 
             {manager.leagueName}
           </p>
           <div className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-blue-300/60' : 'text-slate-500'}`}>
-            <MapPin className="h-3 w-3 flex-shrink-0" />
+            <MapPin className="h-3 w-3 shrink-0" />
             {manager.location}
           </div>
         </div>
@@ -79,17 +79,17 @@ const ManagerCard = ({ manager, connection, onRequest, onWithdraw, isDark }) => 
       {/* Stats row */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-blue-200' : 'text-slate-700'}`}>
-          <Star className="h-4 w-4 text-amber-400 fill-amber-400 flex-shrink-0" />
+          <Star className="h-4 w-4 text-amber-400 fill-amber-400 shrink-0" />
           <span className="font-semibold">{manager.rating}</span>
           <span className={`text-xs ${isDark ? 'text-blue-300/50' : 'text-slate-400'}`}>rating</span>
         </div>
         <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-blue-200' : 'text-slate-700'}`}>
-          <Trophy className="h-4 w-4 text-[#FF8C00] flex-shrink-0" />
+          <Trophy className="h-4 w-4 text-[#FF8C00] shrink-0" />
           <span className="font-semibold">{manager.activeTournaments}</span>
           <span className={`text-xs ${isDark ? 'text-blue-300/50' : 'text-slate-400'}`}>active tournaments</span>
         </div>
         <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-blue-200' : 'text-slate-700'}`}>
-          <Shield className="h-4 w-4 text-[#0080C8] flex-shrink-0" />
+          <Shield className="h-4 w-4 text-[#0080C8] shrink-0" />
           <span className="font-semibold">{manager.experience}</span>
         </div>
       </div>
@@ -232,7 +232,7 @@ const FindManagersPage = () => {
             placeholder="Search by name, league, or location…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 ${
+            className={`w-full rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-hidden focus:ring-2 ${
               isDark
                 ? 'bg-white/5 border border-white/10 text-blue-100 placeholder-blue-300/40 focus:ring-blue-500/20'
                 : 'bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-[#0080C8]/20 focus:border-[#0080C8]/40'

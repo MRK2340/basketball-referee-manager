@@ -9,7 +9,7 @@ import {
 
 const SupportSettings = ({ onFeatureClick }) => {
   return (
-    <Card className="glass-effect border-slate-200 shadow-sm" data-testid="settings-support-card">
+    <Card className="glass-effect border-slate-200 shadow-xs" data-testid="settings-support-card">
       <CardHeader>
         <CardTitle className="text-slate-900">Support & Help</CardTitle>
         <CardDescription className="text-slate-600">

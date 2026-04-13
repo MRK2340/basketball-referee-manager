@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -235,7 +235,7 @@ const Payments = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="glass-effect border-slate-200 shadow-sm" data-testid={`payments-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+                <Card className="glass-effect border-slate-200 shadow-xs" data-testid={`payments-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -258,7 +258,7 @@ const Payments = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm" data-testid="payments-filter-card">
+          <Card className="glass-effect border-slate-200 shadow-xs" data-testid="payments-filter-card">
             <CardContent className="p-4">
               <div className="flex flex-wrap gap-2">
                 {[
@@ -270,7 +270,7 @@ const Payments = () => {
                   <Button
                     key={filterOption.key}
                     data-testid={`payments-filter-${filterOption.key}-button`}
-                    variant={filter === filterOption.key ? 'default' : 'outline'}
+                    variant={filter === filterOption.key ? 'default' : 'outline-solid'}
                     size="sm"
                     onClick={() => setFilter(filterOption.key)}
                     className={filter === filterOption.key 
@@ -344,7 +344,7 @@ const Payments = () => {
                   transition={{ delay: 0.1 * (index + 4) }}
                 >
                   <Card
-                    className={`glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-sm ${isChecked ? 'border-brand-blue/40 bg-blue-50/20' : ''}`}
+                    className={`glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-xs ${isChecked ? 'border-brand-blue/40 bg-blue-50/20' : ''}`}
                     data-testid={`payment-row-${payment.id}`}
                   >
                     <CardContent className="p-6">
@@ -439,7 +439,7 @@ const Payments = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
             >
-              <Card className="glass-effect border-slate-200 shadow-sm">
+              <Card className="glass-effect border-slate-200 shadow-xs">
                 <CardContent className="p-12 text-center">
                   <DollarSign className="h-16 w-16 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-slate-900 mb-2">No Payments Found</h3>
@@ -466,7 +466,7 @@ const Payments = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <Card className="glass-effect border-slate-200 shadow-sm">
+          <Card className="glass-effect border-slate-200 shadow-xs">
             <CardHeader>
               <CardTitle className="text-slate-900">Payment Summary</CardTitle>
               <CardDescription className="text-slate-600">

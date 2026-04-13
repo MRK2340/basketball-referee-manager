@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import RouteTracker from '@/components/RouteTracker';
-import { Helmet } from 'react-helmet';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
@@ -35,6 +35,7 @@ const FindManagersPage   = lazy(() => import('@/pages/FindManagers'));
 function App() {
   return (
     <ErrorBoundary>
+      <HelmetProvider>
       <ThemeProvider>
       <Router>
         <Helmet>
@@ -132,6 +133,7 @@ function App() {
         </AuthProvider>
       </Router>
       </ThemeProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

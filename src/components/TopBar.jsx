@@ -51,7 +51,7 @@ const TopBar = ({ onMenuClick }) => {
             </Button>
             
             <div className="flex items-center space-x-2">
-              <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm transition-colors duration-300 ${isDark ? 'border border-white/10 bg-white/10' : 'border border-slate-200 bg-slate-50'}`}>
+              <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-xs transition-colors duration-300 ${isDark ? 'border border-white/10 bg-white/10' : 'border border-slate-200 bg-slate-50'}`}>
                 <img alt="iWhistle logo" className="h-7 w-7" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
               </div>
               <div className="hidden sm:block">
@@ -74,7 +74,7 @@ const TopBar = ({ onMenuClick }) => {
                 onChange={(e) => setSearchValue(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search games or teams, press Enter..."
-                className={`w-full rounded-xl pl-10 pr-4 py-3 placeholder text-sm shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 ${
+                className={`w-full rounded-xl pl-10 pr-4 py-3 placeholder text-sm shadow-xs transition-all duration-200 focus:outline-hidden focus:ring-2 ${
                   isDark
                     ? 'border border-white/10 bg-white/5 text-blue-100 placeholder-blue-300/40 focus:ring-blue-500/20 focus:border-blue-400/30'
                     : 'border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:border-slate-300 focus:ring-blue-500/20'
@@ -129,7 +129,7 @@ const TopBar = ({ onMenuClick }) => {
             </Button>
 
             {/* User Avatar */}
-            <div className={`flex items-center space-x-3 rounded-2xl px-2 py-1.5 shadow-sm transition-colors duration-300 ${
+            <div className={`flex items-center space-x-3 rounded-2xl px-2 py-1.5 shadow-xs transition-colors duration-300 ${
               isDark ? 'border border-white/10 bg-white/5' : 'border border-slate-200 bg-white'
             }`}>
               <Avatar className="h-9 w-9 ring-2 ring-slate-200">

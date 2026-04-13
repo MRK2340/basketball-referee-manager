@@ -17,8 +17,8 @@ const Sidebar = ({ onClose }) => {
     `flex items-center space-x-3 rounded-xl px-4 py-3 text-sm transition-all duration-200 ${
       isActive
         ? isDark
-          ? 'border border-white/10 bg-white/10 text-amber-300 shadow-sm font-semibold'
-          : 'border bg-[#E6F2F8] text-[#0080C8] shadow-sm font-semibold'
+          ? 'border border-white/10 bg-white/10 text-amber-300 shadow-xs font-semibold'
+          : 'border bg-[#E6F2F8] text-[#0080C8] shadow-xs font-semibold'
         : isDark
           ? 'text-blue-200 hover:bg-white/10 hover:text-white'
           : 'text-slate-600 hover:bg-[#E6F2F8] hover:text-[#0080C8]'
@@ -50,7 +50,7 @@ const Sidebar = ({ onClose }) => {
       data-sidebar
       initial={{ x: -300 }}
       animate={{ x: 0 }}
-      className={`flex h-full flex-col rounded-[1.5rem] shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur transition-colors duration-300 ${
+      className={`flex h-full flex-col rounded-3xl shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm transition-colors duration-300 ${
         isDark
           ? 'border border-white/10 bg-[rgba(0,28,60,0.95)]'
           : 'border border-slate-200 bg-white/92'
@@ -60,7 +60,7 @@ const Sidebar = ({ onClose }) => {
       <div className={`border-b p-6 ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-sm ${isDark ? 'border border-white/10 bg-white/10' : 'border border-slate-200 bg-slate-50'}`}>
+            <div className={`flex h-11 w-11 items-center justify-center rounded-2xl shadow-xs ${isDark ? 'border border-white/10 bg-white/10' : 'border border-slate-200 bg-slate-50'}`}>
               <img alt="iWhistle logo" className="h-7 w-7" src="https://horizons-cdn.hostinger.com/182977b3-9034-4aa6-9bf3-458370fd0e4f/49272e180e7aa9962056fc094f275da2.png" />
             </div>
             <div>
@@ -89,7 +89,7 @@ const Sidebar = ({ onClose }) => {
           <img
             src={user?.avatarUrl}
             alt={user?.name}
-            className="h-12 w-12 rounded-full ring-2 ring-white shadow-sm"
+            className="h-12 w-12 rounded-full ring-2 ring-white shadow-xs"
           />
           <div>
             <h3 className={`font-semibold ${isDark ? 'text-blue-100' : 'text-slate-950'}`}>{user?.name}</h3>

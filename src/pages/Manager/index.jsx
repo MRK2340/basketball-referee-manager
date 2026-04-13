@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -42,7 +42,7 @@ const Manager = () => {
         </motion.div>
 
         <Tabs defaultValue="tournaments" className="w-full" data-testid="manager-tabs-root">
-          <TabsList className="flex flex-wrap gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm h-auto">
+          <TabsList className="flex flex-wrap gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-xs h-auto">
             <TabsTrigger value="tournaments" data-testid="manager-tab-tournaments" className="flex-1 min-w-[100px]">
               <Trophy className="h-4 w-4 mr-1.5" /> Tournaments
             </TabsTrigger>

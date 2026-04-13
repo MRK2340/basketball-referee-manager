@@ -11,7 +11,7 @@ import {
 
 const PreferencesSettings = ({ preferences, onPreferenceChange }) => {
   return (
-    <Card className="glass-effect border-slate-200 shadow-sm" data-testid="settings-preferences-card">
+    <Card className="glass-effect border-slate-200 shadow-xs" data-testid="settings-preferences-card">
       <CardHeader>
         <CardTitle className="text-slate-900 flex items-center space-x-2">
           <SettingsIcon className="h-5 w-5 text-green-600" />
@@ -41,7 +41,7 @@ const PreferencesSettings = ({ preferences, onPreferenceChange }) => {
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform ${
                     preferences.darkMode ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -60,7 +60,7 @@ const PreferencesSettings = ({ preferences, onPreferenceChange }) => {
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform ${
                     preferences.soundEffects ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -77,7 +77,7 @@ const PreferencesSettings = ({ preferences, onPreferenceChange }) => {
               <select 
                 value={preferences.language}
                 onChange={(e) => onPreferenceChange('language', e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-blue font-medium"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-blue font-medium"
               >
                 <option value="en">English</option>
                 <option value="es">Spanish</option>
@@ -90,7 +90,7 @@ const PreferencesSettings = ({ preferences, onPreferenceChange }) => {
               <select 
                 value={preferences.timezone}
                 onChange={(e) => onPreferenceChange('timezone', e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-blue font-medium"
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-brand-blue font-medium"
               >
                 <option value="America/New_York">Eastern Time</option>
                 <option value="America/Chicago">Central Time</option>
@@ -116,7 +116,7 @@ const PreferencesSettings = ({ preferences, onPreferenceChange }) => {
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition-transform ${
                     preferences.autoRefresh ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />

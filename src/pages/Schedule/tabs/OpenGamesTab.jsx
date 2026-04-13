@@ -32,7 +32,7 @@ const OpenGameCard = ({ game, onRequestGame, isRequested, matchScore }) => {
   try { formattedDate = format(new Date(game.date), 'PPP'); } catch { /* ignore */ }
 
   return (
-    <Card className="glass-effect border-slate-200 hover:border-brand-orange hover:shadow-md transition-all duration-300 shadow-sm" data-testid={`open-game-card-${game.id}`}>
+    <Card className="glass-effect border-slate-200 hover:border-brand-orange hover:shadow-md transition-all duration-300 shadow-xs" data-testid={`open-game-card-${game.id}`}>
       <CardContent className="p-6">
         <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
           <div className="flex-1">
@@ -52,15 +52,15 @@ const OpenGameCard = ({ game, onRequestGame, isRequested, matchScore }) => {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-slate-700">
               <div className="flex items-center gap-1.5">
-                <CalendarIcon className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <CalendarIcon className="h-4 w-4 text-blue-600 shrink-0" />
                 <span>{formattedDate}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                <Clock className="h-4 w-4 text-orange-600 shrink-0" />
                 <span>{game.time}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 text-green-600 flex-shrink-0" />
+                <MapPin className="h-4 w-4 text-green-600 shrink-0" />
                 <span>{game.venue}</span>
               </div>
             </div>

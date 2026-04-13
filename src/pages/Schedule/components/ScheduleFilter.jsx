@@ -28,7 +28,7 @@ const ScheduleFilter = ({ searchTerm, setSearchTerm, filter, setFilter }) => {
                 placeholder="Search teams, venues..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-orange-500"
               />
             </div>
 
@@ -36,10 +36,10 @@ const ScheduleFilter = ({ searchTerm, setSearchTerm, filter, setFilter }) => {
               {filterOptions.map((filterOption) => (
                 <Button
                   key={filterOption.key}
-                  variant={filter === filterOption.key ? 'default' : 'outline'}
+                  variant={filter === filterOption.key ? 'default' : 'outline-solid'}
                   size="sm"
                   onClick={() => setFilter(filterOption.key)}
-                  className={`flex-shrink-0 ${filter === filterOption.key 
+                  className={`shrink-0 ${filter === filterOption.key 
                     ? 'basketball-gradient hover:opacity-90' 
                     : 'border-slate-600 text-slate-300 hover:bg-slate-800'
                   }`}

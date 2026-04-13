@@ -73,7 +73,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
 
   return (
     <>
-      <Card className="glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-sm">
+      <Card className="glass-effect border-slate-200 hover:border-slate-300 transition-all duration-300 shadow-xs">
         <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex-1">

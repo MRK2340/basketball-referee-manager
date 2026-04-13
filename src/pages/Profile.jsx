@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -359,7 +359,7 @@ const Profile = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
-              <Card className="glass-effect border-slate-200 shadow-sm" data-testid="profile-rating-history">
+              <Card className="glass-effect border-slate-200 shadow-xs" data-testid="profile-rating-history">
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <Award className="h-5 w-5 text-yellow-500" />

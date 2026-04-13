@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,7 +39,7 @@ const AssignedGamesContent = ({ games, onFeatureClick }) => {
   return (
     <div className="grid lg:grid-cols-3 gap-6 mt-6">
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-        <Card className="glass-effect border-slate-200 shadow-sm">
+        <Card className="glass-effect border-slate-200 shadow-xs">
           <CardHeader>
             <CardTitle className="text-slate-900 flex items-center space-x-2">
               <Clock className="h-5 w-5 text-orange-500" />
@@ -78,7 +78,7 @@ const AssignedGamesContent = ({ games, onFeatureClick }) => {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-        <Card className="glass-effect border-slate-200 shadow-sm">
+        <Card className="glass-effect border-slate-200 shadow-xs">
           <CardHeader>
             <CardTitle className="text-slate-900 flex items-center space-x-2">
               <Calendar className="h-5 w-5 text-blue-500" />
@@ -117,7 +117,7 @@ const AssignedGamesContent = ({ games, onFeatureClick }) => {
       </motion.div>
 
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}>
-        <Card className="glass-effect border-slate-200 shadow-sm">
+        <Card className="glass-effect border-slate-200 shadow-xs">
           <CardHeader>
             <CardTitle className="text-slate-900 flex items-center space-x-2">
               <Trophy className="h-5 w-5 text-green-500" />
@@ -238,7 +238,7 @@ const Games = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="glass-effect border-slate-200 shadow-sm" data-testid={`games-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+                <Card className="glass-effect border-slate-200 shadow-xs" data-testid={`games-stat-${stat.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-3">
                       <div className={`p-2 rounded-lg ${stat.bgColor}`}>
@@ -259,7 +259,7 @@ const Games = () => {
         {/* Tabbed view for referees, flat view for managers */}
         {user?.role === 'referee' ? (
           <Tabs defaultValue="assigned" className="w-full" data-testid="games-tabs-root">
-            <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+            <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-xs">
               <TabsTrigger value="assigned" data-testid="games-tab-assigned">
                 <Trophy className="mr-2 h-4 w-4" />
                 Assigned Games
