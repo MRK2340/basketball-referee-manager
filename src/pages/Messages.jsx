@@ -77,14 +77,18 @@ const Messages = () => {
 
   const handleForward = () => {
     if (!selectedMessage) return;
-    const first = recipientOptions[0] || null;
+    if (recipientOptions.length === 0) {
+      toast({ title: 'No recipients available', description: 'There are no contacts to forward this message to.', variant: 'destructive' });
+      return;
+    }
+    const first = recipientOptions[0];
     setComposeMode('forward');
     setNewSubject(`Fwd: ${selectedMessage.subject}`);
     setNewMessage(
       `\n\n--- Forwarded Message ---\nFrom: ${selectedMessage.from}\nDate: ${new Date(selectedMessage.timestamp).toLocaleString()}\n\n${selectedMessage.content}`
     );
-    setNewRecipientId(first?.id || null);
-    setNewRecipientName(first?.name || '');
+    setNewRecipientId(first.id);
+    setNewRecipientName(first.name);
     setShowCompose(true);
   };
 
@@ -93,23 +97,27 @@ const Messages = () => {
       toast({ title: "No recipient", description: "Please select a recipient before sending.", variant: "destructive" });
       return;
     }
-    if (newMessage.trim() && newSubject.trim()) {
-      messageActions.sendMessage({
-        subject: newSubject,
-        content: newMessage,
-        recipientId: newRecipientId,
-      });
-      setNewMessage('');
-      setNewSubject('');
-      setNewRecipientId(null);
-      setShowCompose(false);
-    } else {
-      toast({
-        title: "Missing Information",
-        description: "Please provide a subject and a message.",
-        variant: "destructive"
-      });
+    if (!newMessage.trim() || !newSubject.trim()) {
+      toast({ title: "Missing Information", description: "Please provide a subject and a message.", variant: "destructive" });
+      return;
     }
+    if (newMessage.length > 5000) {
+      toast({ title: "Message too long", description: "Messages cannot exceed 5,000 characters.", variant: "destructive" });
+      return;
+    }
+    if (newSubject.length > 200) {
+      toast({ title: "Subject too long", description: "Subject cannot exceed 200 characters.", variant: "destructive" });
+      return;
+    }
+    messageActions.sendMessage({
+      subject: newSubject,
+      content: newMessage,
+      recipientId: newRecipientId,
+    });
+    setNewMessage('');
+    setNewSubject('');
+    setNewRecipientId(null);
+    setShowCompose(false);
   };
 
   const composeTitles = { new: 'Compose Message', reply: 'Reply', forward: 'Forward Message' };

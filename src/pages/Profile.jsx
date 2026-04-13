@@ -27,7 +27,7 @@ import { toast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
 
 const Profile = () => {
-  const { user, updateProfile, uploadAvatar, loading: authLoading } = useAuth();
+  const { user, updateProfile, uploadAvatar, resetPassword, loading: authLoading } = useAuth();
   const { refereeRatings } = useData();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -89,6 +89,10 @@ const Profile = () => {
   };
 
   const handleFeatureClick = (feature) => {
+    if (feature === 'change-password' && user?.email) {
+      resetPassword(user.email);
+      return;
+    }
     toast({
       title: "Coming Soon",
       description: "This feature is on our roadmap and will be available in a future update.",
@@ -335,7 +339,7 @@ const Profile = () => {
                         className="border-slate-300 text-slate-700 hover:bg-slate-100"
                         onClick={() => handleFeatureClick('change-password')}
                       >
-                        Change Password
+                        Reset Password
                       </Button>
                       <Button 
                         variant="outline" 

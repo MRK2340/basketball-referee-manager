@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
+  sendEmailVerification,
 } from 'firebase/auth';
 import {
   doc,
@@ -20,6 +22,7 @@ import {
 } from 'firebase/firestore';
 import { checkAndSeedDemoData } from '@/lib/seedFirestore';
 import { Analytics } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
 
 const AuthContext = createContext();
 
@@ -126,7 +129,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (lastErr) {
-          console.error('Auth state profile fetch error (both attempts failed):', lastErr);
+          logger.error('Auth state profile fetch error (both attempts failed):', lastErr);
           toast({
             title: 'Could not load your profile',
             description: 'There was a problem loading your account. Please refresh the page to try again.',
@@ -166,7 +169,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
 
       // Trigger demo seed (no-op if already done or both users not yet registered)
-      checkAndSeedDemoData().catch(console.error);
+      checkAndSeedDemoData().catch(e => logger.error('[Auth] Demo seed error:', e));
       Analytics.login();
 
       setLoading(false);
@@ -203,8 +206,11 @@ export const AuthProvider = ({ children }) => {
 
       await setDoc(doc(db, 'users', fbUser.uid), profile);
 
+      // Send email verification
+      try { await sendEmailVerification(fbUser); } catch { /* best-effort */ }
+
       Analytics.signUp(userData.role || 'referee');
-      toast({ title: 'Account created!', description: 'You can now sign in.' });
+      toast({ title: 'Account created!', description: 'A verification email has been sent. You can now sign in.' });
       return { success: true };
     } catch (error) {
       const mapped = mapFirebaseError(error);
@@ -212,6 +218,18 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: mapped.message };
     } finally {
       setLoading(false);
+    }
+  };
+
+  const resetPassword = async (email) => {
+    try {
+      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+      toast({ title: 'Reset email sent', description: 'Check your inbox for password reset instructions.' });
+      return { success: true };
+    } catch (error) {
+      const mapped = mapFirebaseError(error);
+      toast({ title: 'Reset failed', description: mapped.message, variant: 'destructive' });
+      return { success: false, error: mapped.message };
     }
   };
 
@@ -281,6 +299,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    resetPassword,
     updateProfile,
     uploadAvatar,
     loading,

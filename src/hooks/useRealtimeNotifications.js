@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toISOString } from '@/lib/timestampUtils';
+import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
 
 const TYPE_LABELS = {
@@ -88,7 +89,13 @@ export const useRealtimeNotifications = (user, setNotifications) => {
             unsubscribe?.();
             subscribe(fallbackQ, true);
           } else {
-            console.error('[useRealtimeNotifications] Listener error:', err);
+            logger.error('[useRealtimeNotifications] Listener error:', err);
+            toast({
+              title: 'Notification sync lost',
+              description: 'Live updates paused. Refresh the page to reconnect.',
+              variant: 'destructive',
+              duration: 10000,
+            });
           }
         }
       );

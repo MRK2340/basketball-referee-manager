@@ -1,4 +1,5 @@
 import { markNotificationReadRecord, markAllNotificationsReadRecord } from '@/lib/firestoreService';
+import { logger } from '@/lib/logger';
 
 export const useNotificationActions = (user, fetchData) => {
   const markNotificationRead = async (notificationId) => {
@@ -7,7 +8,7 @@ export const useNotificationActions = (user, fetchData) => {
       await markNotificationReadRecord(user, notificationId);
       // P1 fix: no fetchData — realtime listener handles the update
     } catch (e) {
-      console.error('markNotificationRead error:', e);
+      logger.error('markNotificationRead error:', e);
     }
   };
 
@@ -17,7 +18,7 @@ export const useNotificationActions = (user, fetchData) => {
       await markAllNotificationsReadRecord(user);
       // P1 fix: no fetchData — realtime listener handles the update
     } catch (e) {
-      console.error('markAllNotificationsRead error:', e);
+      logger.error('markAllNotificationsRead error:', e);
     }
   };
 

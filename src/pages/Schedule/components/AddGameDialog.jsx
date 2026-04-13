@@ -47,6 +47,18 @@ const AddGameDialog = ({ open, setOpen }) => {
       });
       return;
     }
+    // Validate payment amount bounds
+    const paymentNum = parseFloat(payment);
+    if (isNaN(paymentNum) || paymentNum < 0 || paymentNum > 10000) {
+      toast({ title: 'Invalid Payment', description: 'Payment must be between $0 and $10,000.', variant: 'destructive' });
+      return;
+    }
+    // Validate time format (HH:MM or H:MM AM/PM)
+    const timeRegex = /^(\d{1,2}):(\d{2})(\s?[AaPp][Mm])?$/;
+    if (!timeRegex.test(time.trim())) {
+      toast({ title: 'Invalid Time', description: 'Please enter a valid time (e.g. 9:00 AM or 14:30).', variant: 'destructive' });
+      return;
+    }
     await gameActions.addGame({
       tournament_id: tournamentId,
       home_team: homeTeam,

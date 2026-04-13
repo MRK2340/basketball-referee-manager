@@ -10,6 +10,7 @@ import { getToken, isSupported } from 'firebase/messaging';
 import { getMessaging } from 'firebase/messaging';
 import { doc, updateDoc } from 'firebase/firestore';
 import app, { db } from '@/lib/firebase';
+import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
 import { Analytics } from '@/lib/analytics';
 
@@ -91,7 +92,7 @@ export const useFCM = (user) => {
       }
       return false;
     } catch (error) {
-      console.error('[FCM]', error);
+      logger.error('[FCM]', error);
       toast({
         title: 'Failed to enable push notifications',
         description: error.message,
@@ -110,7 +111,7 @@ export const useFCM = (user) => {
       Analytics.pushDisabled();
       toast({ title: 'Push notifications disabled' });
     } catch (error) {
-      console.error('[FCM disable]', error);
+      logger.error('[FCM disable]', error);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

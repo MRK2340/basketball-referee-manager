@@ -5,7 +5,9 @@ import '@/index.css';
 
 // Global safety net for unhandled async errors (Firebase calls, etc.)
 window.addEventListener('unhandledrejection', (event) => {
-  console.error('[Unhandled Promise Rejection]', event.reason);
+  if (import.meta.env.DEV) {
+    console.error('[Unhandled Promise Rejection]', event.reason);
+  }
 });
 
 // Ensure the root element exists before attempting to render

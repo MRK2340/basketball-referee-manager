@@ -53,10 +53,17 @@ export const useDataFetching = (user) => {
       // If we got a full page, there may be more
       setHasMoreMessages(data.messages.length === MESSAGE_PAGE_SIZE);
     } catch (error) {
+      // Clear stale data so UI doesn't show outdated information
+      if (isInitialLoad) {
+        setGames([]); setPayments([]); setMessages([]); setNotifications([]);
+        setTournaments([]); setReferees([]); setAvailability([]); setGameReports([]);
+        setConnections([]); setManagerProfiles([]); setHasMoreMessages(false);
+      }
       toast({
         title: "Error fetching data",
-        description: error.message || 'Could not load app data.',
+        description: error.message || 'Could not load app data. Please refresh the page.',
         variant: "destructive",
+        duration: 10000,
       });
     } finally {
       setLoading(false);

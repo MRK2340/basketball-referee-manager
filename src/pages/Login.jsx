@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
+import { logger } from '@/lib/logger';
 import { motion } from 'motion/react';
 import {
   Dialog,
@@ -25,11 +26,12 @@ import {
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, createDemoAccounts } = useAuth();
+  const { login, resetPassword, createDemoAccounts } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,6 +53,16 @@ const Login = () => {
     setIsLoading(false);
   };
 
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast({ title: 'Enter your email', description: 'Please enter your email address first, then click "Forgot Password".', variant: 'destructive' });
+      return;
+    }
+    setIsResetting(true);
+    await resetPassword(email);
+    setIsResetting(false);
+  };
+
   const handleDemoLogin = async (role) => {
     setIsDemoLoading(true);
     try {
@@ -64,7 +76,7 @@ const Login = () => {
       });
       navigate(user.role === 'manager' ? '/manager' : '/dashboard');
     } catch (error) {
-      console.error("Demo login error:", error);
+      logger.error('[Login] Demo login error:', error);
       toast({
         title: "Demo Login Failed",
         description: "Could not log in with demo credentials. Please try again.",
@@ -129,6 +141,18 @@ const Login = () => {
                 required
                 className="bg-white border-slate-300 text-slate-900 placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500"
               />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                data-testid="login-forgot-password-button"
+                onClick={handleForgotPassword}
+                disabled={isResetting}
+                className="text-sm font-semibold hover:underline transition-colors"
+                style={{color: '#0080C8'}}
+              >
+                {isResetting ? 'Sending...' : 'Forgot password?'}
+              </button>
             </div>
             <Button 
                 type="submit" 

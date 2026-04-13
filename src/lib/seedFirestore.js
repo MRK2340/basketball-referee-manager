@@ -4,6 +4,7 @@
  * Uses a `_meta/demo_seed` guard document so it only runs once.
  */
 import { db } from './firebase';
+import { logger } from './logger';
 import {
   collection,
   doc,
@@ -261,6 +262,6 @@ export const checkAndSeedDemoData = async () => {
     await setDoc(doc(db, '_meta', 'demo_seed'), { seeded: true, seeded_at: new Date().toISOString() });
     console.log('[iWhistle] Demo data seeded successfully');
   } catch (err) {
-    console.error('[iWhistle] Seed error:', err);
+    logger.error('[iWhistle] Seed error:', err);
   }
 };

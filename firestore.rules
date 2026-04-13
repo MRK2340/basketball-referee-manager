@@ -66,7 +66,10 @@ service cloud.firestore {
       allow read: if isAuth() &&
         (request.auth.uid == resource.data.manager_id ||
          request.auth.uid == resource.data.referee_id);
-      allow create: if isManager();
+      allow create: if isManager() &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount >= 0 &&
+        request.resource.data.amount <= 10000;
       allow update: if isManager() && resource.data.manager_id == request.auth.uid;
     }
 
@@ -117,9 +120,15 @@ service cloud.firestore {
     match /referee_ratings/{ratingId} {
       allow read: if isAuth() &&
         (isManager() || request.auth.uid == resource.data.referee_id);
-      allow create: if isManager();
+      allow create: if isManager() &&
+        request.resource.data.stars is number &&
+        request.resource.data.stars >= 1 &&
+        request.resource.data.stars <= 5;
       // Managers can only update ratings they originally created
-      allow update: if isManager() && resource.data.manager_id == request.auth.uid;
+      allow update: if isManager() && resource.data.manager_id == request.auth.uid &&
+        request.resource.data.stars is number &&
+        request.resource.data.stars >= 1 &&
+        request.resource.data.stars <= 5;
     }
 
     // ── Manager Connections ───────────────────────────────────────────────────

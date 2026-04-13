@@ -12,6 +12,7 @@ import { useEffect, useRef } from 'react';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toISOString } from '@/lib/timestampUtils';
+import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
 
 const mapRawMessage = (id, data, usersMap, currentUserId) => {
@@ -104,7 +105,13 @@ export const useRealtimeMessages = (user, setMessages, usersMap) => {
             unsubscribe?.();
             subscribe(fallbackQ, true);
           } else {
-            console.error('[useRealtimeMessages] Listener error:', err);
+            logger.error('[useRealtimeMessages] Listener error:', err);
+            toast({
+              title: 'Message sync lost',
+              description: 'Live updates paused. Refresh the page to reconnect.',
+              variant: 'destructive',
+              duration: 10000,
+            });
           }
         }
       );

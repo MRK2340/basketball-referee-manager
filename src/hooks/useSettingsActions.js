@@ -1,4 +1,5 @@
 import { saveNotificationPreferencesRecord } from '@/lib/firestoreService';
+import { logger } from '@/lib/logger';
 
 export const useSettingsActions = (user, fetchData) => {
   const saveNotificationPreferences = async (prefs) => {
@@ -7,7 +8,7 @@ export const useSettingsActions = (user, fetchData) => {
       await saveNotificationPreferencesRecord(user, prefs);
       await fetchData(false);
     } catch (e) {
-      console.error('saveNotificationPreferences error:', e);
+      logger.error('saveNotificationPreferences error:', e);
     }
   };
 

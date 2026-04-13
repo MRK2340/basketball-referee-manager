@@ -16,6 +16,8 @@ import {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
+import { logger } from './logger';
+
 const createError = (message) => ({ message });
 
 const safeHandle = async (fn) => {
@@ -23,7 +25,7 @@ const safeHandle = async (fn) => {
     const result = await fn();
     return { data: result ?? true };
   } catch (err) {
-    console.error('[Firestore]', err);
+    logger.error('[Firestore]', err);
     return { error: createError(err.message || 'An unexpected error occurred.') };
   }
 };
@@ -419,6 +421,9 @@ export const batchUnassignRefereesRecord = async (user, gameIds) => safeHandle(a
 
 export const rateRefereeRecord = async (user, gameId, refereeId, stars, feedback) => safeHandle(async () => {
   if (user?.role !== 'manager') throw new Error('Only managers can rate referees.');
+  // Validate star rating bounds
+  const s = Number(stars);
+  if (!Number.isFinite(s) || s < 1 || s > 5) throw new Error('Rating must be between 1 and 5.');
   const existing = await getDocs(query(
     collection(db, 'referee_ratings'),
     where('game_id', '==', gameId),
@@ -429,7 +434,7 @@ export const rateRefereeRecord = async (user, gameId, refereeId, stars, feedback
   } else {
     await addDoc(collection(db, 'referee_ratings'), {
       game_id: gameId, referee_id: refereeId, manager_id: user.id,
-      stars, feedback, created_at: new Date().toISOString(),
+      stars: s, feedback, created_at: serverTimestamp(),
     });
   }
 });
