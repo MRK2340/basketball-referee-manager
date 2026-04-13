@@ -13,8 +13,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, FileSpreadsheet } from 'lucide-react';
 import TournamentFormDialog from '@/pages/Manager/TournamentFormDialog';
+import { BulkGameImportDialog } from '@/pages/Manager/BulkGameImportDialog';
 
 const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTournament }) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -22,6 +23,7 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
   const [editingTournament, setEditingTournament] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingTournament, setDeletingTournament] = useState(null);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
 
   const handleAddTournament = (data) => {
     addTournament(data);
@@ -98,6 +100,9 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
             <Button className="basketball-gradient hover:opacity-90 text-white shadow-md" data-testid="manager-add-tournament-button" onClick={() => setAddDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" /> Add Tournament
             </Button>
+            <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white shadow-sm ml-2 gap-2" data-testid="manager-bulk-import-button" onClick={() => setBulkImportOpen(true)}>
+              <FileSpreadsheet className="h-4 w-4" /> Bulk Import Games
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -136,6 +141,9 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
           </div>
         </CardContent>
       </Card>
+
+      {/* Bulk Game Import Dialog */}
+      <BulkGameImportDialog open={bulkImportOpen} onOpenChange={setBulkImportOpen} />
     </>
   );
 };

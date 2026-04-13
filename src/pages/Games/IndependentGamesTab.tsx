@@ -13,10 +13,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
   Plus, Pencil, Trash2, MapPin, Clock, DollarSign, Building2,
-  TrendingUp, Trophy, Search, X, ClipboardList, Download, FileText, Sheet,
+  TrendingUp, Trophy, Search, X, ClipboardList, Download, FileText, Sheet, FileUp,
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { exportToCSV, exportToPDF } from '@/lib/exportIndependentGames';
+import { ScheduleImportDialog } from '@/pages/Games/ScheduleImportDialog';
 
 const GAME_TYPES = [
   { value: 'league', label: 'League Game', color: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -41,6 +42,7 @@ export const IndependentGamesTab = () => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [exportYear, setExportYear] = useState(String(new Date().getFullYear()));
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const currentYear = new Date().getFullYear();
 
@@ -204,6 +206,15 @@ export const IndependentGamesTab = () => {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white shrink-0 gap-2"
+          data-testid="ind-import-schedule-btn"
+          onClick={() => setImportDialogOpen(true)}
+        >
+          <FileUp className="h-4 w-4" />
+          Import Schedule
+        </Button>
         <Button
           className="basketball-gradient text-white hover:opacity-90 shrink-0"
           data-testid="ind-log-game-btn"
@@ -552,6 +563,9 @@ export const IndependentGamesTab = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Schedule Import Dialog */}
+      <ScheduleImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
     </div>
   );
 };

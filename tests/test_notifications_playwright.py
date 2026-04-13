@@ -16,7 +16,7 @@ import asyncio
 import pytest
 from playwright.async_api import async_playwright
 
-BASE_URL = "https://basketball-ops-test.preview.emergentagent.com"
+BASE_URL = "https://league-scheduler-dev.preview.emergentagent.com"
 REFEREE_EMAIL = "referee@demo.com"
 REFEREE_PASS = "Referee123"
 MANAGER_EMAIL = "manager@demo.com"

@@ -523,6 +523,108 @@ export const deleteIndependentGameRecord = async (user: ServiceUser, gameId: str
   await deleteDoc(doc(db, 'independent_games', gameId));
 });
 
+// ── Batch Import: Referee Schedule ────────────────────────────────────────────
+
+interface ImportedGame { date: string; time: string; location: string; organization: string; fee: number; level: string; }
+interface ImportResult { gamesAdded: number; availabilityAdded: number; errors: string[] }
+
+export const batchImportRefereeSchedule = async (
+  user: ServiceUser,
+  pastGames: ImportedGame[],
+  futureDates: { date: string; time: string }[],
+): Promise<SafeResult<ImportResult>> => safeHandle(async () => {
+  if (user?.role !== 'referee') throw new Error('Only referees can import schedules.');
+  const errors: string[] = [];
+  let gamesAdded = 0;
+  let availabilityAdded = 0;
+
+  // Batch add past games as independent games (max 400 per batch)
+  const gameChunks = chunkArray(pastGames, 400);
+  for (const chunk of gameChunks) {
+    const batch = writeBatch(db);
+    for (const g of chunk) {
+      const ref = doc(collection(db, 'independent_games'));
+      batch.set(ref, {
+        referee_id: user.id,
+        date: g.date,
+        time: g.time || '',
+        location: g.location || '',
+        organization: g.organization || '',
+        game_type: 'other',
+        fee: Number(g.fee) || 0,
+        notes: `Imported from schedule | ${g.level || ''}`.trim(),
+        created_at: new Date().toISOString(),
+      });
+      gamesAdded++;
+    }
+    await batch.commit();
+  }
+
+  // Batch add future dates as availability records
+  const availChunks = chunkArray(futureDates, 400);
+  for (const chunk of availChunks) {
+    const batch = writeBatch(db);
+    for (const slot of chunk) {
+      const ref = doc(collection(db, 'referee_availability'));
+      const dayStart = new Date(slot.date + 'T00:00:00');
+      const dayEnd = new Date(slot.date + 'T23:59:59');
+      batch.set(ref, {
+        referee_id: user.id,
+        start_time: dayStart.toISOString(),
+        end_time: dayEnd.toISOString(),
+      });
+      availabilityAdded++;
+    }
+    await batch.commit();
+  }
+
+  return { gamesAdded, availabilityAdded, errors };
+});
+
+// ── Batch Import: Manager Games ──────────────────────────────────────────────
+
+interface BulkGameData { homeTeam: string; awayTeam: string; date: string; time: string; venue: string; division: string; level: string; payment: number; }
+
+export const batchImportManagerGames = async (
+  user: ServiceUser,
+  tournamentId: string,
+  games: BulkGameData[],
+): Promise<SafeResult<{ added: number; errors: string[] }>> => safeHandle(async () => {
+  if (user?.role !== 'manager') throw new Error('Only managers can import games.');
+  const errors: string[] = [];
+  let added = 0;
+
+  const gameChunks = chunkArray(games, 400);
+  for (const chunk of gameChunks) {
+    const batch = writeBatch(db);
+    for (const g of chunk) {
+      const ref = doc(collection(db, 'games'));
+      batch.set(ref, {
+        tournament_id: tournamentId,
+        manager_id: user.id,
+        home_team: g.homeTeam,
+        away_team: g.awayTeam,
+        game_date: g.date,
+        game_time: g.time ? (g.time.length === 5 ? `${g.time}:00` : g.time) : '',
+        venue: g.venue || '',
+        division: g.division || '',
+        level: g.level || '',
+        payment_amount: Number(g.payment) || 0,
+        required_certifications: [],
+        status: 'scheduled',
+        home_score: null,
+        away_score: null,
+      });
+      added++;
+    }
+    await batch.commit();
+  }
+
+  return { added, errors };
+});
+
+
+
 // ── Pagination ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 50;
