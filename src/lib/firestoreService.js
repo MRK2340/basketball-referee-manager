@@ -65,7 +65,7 @@ export const fetchAppData = async (user) => {
   let gamesRaw = [], assignmentsRaw = [];
   if (isManager) {
     const [gSnap, aSnap] = await Promise.all([
-      getDocs(query(collection(db, 'games'), where('manager_id', '==', user.id))),
+      getDocs(query(collection(db, 'games'), where('manager_id', '==', user.id), orderBy('game_date', 'desc'), limit(100))),
       getDocs(query(collection(db, 'game_assignments'), where('manager_id', '==', user.id))),
     ]);
     gamesRaw = docsToArr(gSnap);
@@ -94,8 +94,8 @@ export const fetchAppData = async (user) => {
     indGamesSnap,
   ] = await Promise.all([
     isManager
-      ? getDocs(query(collection(db, 'tournaments'), where('manager_id', '==', user.id)))
-      : getDocs(collection(db, 'tournaments')),
+      ? getDocs(query(collection(db, 'tournaments'), where('manager_id', '==', user.id), orderBy('name'), limit(100)))
+      : getDocs(query(collection(db, 'tournaments'), limit(100))),
     getDocs(isManager
       ? query(collection(db, 'payments'), where('manager_id', '==', user.id))
       : query(collection(db, 'payments'), where('referee_id', '==', user.id))),
@@ -515,11 +515,10 @@ export const deleteIndependentGameRecord = async (user, gameId) => safeHandle(as
 
 // ── Pagination ────────────────────────────────────────────────────────────────
 
+const PAGE_SIZE = 50;
+
 /**
  * Fetch the next page of messages.
- * @param {object} user           - current user ({ id })
- * @param {string} afterTimestamp - created_at value of the oldest already-loaded message
- * @param {Array}  allUsers       - user list for sender name resolution
  */
 export const fetchMoreMessages = async (user, afterTimestamp, allUsers) => safeHandle(async () => {
   const snap = await getDocs(query(
@@ -527,7 +526,39 @@ export const fetchMoreMessages = async (user, afterTimestamp, allUsers) => safeH
     where('participants', 'array-contains', user.id),
     orderBy('created_at', 'desc'),
     startAfter(afterTimestamp),
-    limit(50),
+    limit(PAGE_SIZE),
   ));
   return docsToArr(snap).map(m => mapMessage(m, allUsers));
+});
+
+/**
+ * Fetch the next page of games for a manager (cursor-based).
+ * @param {string} managerId
+ * @param {string} afterDatetime - "YYYY-MM-DDThh:mm" of the last loaded game
+ */
+export const fetchMoreGames = async (managerId, afterDatetime) => safeHandle(async () => {
+  const snap = await getDocs(query(
+    collection(db, 'games'),
+    where('manager_id', '==', managerId),
+    orderBy('game_date', 'desc'),
+    startAfter(afterDatetime),
+    limit(PAGE_SIZE),
+  ));
+  return { docs: docsToArr(snap), hasMore: snap.docs.length === PAGE_SIZE };
+});
+
+/**
+ * Fetch the next page of tournaments for a manager (cursor-based).
+ * @param {string} managerId
+ * @param {string} afterName - name of the last loaded tournament (alphabetical cursor)
+ */
+export const fetchMoreTournaments = async (managerId, afterName) => safeHandle(async () => {
+  const snap = await getDocs(query(
+    collection(db, 'tournaments'),
+    where('manager_id', '==', managerId),
+    orderBy('name'),
+    startAfter(afterName),
+    limit(PAGE_SIZE),
+  ));
+  return { docs: docsToArr(snap), hasMore: snap.docs.length === PAGE_SIZE };
 });

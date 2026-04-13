@@ -150,5 +150,10 @@ service cloud.firestore {
       allow read, create, update, delete: if isReferee() &&
         (resource == null || request.auth.uid == resource.data.referee_id);
     }
+
+    // ── Rate Limits (server-only — no client access) ────────────────────────
+    match /_rate_limits/{docId} {
+      allow read, write: if false;
+    }
   }
 }
