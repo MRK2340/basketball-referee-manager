@@ -358,6 +358,17 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **Total TS files: 24** (was 9) | JS/JSX remaining: 135 (pages + components)
 - Testing: 29/29 unit tests pass, both demo login flows working
 
+### Phase 34 - TypeScript Migration Phase 4: Pages & Components (Complete — Feb 2026)
+**78 files renamed from .jsx/.js to .tsx/.ts:**
+- `App.tsx`, `main.tsx`, `ThemeContext.tsx`
+- 7 lib utilities: `analytics.ts`, `conflictUtils.ts`, `demoAccounts.ts`, `exportIndependentGames.ts`, `firebase.ts`, `seedFirestore.ts`, `utils.ts`
+- 13 app components: `Layout`, `TopBar`, `Sidebar`, `BottomNavigation`, `ErrorBoundary`, `LoadingSpinner`, `NotificationPanel`, `ProtectedRoute`, `PublicRoute`, `RouteTracker`, `ScrollToTop`, `SkeletonCard`, `GameDetailSheet`
+- 18 top-level pages: `Dashboard`, `Login`, `Register`, `Profile`, `Messages`, `Calendar`, `Schedule`, `Settings`, `Manager`, `Games`, `Payments`, `PerformanceAnalytics`, `GameReport`, `FindManagers`, `HomePage`, `LandingPage`, `AboutPage`, `ContactPage`, `NotFound`
+- 40+ page sub-components across Calendar/, Manager/, Schedule/, Settings/, Games/
+- **Intentionally skipped:** 57 Shadcn UI vendor components in `components/ui/` (`.jsx` — upstream compatibility)
+- **Final count: 102 TS/TSX files | 57 JS/JSX (Shadcn only)**
+- Testing: 100% pass — all pages render, navigation works, 29/29 unit tests, no TS compilation errors (iteration_34.json)
+
 ### P2 (Completed)
 - ~~Context namespace refactor~~ (Phase 15)
 - ~~camelCase consolidation~~ (Phase 17)
