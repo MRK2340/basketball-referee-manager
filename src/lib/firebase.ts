@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 import { getPerformance, type FirebasePerformance } from 'firebase/performance';
@@ -38,6 +38,16 @@ export const auth = getAuth(app);
 export const db = getFirestore(app, 'refereemanager');
 export const storage = getStorage(app);
 export const analytics = getAnalytics(app);
+
+// Offline-first: enable IndexedDB persistence for Firestore
+// Reads from cache when offline, queues writes until reconnected
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    // Multiple tabs open — persistence only works in one tab at a time
+  } else if (err.code === 'unimplemented') {
+    // Browser doesn't support IndexedDB
+  }
+});
 
 // Firebase Performance Monitoring — auto-collects page load, network requests, route changes
 let perf: FirebasePerformance | null = null;

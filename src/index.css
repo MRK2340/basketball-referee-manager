@@ -435,3 +435,7 @@ a:hover {
 }
 
 /* iWhistle dark theme is defined at the top of this file in the .dark {} block */
+
+/* Hide scrollbar for horizontal scroll containers */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

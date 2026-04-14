@@ -11,6 +11,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PublicRoute from '@/components/PublicRoute';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 
 // Lazy-loaded pages — improves initial bundle size
 const Dashboard          = lazy(() => import('@/pages/Dashboard'));
@@ -48,6 +49,7 @@ function App() {
         <AuthProvider>
           <DataProvider>
             <div className="min-h-screen">
+              <OfflineIndicator />
               <RouteTracker />
               <Suspense fallback={<LoadingSpinner />}>
               <Routes>

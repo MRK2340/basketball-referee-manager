@@ -9,6 +9,7 @@
  *   cd /app && firebase deploy --only functions
  */
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
@@ -147,3 +148,146 @@ exports.sendPushNotification = onDocumentCreated(
     }
   }
 );
+
+// ── Game Reminder Scheduling ────────────────────────────────────────────────
+
+/**
+ * When a referee is assigned to a game, schedule reminder notifications.
+ * Creates entries in _game_reminders collection for the scheduler to pick up.
+ */
+exports.scheduleGameReminder = onDocumentCreated(
+  {
+    document: 'game_assignments/{assignmentId}',
+    database: 'refereemanager',
+    region: 'us-central1',
+  },
+  async (event) => {
+    const assignment = event.data?.data();
+    if (!assignment?.game_id || !assignment?.referee_id) return;
+    if (assignment.status === 'declined') return;
+
+    // Fetch the game to get date/time
+    const gameSnap = await db.collection('games').doc(assignment.game_id).get();
+    if (!gameSnap.exists) return;
+    const game = gameSnap.data();
+    if (!game.game_date || !game.game_time) return;
+
+    // Parse game datetime
+    const gameDateTime = new Date(`${game.game_date}T${game.game_time}`);
+    if (isNaN(gameDateTime.getTime())) return;
+
+    const now = new Date();
+    const gameLabel = `${game.home_team || 'TBD'} vs ${game.away_team || 'TBD'}`;
+    const venue = game.venue || 'TBD';
+
+    // Schedule 24h reminder
+    const reminder24h = new Date(gameDateTime.getTime() - 24 * 60 * 60 * 1000);
+    if (reminder24h > now) {
+      await db.collection('_game_reminders').add({
+        referee_id: assignment.referee_id,
+        game_id: assignment.game_id,
+        remind_at: reminder24h.toISOString(),
+        type: '24h',
+        title: 'Game Tomorrow',
+        body: `${gameLabel} at ${venue} — ${game.game_date} ${game.game_time}`,
+        sent: false,
+      });
+    }
+
+    // Schedule 1h reminder
+    const reminder1h = new Date(gameDateTime.getTime() - 60 * 60 * 1000);
+    if (reminder1h > now) {
+      await db.collection('_game_reminders').add({
+        referee_id: assignment.referee_id,
+        game_id: assignment.game_id,
+        remind_at: reminder1h.toISOString(),
+        type: '1h',
+        title: 'Game in 1 Hour',
+        body: `${gameLabel} at ${venue} — get ready!`,
+        sent: false,
+      });
+    }
+  }
+);
+
+/**
+ * Scheduled function: runs every 15 minutes, checks for due reminders, sends push.
+ */
+exports.processGameReminders = onSchedule(
+  {
+    schedule: 'every 15 minutes',
+    region: 'us-central1',
+    timeZone: 'America/New_York',
+  },
+  async () => {
+    const now = new Date().toISOString();
+    const remindersSnap = await db.collection('_game_reminders')
+      .where('sent', '==', false)
+      .where('remind_at', '<=', now)
+      .limit(100)
+      .get();
+
+    if (remindersSnap.empty) return;
+
+    const batch = db.batch();
+    const sendPromises = [];
+
+    for (const doc of remindersSnap.docs) {
+      const reminder = doc.data();
+      batch.update(doc.ref, { sent: true });
+
+      sendPromises.push((async () => {
+        // Fetch referee's FCM token
+        const userSnap = await db.collection('users').doc(reminder.referee_id).get();
+        if (!userSnap.exists) return;
+        const userData = userSnap.data();
+        if (!userData.fcmToken) return;
+
+        // Check preferences
+        const prefs = userData.notification_preferences || {};
+        if (prefs.pushNotifications === false) return;
+        if (prefs.scheduleChanges === false) return;
+
+        // Create in-app notification
+        await db.collection('notifications').add({
+          type: 'schedule',
+          title: reminder.title,
+          body: reminder.body,
+          link: '/schedule',
+          read: false,
+          created_at: FieldValue.serverTimestamp(),
+          recipient_id: reminder.referee_id,
+        });
+
+        // Send FCM push
+        try {
+          await fcm.send({
+            token: userData.fcmToken,
+            notification: {
+              title: reminder.title,
+              body: reminder.body,
+            },
+            webpush: {
+              notification: {
+                icon: 'https://iwhistle-6f5d1.web.app/favicon.ico',
+                badge: 'https://iwhistle-6f5d1.web.app/favicon.ico',
+                requireInteraction: true,
+              },
+              fcmOptions: { link: '/schedule' },
+            },
+          });
+        } catch (err) {
+          console.error('[Reminder FCM]', err.message);
+          if (err.code === 'messaging/registration-token-not-registered') {
+            await db.collection('users').doc(reminder.referee_id).update({ fcmToken: null });
+          }
+        }
+      })());
+    }
+
+    await Promise.all(sendPromises);
+    await batch.commit();
+    console.log(`[Reminders] Processed ${remindersSnap.size} game reminders`);
+  }
+);
+

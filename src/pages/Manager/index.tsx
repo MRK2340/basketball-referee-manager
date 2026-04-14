@@ -45,35 +45,35 @@ const Manager = () => {
         </motion.div>
 
         <Tabs defaultValue="tournaments" className="w-full" data-testid="manager-tabs-root">
-          <TabsList className="flex flex-wrap gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-xs h-auto">
-            <TabsTrigger value="tournaments" data-testid="manager-tab-tournaments" className="flex-1 min-w-[100px]">
-              <Trophy className="h-4 w-4 mr-1.5" /> Tournaments
+          <TabsList className="flex overflow-x-auto gap-0.5 rounded-2xl border border-slate-200 bg-white p-1.5 sm:p-2 shadow-xs h-auto no-scrollbar" data-testid="manager-tabs-list">
+            <TabsTrigger value="tournaments" data-testid="manager-tab-tournaments" className="flex-shrink-0 px-2.5 sm:px-3">
+              <Trophy className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Tournaments</span>
             </TabsTrigger>
-            <TabsTrigger value="assignments" data-testid="manager-tab-assignments" className="flex-1 min-w-[100px]">
-              <ClipboardList className="h-4 w-4 mr-1.5" /> Assignments
+            <TabsTrigger value="assignments" data-testid="manager-tab-assignments" className="flex-shrink-0 px-2.5 sm:px-3">
+              <ClipboardList className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Assignments</span>
             </TabsTrigger>
-            <TabsTrigger value="roster" data-testid="manager-tab-roster" className="flex-1 min-w-[90px] relative">
-              <UserCheck className="h-4 w-4 mr-1.5" /> Roster
+            <TabsTrigger value="roster" data-testid="manager-tab-roster" className="flex-shrink-0 px-2.5 sm:px-3 relative">
+              <UserCheck className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Roster</span>
               {connections?.filter(c => c.status === 'pending').length > 0 && (
-                <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: '#FF8C00' }}>
+                <span className="ml-1 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: '#FF8C00' }}>
                   {connections.filter(c => c.status === 'pending').length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="referees" data-testid="manager-tab-referees" className="flex-1 min-w-[80px]">
-              <Users className="h-4 w-4 mr-1.5" /> Referees
+            <TabsTrigger value="referees" data-testid="manager-tab-referees" className="flex-shrink-0 px-2.5 sm:px-3">
+              <Users className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Referees</span>
             </TabsTrigger>
-            <TabsTrigger value="availability" data-testid="manager-tab-availability" className="flex-1 min-w-[100px]">
-              <CalendarCheck className="h-4 w-4 mr-1.5" /> Availability
+            <TabsTrigger value="availability" data-testid="manager-tab-availability" className="flex-shrink-0 px-2.5 sm:px-3">
+              <CalendarCheck className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Availability</span>
             </TabsTrigger>
-            <TabsTrigger value="leaderboard" data-testid="manager-tab-leaderboard" className="flex-1 min-w-[100px]">
-              <Medal className="h-4 w-4 mr-1.5" /> Leaderboard
+            <TabsTrigger value="leaderboard" data-testid="manager-tab-leaderboard" className="flex-shrink-0 px-2.5 sm:px-3">
+              <Medal className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Leaderboard</span>
             </TabsTrigger>
-            <TabsTrigger value="standings" data-testid="manager-tab-standings" className="flex-1 min-w-[90px]">
-              <BarChart2 className="h-4 w-4 mr-1.5" /> Standings
+            <TabsTrigger value="standings" data-testid="manager-tab-standings" className="flex-shrink-0 px-2.5 sm:px-3">
+              <BarChart2 className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Standings</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" data-testid="manager-tab-reports" className="flex-1 min-w-[80px]">
-              <FileText className="h-4 w-4 mr-1.5" /> Reports
+            <TabsTrigger value="reports" data-testid="manager-tab-reports" className="flex-shrink-0 px-2.5 sm:px-3">
+              <FileText className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Reports</span>
             </TabsTrigger>
           </TabsList>
 
@@ -130,7 +130,7 @@ const Manager = () => {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: 'spring', delay: 0.5 }}
-        className="fixed bottom-6 right-6 z-30"
+        className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-30"
       >
         <Button
           onClick={() => setAiPanelOpen(true)}

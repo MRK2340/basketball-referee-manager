@@ -157,7 +157,7 @@ const Messages = () => {
           </Button>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-6 h-[70vh]">
+        <div className="grid lg:grid-cols-3 gap-6 h-auto lg:h-[70vh]">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
