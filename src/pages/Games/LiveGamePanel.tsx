@@ -97,6 +97,7 @@ export const LiveGamePanel: React.FC<LiveGamePanelProps> = ({ open, onOpenChange
     if (!game) return;
     setSaving(true);
     try {
+      // Save detailed live session data
       await setDoc(doc(db, 'live_game_sessions', game.id), {
         game_id: game.id,
         home_team: game.homeTeam,
@@ -110,6 +111,14 @@ export const LiveGamePanel: React.FC<LiveGamePanelProps> = ({ open, onOpenChange
         notes,
         updated_at: serverTimestamp(),
       }, { merge: true });
+
+      // Sync totals back to the main games document so scores appear on the Games page
+      await setDoc(doc(db, 'games', game.id), {
+        home_score: totalScore('home'),
+        away_score: totalScore('away'),
+        updated_at: serverTimestamp(),
+      }, { merge: true });
+
       toast({ title: 'Game data saved', description: 'Live scoring data has been recorded.' });
     } catch {
       toast({ title: 'Save failed', variant: 'destructive' });

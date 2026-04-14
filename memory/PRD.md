@@ -1044,3 +1044,24 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 - 98/98 Vitest tests passing
 - Testing: 13/14 features PASS in iteration_44, Contact Support bug fixed post-test
+
+
+### Phase 55 - Firestore Deploy + Receipt PDF + Live Score Sync (Complete — Feb 2026)
+
+**1. Firestore Rules deployed to production** via Firebase CLI (`firebase deploy --only firestore:rules`):
+- `_audit_log`: users can now read their own login history entries
+- `_feedback`: create-only for authenticated users  
+- `_payment_info`: user-owned CRUD (read/write own record only)
+- `live_game_sessions`: authenticated users can read/write (for live scoring)
+
+**2. Download Receipt upgraded from .txt → iWhistle-branded PDF**
+- Full A5-format PDF with header banner (deep blue + orange accent), large amount block, details rows with dividers, status badge, footer
+- Dynamically loads jsPDF (no bundle size impact at startup)
+- Saves as `iWhistle_Receipt_<ID>.pdf`
+
+**3. Live Game Panel → syncs scores back to `games` collection**
+- On "Save Game Data", writes `home_score` and `away_score` back to the main `games/{gameId}` document (merge)
+- Scores now appear live on the Games page after saving from Live Game Panel
+
+**Files modified:** `firestore.rules` (deployed), `src/pages/Payments.tsx`, `src/pages/Games/LiveGamePanel.tsx`
+- 98/98 Vitest tests passing
