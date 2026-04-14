@@ -9,12 +9,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Upload, FileText, AlertCircle, CheckCircle2, Calendar, ClipboardList,
-  Loader2, ArrowRight, X, FileSpreadsheet, FileUp,
+  Loader2, ArrowRight, X, FileSpreadsheet, FileUp, Download, AlertTriangle,
 } from 'lucide-react';
-import { parseRefereeScheduleFile, isDateInPast, type ParsedScheduleRow } from '@/lib/scheduleImportParsers';
+import { parseRefereeScheduleFile, isDateInPast, downloadRefereeTemplate, type ParsedScheduleRow } from '@/lib/scheduleImportParsers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { batchImportRefereeSchedule } from '@/lib/firestoreService';
+import { batchImportRefereeSchedule, checkRefereeDuplicates } from '@/lib/firestoreService';
 import { toast } from '@/components/ui/use-toast';
 
 type Step = 'upload' | 'preview' | 'importing' | 'done';
@@ -34,6 +34,7 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<{ gamesAdded: number; availabilityAdded: number } | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [duplicates, setDuplicates] = useState<Set<string>>(new Set());
 
   const reset = useCallback(() => {
     setStep('upload');
@@ -42,6 +43,7 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
     setSelected(new Set());
     setErrors([]);
     setResult(null);
+    setDuplicates(new Set());
   }, []);
 
   const handleClose = useCallback((open: boolean) => {
@@ -55,15 +57,32 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
   const handleFile = useCallback(async (f: File) => {
     setFile(f);
     setErrors([]);
+    setDuplicates(new Set());
     const result = await parseRefereeScheduleFile(f);
     if (result.errors.length > 0) {
       setErrors(result.errors);
       return;
     }
     setRows(result.rows);
-    setSelected(new Set(result.rows.map((_, i) => i)));
+    // Check for duplicates
+    if (user) {
+      const { data: dupes } = await checkRefereeDuplicates(
+        user.id,
+        result.rows.map(r => ({ date: r.date, organization: r.organization })),
+      );
+      if (dupes && dupes.size > 0) {
+        setDuplicates(dupes);
+        // Auto-deselect duplicates
+        const nonDupeSet = new Set(result.rows.map((_, i) => i).filter(i => !dupes.has(String(i))));
+        setSelected(nonDupeSet);
+      } else {
+        setSelected(new Set(result.rows.map((_, i) => i)));
+      }
+    } else {
+      setSelected(new Set(result.rows.map((_, i) => i)));
+    }
     setStep('preview');
-  }, []);
+  }, [user]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -98,6 +117,7 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
       user,
       pastRows.map(r => ({ date: r.date, time: r.time, location: r.location, organization: r.organization, fee: r.fee, level: r.level })),
       futureRows.map(r => ({ date: r.date, time: r.time })),
+      file?.name || 'unknown',
     );
     if (error) {
       toast({ title: 'Import Failed', description: error.message, variant: 'destructive' });
@@ -175,6 +195,17 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
                 <p className="text-sm text-blue-800 font-medium mb-1">Supported platforms:</p>
                 <p className="text-xs text-blue-600">ArbiterSports, GameOfficials, Assigning.net — export as CSV for best results.</p>
               </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 w-full border-slate-200 text-slate-600 hover:text-brand-blue hover:border-brand-blue gap-2"
+                onClick={(e) => { e.stopPropagation(); downloadRefereeTemplate(); }}
+                data-testid="schedule-import-download-template"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download CSV Template
+              </Button>
             </motion.div>
           )}
 
@@ -213,6 +244,16 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
                 </Card>
               </div>
 
+              {/* Duplicate warning */}
+              {duplicates.size > 0 && (
+                <div className="mb-3 p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-2" data-testid="schedule-import-duplicate-warning">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                  <div className="text-xs text-amber-800">
+                    <span className="font-semibold">{duplicates.size} duplicate{duplicates.size > 1 ? 's' : ''} detected</span> — matching games already in your log were auto-deselected.
+                  </div>
+                </div>
+              )}
+
               {/* Table */}
               <ScrollArea className="flex-1 max-h-[300px] border rounded-lg border-slate-200">
                 <Table>
@@ -236,8 +277,9 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
                   <TableBody>
                     {rows.map((row, i) => {
                       const past = isDateInPast(row.date);
+                      const isDupe = duplicates.has(String(i));
                       return (
-                        <TableRow key={i} className={selected.has(i) ? '' : 'opacity-40'}>
+                        <TableRow key={i} className={`${selected.has(i) ? '' : 'opacity-40'} ${isDupe ? 'bg-amber-50/50' : ''}`}>
                           <TableCell>
                             <Checkbox
                               checked={selected.has(i)}
@@ -255,9 +297,16 @@ export const ScheduleImportDialog = ({ open, onOpenChange }: Props) => {
                           <TableCell className="text-xs truncate max-w-[120px]">{row.location || '—'}</TableCell>
                           <TableCell className="text-xs">{row.fee ? `$${row.fee}` : '—'}</TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={`text-[10px] ${past ? 'border-purple-200 text-purple-600' : 'border-blue-200 text-blue-600'}`}>
-                              {past ? 'Game Log' : 'Availability'}
-                            </Badge>
+                            <div className="flex items-center gap-1">
+                              <Badge variant="outline" className={`text-[10px] ${past ? 'border-purple-200 text-purple-600' : 'border-blue-200 text-blue-600'}`}>
+                                {past ? 'Game Log' : 'Availability'}
+                              </Badge>
+                              {isDupe && (
+                                <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-600" data-testid={`schedule-import-dupe-badge-${i}`}>
+                                  Duplicate
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

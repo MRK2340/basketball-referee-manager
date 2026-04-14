@@ -16,6 +16,7 @@ import {
 import { Plus, Edit, Trash2, FileSpreadsheet } from 'lucide-react';
 import TournamentFormDialog from '@/pages/Manager/TournamentFormDialog';
 import { BulkGameImportDialog } from '@/pages/Manager/BulkGameImportDialog';
+import { ImportHistoryPanel } from '@/components/ImportHistoryPanel';
 
 const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTournament }) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -144,6 +145,11 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
 
       {/* Bulk Game Import Dialog */}
       <BulkGameImportDialog open={bulkImportOpen} onOpenChange={setBulkImportOpen} />
+
+      {/* Import History */}
+      <div className="mt-4">
+        <ImportHistoryPanel importType="manager_games" />
+      </div>
     </>
   );
 };

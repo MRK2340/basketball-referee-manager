@@ -18,6 +18,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { exportToCSV, exportToPDF } from '@/lib/exportIndependentGames';
 import { ScheduleImportDialog } from '@/pages/Games/ScheduleImportDialog';
+import { ImportHistoryPanel } from '@/components/ImportHistoryPanel';
 
 const GAME_TYPES = [
   { value: 'league', label: 'League Game', color: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -287,6 +288,9 @@ export const IndependentGamesTab = () => {
           </DropdownMenu>
         </div>
       </motion.div>
+
+      {/* Import History */}
+      <ImportHistoryPanel importType="referee_schedule" />
 
       {/* Games List */}
       <AnimatePresence mode="popLayout">

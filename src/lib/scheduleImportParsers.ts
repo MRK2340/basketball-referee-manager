@@ -345,3 +345,36 @@ export const isDateInPast = (dateStr: string): boolean => {
 
 /** Column map builder exposed for custom mapping UI. */
 export { buildColumnMap, resolveColumnKey };
+
+// ── Template Downloads ───────────────────────────────────────────────────────
+
+const triggerDownload = (content: string, filename: string, mime = 'text/csv') => {
+  const blob = new Blob([content], { type: `${mime};charset=utf-8;` });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+/** Download a CSV template for referee schedule import. */
+export const downloadRefereeTemplate = () => {
+  const csv = [
+    'Game Date,Game Time,Home Team,Away Team,Location,Fee,Level,Division,Organization',
+    '01/15/2026,09:00 AM,Hawks,Eagles,Atlanta Sports Center,$75,Varsity,U14 Boys,ArbiterSports',
+    '03/22/2026,02:30 PM,Tigers,Lions,Peachtree Gym,$85,JV,U16 Girls,GameOfficials',
+  ].join('\n');
+  triggerDownload(csv, 'iWhistle_Schedule_Template.csv');
+};
+
+/** Download a CSV template for manager bulk game import. */
+export const downloadManagerTemplate = () => {
+  const csv = [
+    'Date,Time,Home Team,Away Team,Venue,Division,Level,Fee,Court',
+    '2026-05-15,09:00,Team Alpha,Team Beta,Court 1 - Atlanta Arena,U14 Boys,Varsity,75,1',
+    '2026-05-15,10:30,Team Gamma,Team Delta,Court 2 - Atlanta Arena,U14 Boys,Varsity,75,2',
+  ].join('\n');
+  triggerDownload(csv, 'iWhistle_Game_Import_Template.csv');
+};
+

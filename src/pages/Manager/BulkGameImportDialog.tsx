@@ -15,12 +15,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import {
   Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Trophy,
-  Loader2, ArrowRight, X, FileText, Plus, Calendar as CalendarIcon,
+  Loader2, ArrowRight, X, FileText, Plus, Calendar as CalendarIcon, Download, AlertTriangle,
 } from 'lucide-react';
-import { parseManagerGameFile, type ParsedGameRow } from '@/lib/scheduleImportParsers';
+import { parseManagerGameFile, downloadManagerTemplate, type ParsedGameRow } from '@/lib/scheduleImportParsers';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
-import { batchImportManagerGames, addTournament as addTournamentRecord } from '@/lib/firestoreService';
+import { batchImportManagerGames, addTournament as addTournamentRecord, checkManagerDuplicates } from '@/lib/firestoreService';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +41,7 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
   const [errors, setErrors] = useState<string[]>([]);
   const [result, setResult] = useState<{ added: number } | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [duplicates, setDuplicates] = useState<Set<string>>(new Set());
 
   // Tournament selection
   const [tournamentId, setTournamentId] = useState('');
@@ -57,6 +58,7 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
     setTournamentId('');
     setCreatingNew(false);
     setNewTournament({ name: '', location: '', courts: '', from: undefined, to: undefined });
+    setDuplicates(new Set());
   }, []);
 
   const handleClose = useCallback((open: boolean) => {
@@ -109,8 +111,22 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
     ? (newTournament.name && newTournament.location && newTournament.from && newTournament.to && newTournament.courts)
     : tournamentId;
 
-  const handleProceedToPreview = () => {
-    if (canProceedToPreview) setStep('preview');
+  const handleProceedToPreview = async () => {
+    if (!canProceedToPreview) return;
+    // Check duplicates for existing tournaments
+    if (!creatingNew && tournamentId) {
+      setDuplicates(new Set());
+      const { data: dupes } = await checkManagerDuplicates(
+        tournamentId,
+        rows.map(r => ({ date: r.date, homeTeam: r.homeTeam, awayTeam: r.awayTeam })),
+      );
+      if (dupes && dupes.size > 0) {
+        setDuplicates(dupes);
+        const nonDupeSet = new Set(rows.map((_, i) => i).filter(i => !dupes.has(String(i))));
+        setSelected(nonDupeSet);
+      }
+    }
+    setStep('preview');
   };
 
   const handleImport = async () => {
@@ -161,7 +177,7 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
       payment: r.payment,
     }));
 
-    const { data, error } = await batchImportManagerGames(user, targetTournamentId, gamesToImport);
+    const { data, error } = await batchImportManagerGames(user, targetTournamentId, gamesToImport, file?.name || 'unknown');
     if (error) {
       toast({ title: 'Import Failed', description: error.message, variant: 'destructive' });
       setStep('preview');
@@ -235,6 +251,17 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
                 <p className="text-sm text-blue-800 font-medium mb-1">Expected columns:</p>
                 <p className="text-xs text-blue-600">Date, Time, Home Team, Away Team, Venue, Division, Level, Payment/Fee, Court</p>
               </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 w-full border-slate-200 text-slate-600 hover:text-brand-blue hover:border-brand-blue gap-2"
+                onClick={(e) => { e.stopPropagation(); downloadManagerTemplate(); }}
+                data-testid="bulk-game-import-download-template"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download CSV Template
+              </Button>
             </motion.div>
           )}
 
@@ -380,6 +407,16 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
                 <span className="text-sm text-slate-500">{selectedRows.length} games selected</span>
               </div>
 
+              {/* Duplicate warning */}
+              {duplicates.size > 0 && (
+                <div className="mb-3 p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-start gap-2" data-testid="bulk-import-duplicate-warning">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                  <div className="text-xs text-amber-800">
+                    <span className="font-semibold">{duplicates.size} duplicate{duplicates.size > 1 ? 's' : ''} detected</span> — matching games already in this tournament were auto-deselected.
+                  </div>
+                </div>
+              )}
+
               <ScrollArea className="flex-1 max-h-[300px] border rounded-lg border-slate-200">
                 <Table>
                   <TableHeader>
@@ -401,24 +438,36 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rows.map((row, i) => (
-                      <TableRow key={i} className={selected.has(i) ? '' : 'opacity-40'}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selected.has(i)}
-                            onCheckedChange={() => toggleRow(i)}
-                            data-testid={`bulk-import-row-check-${i}`}
-                          />
-                        </TableCell>
-                        <TableCell className="text-xs font-medium">{row.date}</TableCell>
-                        <TableCell className="text-xs">{row.time || '—'}</TableCell>
-                        <TableCell className="text-xs">{row.homeTeam || '—'}</TableCell>
-                        <TableCell className="text-xs">{row.awayTeam || '—'}</TableCell>
-                        <TableCell className="text-xs truncate max-w-[100px]">{row.venue || '—'}</TableCell>
-                        <TableCell className="text-xs">{row.division || '—'}</TableCell>
-                        <TableCell className="text-xs">{row.payment ? `$${row.payment}` : '—'}</TableCell>
-                      </TableRow>
-                    ))}
+                    {rows.map((row, i) => {
+                      const isDupe = duplicates.has(String(i));
+                      return (
+                        <TableRow key={i} className={`${selected.has(i) ? '' : 'opacity-40'} ${isDupe ? 'bg-amber-50/50' : ''}`}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selected.has(i)}
+                              onCheckedChange={() => toggleRow(i)}
+                              data-testid={`bulk-import-row-check-${i}`}
+                            />
+                          </TableCell>
+                          <TableCell className="text-xs font-medium">{row.date}</TableCell>
+                          <TableCell className="text-xs">{row.time || '—'}</TableCell>
+                          <TableCell className="text-xs">{row.homeTeam || '—'}</TableCell>
+                          <TableCell className="text-xs">
+                            <div className="flex items-center gap-1">
+                              {row.awayTeam || '—'}
+                              {isDupe && (
+                                <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-600 ml-1" data-testid={`bulk-import-dupe-badge-${i}`}>
+                                  Dupe
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs truncate max-w-[100px]">{row.venue || '—'}</TableCell>
+                          <TableCell className="text-xs">{row.division || '—'}</TableCell>
+                          <TableCell className="text-xs">{row.payment ? `$${row.payment}` : '—'}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </ScrollArea>
