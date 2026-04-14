@@ -999,3 +999,48 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 **Files modified:** `src/lib/firestoreService.ts`, `src/hooks/useTournamentActions.ts`, `src/pages/Manager/TournamentsTab.tsx`, `src/pages/Manager/index.tsx`, `src/lib/mappers.ts`
 - 98/98 Vitest tests passing
+
+
+### Phase 54 - All 12 "Coming Soon" Buttons + Pay Period Report (Complete — Feb 2026)
+
+**Replaced all 12 "Coming Soon" buttons with real functionality:**
+
+1. **Settings > Contact Support** — navigates to `/contact` page (removed PublicRoute wrapper from /contact route in App.tsx so authenticated users can access it)
+2. **Settings > Send Feedback** — `FeedbackDialog.tsx`: category dropdown (Bug/Feature/General/Other) + message textarea, saves to `_feedback` Firestore collection
+3. **Settings > Login History** — `LoginHistoryDialog.tsx`: reads from `_audit_log` collection (login/login_mfa events), shows timestamps
+4. **Calendar > Sync Calendar** — exports all upcoming/scheduled games as `.ics` file downloadable by any calendar app
+5. **Games > Manage Live Game** — `LiveGamePanel.tsx`: sheet with quarter scores (+/-), team fouls, timer (10min quarters), quarter breakdown, notes, saves to `live_game_sessions` Firestore collection
+6. **Payments > Payment Settings** — `PaymentSettingsDialog.tsx`: preferred method (Check/Venmo/Zelle/PayPal/Direct Deposit) with handle/account fields per method, saves to `_payment_info`
+7. **Payments > View Receipt** — `ReceiptDialog.tsx`: modal showing full payment details (amount, game, tournament, date, method, status, receipt ID)
+8. **Payments > Download Receipt** — generates formatted text receipt and downloads as `.txt` file
+9. **Payments > Setup Direct Deposit** — `DirectDepositDialog.tsx`: bank name, routing (9-digit), account number, account type, saves masked last-4 to `_payment_info`
+10. **Payments > Update Payment Info** — same `DirectDepositDialog` in edit mode (pre-fills existing data)
+11. **Payments > Tax Documents** — `TaxDocumentsDialog.tsx`: year selector, shows paid totals for year, generates iWhistle-branded PDF (via dynamic jsPDF import)
+12. **Payments > Payment Help** — navigates to existing `/help` page
+
+**Pay Period Reports (new P1 feature):**
+- "Pay Period Report" button on Payments page (referee-only)
+- `PayPeriodReportDialog.tsx`: period type (Weekly/Bi-Weekly/Monthly) + specific period selector
+- Preview shows games count, paid/pending/total breakdown for selected period
+- Generates iWhistle-branded PDF via `exportPayPeriodReport.ts` (same jsPDF style as existing exports)
+
+**Firestore rules updated:**
+- `_audit_log`: added `read` rule for users to read their own events (was write-only)
+- `_feedback`: create-only for authenticated users
+- `_payment_info`: user-only CRUD on own record
+
+**New files:**
+- `src/pages/Settings/LoginHistoryDialog.tsx`
+- `src/pages/Settings/FeedbackDialog.tsx`
+- `src/pages/Payments/ReceiptDialog.tsx`
+- `src/pages/Payments/DirectDepositDialog.tsx`
+- `src/pages/Payments/PaymentSettingsDialog.tsx`
+- `src/pages/Payments/TaxDocumentsDialog.tsx`
+- `src/pages/Games/LiveGamePanel.tsx`
+- `src/pages/Payments/PayPeriodReportDialog.tsx`
+- `src/lib/exportPayPeriodReport.ts`
+
+**Modified files:** `src/App.tsx`, `src/pages/Settings.tsx`, `src/pages/Calendar.tsx`, `src/pages/Games.tsx`, `src/pages/Payments.tsx`, `src/lib/firestoreService.ts`, `firestore.rules`
+
+- 98/98 Vitest tests passing
+- Testing: 13/14 features PASS in iteration_44, Contact Support bug fixed post-test

@@ -101,7 +101,7 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
                 <Route path="/about" element={<PublicRoute><AboutPage /></PublicRoute>} />
-                <Route path="/contact" element={<PublicRoute><ContactPage /></PublicRoute>} />
+                <Route path="/contact" element={<ContactPage />} />
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                 <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
                 <Route path="/referee/:id" element={<RefereePublicProfile />} />
