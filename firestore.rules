@@ -170,5 +170,10 @@ service cloud.firestore {
       allow delete: if isAuth() && request.auth.uid == resource.data.user_id;
       allow update: if false;
     }
+
+    // ── AI Chat History (one doc per user, user-only access) ─────────────────
+    match /_ai_chat_history/{userId} {
+      allow read, write: if isAuth() && request.auth.uid == userId;
+    }
   }
 }

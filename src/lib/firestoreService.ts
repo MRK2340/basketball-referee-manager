@@ -944,3 +944,169 @@ export const deleteUserData = async (user: ServiceUser) => safeHandle(async () =
   // Delete user profile last
   await deleteDoc(doc(db, 'users', user.id));
 });
+
+// ── AI Chat History ───────────────────────────────────────────────────────────
+
+export const saveAIChatHistory = async (userId: string, messages: Doc[]): Promise<SafeResult> => safeHandle(async () => {
+  await setDoc(doc(db, '_ai_chat_history', userId), {
+    user_id: userId,
+    messages: messages.slice(-50), // Keep last 50 messages
+    updated_at: new Date().toISOString(),
+  });
+});
+
+export const loadAIChatHistory = async (userId: string): Promise<SafeResult<Doc[]>> => safeHandle(async () => {
+  const snap = await getDoc(doc(db, '_ai_chat_history', userId));
+  if (!snap.exists()) return [];
+  return snap.data().messages || [];
+});
+
+export const clearAIChatHistory = async (userId: string): Promise<SafeResult> => safeHandle(async () => {
+  await deleteDoc(doc(db, '_ai_chat_history', userId));
+});
+
+// ── Auto-Assign Referees ──────────────────────────────────────────────────────
+
+interface AutoAssignSuggestion {
+  gameId: string;
+  gameLabel: string;
+  refereeId: string;
+  refereeName: string;
+  reason: string;
+}
+
+/**
+ * Generate auto-assign suggestions for unassigned games in a tournament.
+ * Matches referees based on: availability > no conflicts > rating.
+ */
+export const generateAutoAssignSuggestions = async (
+  user: ServiceUser,
+  tournamentId: string,
+): Promise<SafeResult<AutoAssignSuggestion[]>> => safeHandle(async () => {
+  if (user?.role !== 'manager') throw new Error('Only managers can auto-assign.');
+
+  // Fetch tournament games
+  const gamesSnap = await getDocs(query(
+    collection(db, 'games'),
+    where('tournament_id', '==', tournamentId),
+    where('status', '==', 'scheduled'),
+  ));
+  const games = docsToArr(gamesSnap);
+
+  // Fetch existing assignments for these games
+  const gameIds = games.map(g => g.id);
+  if (gameIds.length === 0) return [];
+
+  const assignChunks = chunkArray(gameIds, 30);
+  const assignSnaps = await Promise.all(
+    assignChunks.map(chunk =>
+      getDocs(query(collection(db, 'game_assignments'), where('game_id', 'in', chunk)))
+    )
+  );
+  const existingAssignments = assignSnaps.flatMap(docsToArr);
+
+  // Find unassigned games
+  const assignedGameIds = new Set(existingAssignments.map(a => a.game_id));
+  const unassignedGames = games.filter(g => !assignedGameIds.has(g.id));
+  if (unassignedGames.length === 0) return [];
+
+  // Fetch connected referees
+  const connectionsSnap = await getDocs(query(
+    collection(db, 'manager_connections'),
+    where('manager_id', '==', user.id),
+    where('status', '==', 'connected'),
+  ));
+  const connectedRefereeIds = docsToArr(connectionsSnap).map(c => c.referee_id);
+  if (connectedRefereeIds.length === 0) return [];
+
+  // Fetch referee profiles + availability
+  const refChunks = chunkArray(connectedRefereeIds, 30);
+  const [refSnaps, availSnap] = await Promise.all([
+    Promise.all(refChunks.map(chunk =>
+      getDocs(query(collection(db, 'users'), where(documentId(), 'in', chunk)))
+    )),
+    getDocs(query(collection(db, 'referee_availability'))),
+  ]);
+  const referees = refSnaps.flatMap(docsToArr);
+  const allAvailability = docsToArr(availSnap);
+
+  // Build availability map: refereeId → Set<date strings>
+  const availMap = new Map<string, Set<string>>();
+  allAvailability.forEach(a => {
+    const dates = availMap.get(a.referee_id) || new Set();
+    if (a.start_time) {
+      const d = new Date(a.start_time).toISOString().slice(0, 10);
+      dates.add(d);
+    }
+    availMap.set(a.referee_id, dates);
+  });
+
+  // Build conflict map: refereeId → Set<game_date> (already assigned dates)
+  const conflictMap = new Map<string, Set<string>>();
+  existingAssignments.forEach(a => {
+    const game = games.find(g => g.id === a.game_id);
+    if (game) {
+      const dates = conflictMap.get(a.referee_id) || new Set();
+      dates.add(game.game_date);
+      conflictMap.set(a.referee_id, dates);
+    }
+  });
+
+  // Score and assign
+  const suggestions: AutoAssignSuggestion[] = [];
+  const assignedCounts = new Map<string, number>();
+
+  for (const game of unassignedGames) {
+    const gameDate = game.game_date;
+    let bestRef: { id: string; name: string; score: number; reason: string } | null = null;
+
+    for (const ref of referees) {
+      const refAvail = availMap.get(ref.id);
+      const refConflicts = conflictMap.get(ref.id);
+      const count = assignedCounts.get(ref.id) || 0;
+
+      // Skip if already assigned on this date
+      if (refConflicts?.has(gameDate)) continue;
+
+      let score = 0;
+      let reason = '';
+
+      // Available on this date
+      if (refAvail?.has(gameDate)) {
+        score += 50;
+        reason = 'Available on game date';
+      } else {
+        score += 10;
+        reason = 'No availability data';
+      }
+
+      // Higher rated = better
+      score += (ref.rating || 0) * 5;
+
+      // Prefer less-loaded referees (fairness)
+      score -= count * 15;
+
+      if (!bestRef || score > bestRef.score) {
+        bestRef = { id: ref.id, name: ref.name, score, reason };
+      }
+    }
+
+    if (bestRef) {
+      suggestions.push({
+        gameId: game.id,
+        gameLabel: `${game.home_team} vs ${game.away_team} (${game.game_date})`,
+        refereeId: bestRef.id,
+        refereeName: bestRef.name,
+        reason: bestRef.reason,
+      });
+      // Track assignment to prevent overloading one referee
+      assignedCounts.set(bestRef.id, (assignedCounts.get(bestRef.id) || 0) + 1);
+      // Mark conflict for this date
+      const conflicts = conflictMap.get(bestRef.id) || new Set();
+      conflicts.add(gameDate);
+      conflictMap.set(bestRef.id, conflicts);
+    }
+  }
+
+  return suggestions;
+});

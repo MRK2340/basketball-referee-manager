@@ -23,6 +23,7 @@ import { useData } from '@/contexts/DataContext';
 import { batchImportManagerGames, addTournament as addTournamentRecord, checkManagerDuplicates } from '@/lib/firestoreService';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
+import { AutoAssignPanel } from '@/components/AutoAssignPanel';
 
 type Step = 'upload' | 'tournament' | 'preview' | 'importing' | 'done';
 
@@ -42,6 +43,7 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
   const [result, setResult] = useState<{ added: number } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [duplicates, setDuplicates] = useState<Set<string>>(new Set());
+  const [importedTournamentId, setImportedTournamentId] = useState('');
 
   // Tournament selection
   const [tournamentId, setTournamentId] = useState('');
@@ -59,6 +61,7 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
     setCreatingNew(false);
     setNewTournament({ name: '', location: '', courts: '', from: undefined, to: undefined });
     setDuplicates(new Set());
+    setImportedTournamentId('');
   }, []);
 
   const handleClose = useCallback((open: boolean) => {
@@ -183,6 +186,7 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
       setStep('preview');
     } else if (data) {
       setResult(data);
+      setImportedTournamentId(targetTournamentId);
       setStep('done');
       fetchData(false);
     }
@@ -500,15 +504,23 @@ export const BulkGameImportDialog = ({ open, onOpenChange }: Props) => {
 
           {/* ── STEP 5: Done ───────────────────────────── */}
           {step === 'done' && result && (
-            <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center py-8">
+            <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center py-6">
               <div className="h-14 w-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
                 <CheckCircle2 className="h-7 w-7 text-green-600" />
               </div>
               <p className="text-slate-900 font-bold text-lg mb-2">Import Complete</p>
               <p className="text-2xl font-bold text-brand-blue mb-1">{result.added}</p>
-              <p className="text-sm text-slate-500 mb-6">games created and ready for referee assignment</p>
-              <Button onClick={() => handleClose(false)} className="basketball-gradient text-white hover:opacity-90" data-testid="bulk-import-done-btn">
-                Done
+              <p className="text-sm text-slate-500 mb-5">games created and ready for referee assignment</p>
+
+              {/* Auto-Assign Panel */}
+              {importedTournamentId && (
+                <div className="w-full border-t border-slate-200 pt-4 mt-1" data-testid="auto-assign-section">
+                  <AutoAssignPanel tournamentId={importedTournamentId} onComplete={() => handleClose(false)} />
+                </div>
+              )}
+
+              <Button onClick={() => handleClose(false)} variant="outline" className="mt-4 border-slate-200 text-slate-600" data-testid="bulk-import-done-btn">
+                Close
               </Button>
             </motion.div>
           )}
