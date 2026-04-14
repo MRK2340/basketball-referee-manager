@@ -476,3 +476,34 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - `src/pages/Manager/TournamentsTab.tsx` — Added Bulk Import Games button
 
 - Testing: 100% pass — all 12 test cases verified (iteration_36.json)
+
+
+### Phase 37 - Import Enhancements (Complete — Apr 2026)
+
+**Enhancement 1: Downloadable CSV Templates**
+- "Download CSV Template" button in both import dialogs (referee + manager)
+- Templates include sample rows with correct headers for ArbiterSports/GameOfficials/Assigning.net
+- Functions: `downloadRefereeTemplate()`, `downloadManagerTemplate()` in `scheduleImportParsers.ts`
+
+**Enhancement 2: Duplicate Detection**
+- Referee: Checks `independent_games` for matching date + organization before import
+- Manager: Checks `games` for matching tournament + date + home_team + away_team
+- Duplicate rows show amber "Duplicate" badge in preview table
+- Duplicates are auto-deselected (user can re-select if desired)
+- Warning banner: "X duplicates detected — matching games already in your log were auto-deselected"
+- Functions: `checkRefereeDuplicates()`, `checkManagerDuplicates()` in `firestoreService.ts`
+
+**Enhancement 3: Import History & Undo**
+- `_import_history` Firestore collection stores import records (user_id, type, file_name, created IDs)
+- `ImportHistoryPanel` component: collapsible "Import History" section with past imports
+- Each import shows file name, timestamp, record counts, and "Undo" button
+- Undo confirmation dialog → batch-deletes all records from that import
+- History write is best-effort (non-blocking) — import succeeds even if history write fails
+- Functions: `fetchImportHistory()`, `undoImport()` in `firestoreService.ts`
+
+**Firestore updates:**
+- `firestore.rules`: Added `_import_history` collection rules (user CRUD on own records)
+- `firestore.indexes.json`: Added composite index for `_import_history(user_id, created_at)`
+- **Deploy required**: `firebase deploy --only firestore:rules,firestore:indexes`
+
+- Testing: 10/12 pass (iteration_37.json). 2 INFO items require Firestore rules deployment for full undo testing.

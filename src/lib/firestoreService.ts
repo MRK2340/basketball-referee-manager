@@ -583,19 +583,25 @@ export const batchImportRefereeSchedule = async (
     await batch.commit();
   }
 
-  // Save import history
-  const historyRef = await addDoc(collection(db, '_import_history'), {
-    user_id: user.id,
-    import_type: 'referee_schedule',
-    file_name: fileName,
-    games_added: gamesAdded,
-    availability_added: availabilityAdded,
-    game_ids: createdIds,
-    availability_ids: availIds,
-    created_at: new Date().toISOString(),
-  });
+  // Save import history (best-effort — never block the main import)
+  let importId = '';
+  try {
+    const historyRef = await addDoc(collection(db, '_import_history'), {
+      user_id: user.id,
+      import_type: 'referee_schedule',
+      file_name: fileName,
+      games_added: gamesAdded,
+      availability_added: availabilityAdded,
+      game_ids: createdIds,
+      availability_ids: availIds,
+      created_at: new Date().toISOString(),
+    });
+    importId = historyRef.id;
+  } catch {
+    // Import history is non-critical — log but don't fail the import
+  }
 
-  return { gamesAdded, availabilityAdded, errors, importId: historyRef.id };
+  return { gamesAdded, availabilityAdded, errors, importId };
 });
 
 // ── Batch Import: Manager Games ──────────────────────────────────────────────
@@ -640,18 +646,24 @@ export const batchImportManagerGames = async (
     await batch.commit();
   }
 
-  // Save import history
-  const historyRef = await addDoc(collection(db, '_import_history'), {
-    user_id: user.id,
-    import_type: 'manager_games',
-    tournament_id: tournamentId,
-    file_name: fileName,
-    games_added: added,
-    game_ids: createdIds,
-    created_at: new Date().toISOString(),
-  });
+  // Save import history (best-effort — never block the main import)
+  let importId = '';
+  try {
+    const historyRef = await addDoc(collection(db, '_import_history'), {
+      user_id: user.id,
+      import_type: 'manager_games',
+      tournament_id: tournamentId,
+      file_name: fileName,
+      games_added: added,
+      game_ids: createdIds,
+      created_at: new Date().toISOString(),
+    });
+    importId = historyRef.id;
+  } catch {
+    // Import history is non-critical
+  }
 
-  return { added, errors, importId: historyRef.id };
+  return { added, errors, importId };
 });
 
 // ── Duplicate Detection ──────────────────────────────────────────────────────
