@@ -25,6 +25,10 @@ const Manager = () => {
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
   const [selectedBracketTournament, setSelectedBracketTournament] = useState('');
 
+  // Compute the active bracket tournament ID
+  const activeBracketTid = selectedBracketTournament || (tournaments.length > 0 ? tournaments[0].id : '');
+  const activeBracketName = tournaments.find((t: { id: string; name: string }) => t.id === activeBracketTid)?.name || '';
+
   if (user?.role !== 'manager') {
     return <Navigate to="/" replace />;
   }
@@ -139,7 +143,7 @@ const Manager = () => {
                 <p className="text-slate-400 text-sm py-8 text-center">No tournaments yet. Create one in the Tournaments tab.</p>
               ) : (
                 <div className="space-y-4">
-                  <Select value={selectedBracketTournament || tournaments[0]?.id || ''} onValueChange={setSelectedBracketTournament}>
+                  <Select value={activeBracketTid} onValueChange={setSelectedBracketTournament}>
                     <SelectTrigger className="w-64 border-slate-200" data-testid="bracket-tournament-select">
                       <SelectValue placeholder="Select tournament" />
                     </SelectTrigger>
@@ -149,11 +153,9 @@ const Manager = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  {(() => {
-                    const tid = selectedBracketTournament || tournaments[0]?.id;
-                    const t = tournaments.find((x: { id: string }) => x.id === tid);
-                    return tid && t ? <BracketEditor tournamentId={tid} tournamentName={t.name} /> : null;
-                  })()}
+                  {activeBracketTid ? (
+                    <BracketEditor key={activeBracketTid} tournamentId={activeBracketTid} tournamentName={activeBracketName} />
+                  ) : null}
                 </div>
               )}
             </div>

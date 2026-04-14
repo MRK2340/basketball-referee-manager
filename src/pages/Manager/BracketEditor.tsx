@@ -213,26 +213,36 @@ export const BracketEditor = ({ tournamentId, tournamentName }: Props) => {
 
   // Load bracket
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await loadBracket(tournamentId);
-      if (data) setBracket(data);
-      setLoading(false);
+      try {
+        const { data, error } = await loadBracket(tournamentId);
+        if (!cancelled) {
+          if (data) setBracket(data);
+          setLoading(false);
+        }
+      } catch {
+        if (!cancelled) setLoading(false);
+      }
     })();
+    return () => { cancelled = true; };
   }, [tournamentId]);
 
   // Real-time sync via onSnapshot
   useEffect(() => {
+    let active = true;
     const q = query(
       collection(db, 'tournament_brackets'),
       where('tournament_id', '==', tournamentId),
       limit(1),
     );
     const unsub = onSnapshot(q, (snap) => {
+      if (!active) return;
       if (!snap.empty) {
         const d = snap.docs[0];
         const data = d.data();
-        if (data.format && data.rounds) {
+        if (data && data.format && data.rounds) {
           setBracket({
             id: d.id,
             tournamentId: data.tournament_id,
@@ -243,10 +253,13 @@ export const BracketEditor = ({ tournamentId, tournamentName }: Props) => {
           });
         }
       }
+      // Ensure loading is cleared even on empty snapshots
+      setLoading(false);
     }, () => {
-      // Listener error — fall back to one-time fetch
+      // Listener error (permissions/index) — ensure loading clears
+      if (active) setLoading(false);
     });
-    return unsub;
+    return () => { active = false; unsub(); };
   }, [tournamentId]);
 
   // Create bracket
@@ -258,6 +271,7 @@ export const BracketEditor = ({ tournamentId, tournamentName }: Props) => {
     }
     const rounds = generateBracket(format, teams);
     const newBracket: BracketData = {
+      id: bracket?.id || undefined, // Overwrite existing if corrupt
       tournamentId, format, teams, rounds, updatedAt: new Date().toISOString(),
     };
     setSaving(true);
@@ -372,7 +386,60 @@ export const BracketEditor = ({ tournamentId, tournamentName }: Props) => {
   }
 
   // Bracket exists — show it
-  if (!bracket.format || !bracket.rounds) return null;
+  if (!bracket.format || !bracket.rounds || !Array.isArray(bracket.rounds)) {
+    // Bracket data is incomplete — treat as no bracket
+    return (
+      <div className="text-center py-12" data-testid="bracket-empty">
+        <Trophy className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+        <p className="text-slate-600 font-semibold mb-2">No bracket yet</p>
+        <p className="text-slate-400 text-sm mb-6">Create a tournament bracket to visualize the competition.</p>
+        {isManager && (
+          <Button className="basketball-gradient text-white hover:opacity-90" onClick={() => {
+            setTeamsInput(tournamentTeams.join('\n'));
+            setShowSetup(true);
+          }} data-testid="bracket-create-btn">
+            <Plus className="h-4 w-4 mr-2" /> Create Bracket
+          </Button>
+        )}
+
+        <Dialog open={showSetup} onOpenChange={setShowSetup}>
+          <DialogContent className="sm:max-w-md bg-white border-slate-200 text-slate-900" data-testid="bracket-setup-dialog">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2"><Trophy className="h-5 w-5 text-brand-blue" /> Create Bracket</DialogTitle>
+              <DialogDescription className="text-slate-500">Set up the tournament format and teams for {tournamentName}.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-600">Format</Label>
+                <Select value={format} onValueChange={v => setFormat(v as BracketFormat)}>
+                  <SelectTrigger className="border-slate-200" data-testid="bracket-format-select"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="single_elimination">Single Elimination</SelectItem>
+                    <SelectItem value="double_elimination">Double Elimination</SelectItem>
+                    <SelectItem value="round_robin">Round Robin / Pool Play</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-600">Teams (one per line)</Label>
+                <textarea value={teamsInput} onChange={e => setTeamsInput(e.target.value)}
+                  className="w-full h-40 border border-slate-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
+                  placeholder={"Team Alpha\nTeam Beta\nTeam Gamma\nTeam Delta"} data-testid="bracket-teams-input" />
+                <p className="text-[10px] text-slate-400">{teamsInput.split('\n').filter(t => t.trim()).length} teams</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSetup(false)} className="border-slate-200">Cancel</Button>
+              <Button onClick={handleCreate} disabled={saving} className="basketball-gradient text-white hover:opacity-90" data-testid="bracket-create-confirm-btn">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trophy className="h-4 w-4 mr-2" />}
+                Generate Bracket
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4" data-testid="bracket-editor">
