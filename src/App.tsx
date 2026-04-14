@@ -14,6 +14,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
 import { useSyncStatus } from '@/hooks/useSyncStatus';
+import { useRemoteConfig } from '@/hooks/useRemoteConfig';
 
 // Lazy-loaded pages — improves initial bundle size
 const Dashboard          = lazy(() => import('@/pages/Dashboard'));
@@ -37,11 +38,42 @@ const FindManagersPage   = lazy(() => import('@/pages/FindManagers'));
 const RefereePublicProfile = lazy(() => import('@/pages/RefereePublicProfile'));
 const HelpCenter         = lazy(() => import('@/pages/HelpCenter'));
 
-/** Inner shell inside AuthProvider — can access auth context for sync monitoring */
+/** Inner shell inside AuthProvider — sync monitoring + remote config feature flags */
 const SyncMonitor = () => {
   const { user } = useAuth();
   const syncState = useSyncStatus(user);
   return <SyncStatusIndicator syncState={syncState} />;
+};
+
+/** Announcement banner from Remote Config (shown above all content) */
+const AnnouncementBanner = () => {
+  const { announcementBanner, announcementBannerColor } = useRemoteConfig();
+  if (!announcementBanner) return null;
+  return (
+    <div
+      className="text-white text-sm font-medium py-2 px-4 text-center"
+      style={{ backgroundColor: announcementBannerColor || '#0080C8' }}
+      data-testid="announcement-banner"
+    >
+      {announcementBanner}
+    </div>
+  );
+};
+
+/** Maintenance mode gate — blocks the entire app when enabled via Remote Config */
+const MaintenanceGate = ({ children }: { children: React.ReactNode }) => {
+  const { maintenanceMode, maintenanceMessage, loading } = useRemoteConfig();
+  if (loading) return null; // Don't flash maintenance screen while loading config
+  if (!maintenanceMode) return <>{children}</>;
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-8" data-testid="maintenance-screen">
+      <div className="max-w-md text-center">
+        <div className="text-6xl mb-4">🏀</div>
+        <h1 className="text-2xl font-bold text-slate-900 mb-3">Under Maintenance</h1>
+        <p className="text-slate-600">{maintenanceMessage}</p>
+      </div>
+    </div>
+  );
 };
 
 function App() {
@@ -58,7 +90,9 @@ function App() {
         
         <AuthProvider>
           <DataProvider>
+            <MaintenanceGate>
             <div className="min-h-screen">
+              <AnnouncementBanner />
               <OfflineIndicator />
               <SyncMonitor />
               <RouteTracker />
@@ -149,6 +183,7 @@ function App() {
               </Suspense>
             </div>
             <Toaster />
+            </MaintenanceGate>
           </DataProvider>
         </AuthProvider>
       </Router>

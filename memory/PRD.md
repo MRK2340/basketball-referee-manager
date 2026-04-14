@@ -928,3 +928,38 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 **Files modified:** `src/contexts/AuthContext.tsx`
 - 98/98 Vitest tests passing
+
+
+### Phase 51 - Firebase App Check + Remote Config + Resize Images (Complete — Apr 2026)
+
+**1. Firebase App Check (reCAPTCHA v3)**
+- `initializeAppCheck` with `ReCaptchaV3Provider` in `firebase.ts` — runs invisibly, no user interaction
+- Auto-refreshes tokens (`isTokenAutoRefreshEnabled: true`)
+- Debug mode in dev (`FIREBASE_APPCHECK_DEBUG_TOKEN = true`)
+- Requires `VITE_RECAPTCHA_SITE_KEY` env var (gracefully skips if not set)
+- **Setup required:**
+  1. Go to https://www.google.com/recaptcha/admin → Create site → reCAPTCHA v3 → Add your domain
+  2. Copy the **site key** → set `VITE_RECAPTCHA_SITE_KEY` in `.env`
+  3. Copy the **secret key** → Firebase Console > App Check > Register web app with reCAPTCHA v3
+  4. Enable enforcement for Firestore, Storage, and Cloud Functions in Firebase Console > App Check
+
+**2. Firebase Remote Config (Feature Flags)**
+- `getRemoteConfig` initialized in `firebase.ts` with 8 default flags:
+  - `maintenance_mode` / `maintenance_message` — blocks entire app with maintenance screen
+  - `feature_ai_assistant` / `feature_bracket_editor` / `feature_schedule_import` / `feature_push_notifications` — feature toggles
+  - `announcement_banner` / `announcement_banner_color` — global banner from Console
+- `useRemoteConfig.ts` hook — fetches and exposes all flags as typed `RemoteFlags`
+- `MaintenanceGate` component in `App.tsx` — blocks app when `maintenance_mode=true`
+- `AnnouncementBanner` component — shows colored banner when `announcement_banner` is non-empty
+- Fetch interval: 30s in dev, 1hr in production
+- **Setup:** Create matching parameters in Firebase Console > Remote Config > Publish
+
+**3. Firebase Resize Images Extension**
+- **Install from Firebase Console:** Extensions > Search "Resize Images" > Install
+- Configure: bucket `iwhistle-6f5d1.firebasestorage.app`, sizes `200x200,64x64`, format `webp`
+- Auto-generates thumbnails when avatars are uploaded to `avatars/` path
+- No code changes needed — extension triggers on Storage upload events
+
+**New files:** `src/hooks/useRemoteConfig.ts`
+**Modified:** `src/lib/firebase.ts`, `src/App.tsx`, `.env`
+- 98/98 Vitest tests passing
