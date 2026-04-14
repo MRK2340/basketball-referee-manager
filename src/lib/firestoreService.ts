@@ -1110,3 +1110,48 @@ export const generateAutoAssignSuggestions = async (
 
   return suggestions;
 });
+
+
+// ── Tournament Brackets ───────────────────────────────────────────────────────
+
+import type { BracketData, BracketRound, BracketFormat } from './bracketUtils';
+
+export const saveBracket = async (bracket: BracketData): Promise<SafeResult<string>> => safeHandle(async () => {
+  const data = {
+    tournament_id: bracket.tournamentId,
+    format: bracket.format,
+    teams: bracket.teams,
+    rounds: JSON.parse(JSON.stringify(bracket.rounds)),
+    updated_at: new Date().toISOString(),
+  };
+  if (bracket.id) {
+    await updateDoc(doc(db, 'tournament_brackets', bracket.id), data);
+    return bracket.id;
+  } else {
+    const ref = await addDoc(collection(db, 'tournament_brackets'), data);
+    return ref.id;
+  }
+});
+
+export const loadBracket = async (tournamentId: string): Promise<SafeResult<BracketData | null>> => safeHandle(async () => {
+  const snap = await getDocs(query(
+    collection(db, 'tournament_brackets'),
+    where('tournament_id', '==', tournamentId),
+    limit(1),
+  ));
+  if (snap.empty) return null;
+  const d = snap.docs[0];
+  const data = d.data();
+  return {
+    id: d.id,
+    tournamentId: data.tournament_id,
+    format: data.format as BracketFormat,
+    teams: data.teams || [],
+    rounds: (data.rounds || []) as BracketRound[],
+    updatedAt: data.updated_at || '',
+  };
+});
+
+export const deleteBracket = async (bracketId: string): Promise<SafeResult> => safeHandle(async () => {
+  await deleteDoc(doc(db, 'tournament_brackets', bracketId));
+});

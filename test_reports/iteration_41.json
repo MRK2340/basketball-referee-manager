@@ -1,0 +1,81 @@
+{
+  "summary": "Tested 2 new features: (1) Referee AI Assistant - ALL TESTS PASS, (2) Tournament Bracket Editor - CRITICAL BUG: BracketEditor component not rendering",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "BracketEditor",
+        "issue": "BracketEditor component does not render at all in the Brackets tab. The IIFE in Manager/index.tsx (lines 152-156) returns null and never re-renders when tournaments data loads.",
+        "selector": "[data-testid='bracket-empty'], [data-testid='bracket-editor'], [data-testid='bracket-create-btn']",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Bracket creation",
+        "issue": "Cannot test bracket creation because BracketEditor component doesn't render. The tournament selector shows tournaments correctly, but the BracketEditor below it is not rendered.",
+        "affected_selectors": ["[data-testid='bracket-empty']", "[data-testid='bracket-create-btn']", "[data-testid='bracket-format-select']", "[data-testid='bracket-teams-input']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "feature_verification": {
+    "referee_ai_assistant": {
+      "status": "PASS",
+      "referee_ai_fab": "PASS - [data-testid='referee-ai-fab'] visible on referee dashboard only",
+      "referee_ai_panel": "PASS - [data-testid='referee-ai-panel'] opens when FAB clicked",
+      "referee_ai_input": "PASS - [data-testid='referee-ai-input'] found and functional",
+      "referee_ai_send_btn": "PASS - [data-testid='referee-ai-send-btn'] found and functional",
+      "referee_ai_new_chat_btn": "PASS - [data-testid='referee-ai-new-chat-btn'] found",
+      "referee_ai_mic_btn": "PASS - [data-testid='referee-ai-mic-btn'] found",
+      "ai_response": "PASS - Gemini 2.5 Pro responds to messages correctly",
+      "fab_not_on_manager": "PASS - Referee AI FAB does NOT appear on manager dashboard (correct behavior)"
+    },
+    "bracket_editor": {
+      "status": "FAIL",
+      "manager_tab_brackets": "PASS - [data-testid='manager-tab-brackets'] found and clickable",
+      "bracket_tournament_select": "PASS - [data-testid='bracket-tournament-select'] found, shows tournaments",
+      "bracket_empty_state": "FAIL - [data-testid='bracket-empty'] NOT rendered",
+      "bracket_create_btn": "FAIL - [data-testid='bracket-create-btn'] NOT rendered",
+      "bracket_format_select": "CANNOT TEST - dialog doesn't open because create button not rendered",
+      "bracket_teams_input": "CANNOT TEST - dialog doesn't open because create button not rendered",
+      "bracket_editor": "FAIL - [data-testid='bracket-editor'] NOT rendered"
+    }
+  },
+  "test_report_links": ["/app/test_reports/iteration_41.json"],
+  "action_items": [
+    "CRITICAL: Fix BracketEditor not rendering in Manager/index.tsx. The IIFE at lines 152-156 returns null and doesn't re-render when tournaments load. Replace IIFE with proper conditional rendering or useMemo with tournaments dependency.",
+    "Suggested fix: Change the IIFE to a direct conditional render: {(selectedBracketTournament || tournaments[0]?.id) && tournaments.find(x => x.id === (selectedBracketTournament || tournaments[0]?.id)) && <BracketEditor ... />}"
+  ],
+  "critical_code_review_comments": [
+    "BUG: Manager/index.tsx lines 152-156 - IIFE pattern causes BracketEditor to not render. The IIFE evaluates once during initial render when tournaments array may be empty, returns null, and doesn't re-evaluate when tournaments load.",
+    "The Select component correctly shows tournaments because it uses the value prop which re-evaluates on each render, but the IIFE result is not reactive."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only test)",
+    "frontend": "50% (Referee AI: 100%, Bracket Editor: 0%)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Referee AI Assistant feature is fully working - all data-testid elements present and functional, Gemini 2.5 Pro integration working. Bracket Editor has a CRITICAL bug where the BracketEditor component doesn't render at all. The issue is in Manager/index.tsx lines 152-156 where an IIFE is used for conditional rendering. The IIFE evaluates to null on first render (when tournaments is empty) and doesn't re-evaluate when tournaments load. After fix, test: bracket-empty, bracket-create-btn, bracket-format-select, bracket-teams-input, bracket-create-confirm-btn, bracket-editor, bracket-tree.",
+  "rca_of_the_issue": {
+    "root_cause": "React rendering issue with IIFE pattern in Manager/index.tsx. The IIFE at lines 152-156 evaluates once during component render. When tournaments array is initially empty (data still loading from Firestore), the IIFE returns null. When tournaments load and component re-renders, the IIFE still returns null because React doesn't track the IIFE's internal variables as dependencies.",
+    "reproduction_steps": [
+      "1. Login as manager (manager@demo.com / manager123)",
+      "2. Navigate to /manager",
+      "3. Click Brackets tab (last tab, may need to scroll)",
+      "4. Observe: Tournament selector shows 'Spring Showcase Classic' but no BracketEditor content below it",
+      "5. Select a different tournament - still no BracketEditor renders"
+    ],
+    "mitigation": "Replace the IIFE with a proper conditional render that React can track: const selectedTid = selectedBracketTournament || tournaments[0]?.id; const selectedTournament = tournaments.find(x => x.id === selectedTid); Then render: {selectedTid && selectedTournament && <BracketEditor tournamentId={selectedTid} tournamentName={selectedTournament.name} />}"
+  }
+}

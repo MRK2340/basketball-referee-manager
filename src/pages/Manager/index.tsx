@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck, UserCheck, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck, UserCheck, Sparkles, GitBranch } from 'lucide-react';
 import TournamentsTab from './TournamentsTab';
 import GameAssignmentsTab from './GameAssignmentsTab';
 import RefereeManagementTab from './RefereeManagementTab';
@@ -15,12 +16,14 @@ import StandingsTab from './StandingsTab';
 import LeaderboardTab from './LeaderboardTab';
 import AvailabilityCalendarTab from './AvailabilityCalendarTab';
 import RosterTab from './RosterTab';
+import { BracketEditor } from './BracketEditor';
 import { AIAssistantPanel } from '@/components/AIAssistantPanel';
 
 const Manager = () => {
   const { user } = useAuth();
   const { tournaments, games, referees, gameReports, connections, tournamentActions, assignmentActions, connectionActions } = useData();
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [selectedBracketTournament, setSelectedBracketTournament] = useState('');
 
   if (user?.role !== 'manager') {
     return <Navigate to="/" replace />;
@@ -75,6 +78,9 @@ const Manager = () => {
             <TabsTrigger value="reports" data-testid="manager-tab-reports" className="flex-shrink-0 px-2.5 sm:px-3">
               <FileText className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Reports</span>
             </TabsTrigger>
+            <TabsTrigger value="brackets" data-testid="manager-tab-brackets" className="flex-shrink-0 px-2.5 sm:px-3">
+              <GitBranch className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Brackets</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="tournaments">
@@ -121,6 +127,36 @@ const Manager = () => {
           
           <TabsContent value="reports">
             <GameReportsTab gameReports={gameReports} />
+          </TabsContent>
+
+          <TabsContent value="brackets">
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 mb-1">Tournament Brackets</h2>
+                <p className="text-sm text-slate-500">Visual bracket editor with real-time sync. Select a tournament to view or create its bracket.</p>
+              </div>
+              {tournaments.length === 0 ? (
+                <p className="text-slate-400 text-sm py-8 text-center">No tournaments yet. Create one in the Tournaments tab.</p>
+              ) : (
+                <div className="space-y-4">
+                  <Select value={selectedBracketTournament || tournaments[0]?.id || ''} onValueChange={setSelectedBracketTournament}>
+                    <SelectTrigger className="w-64 border-slate-200" data-testid="bracket-tournament-select">
+                      <SelectValue placeholder="Select tournament" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tournaments.map((t: { id: string; name: string }) => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {(() => {
+                    const tid = selectedBracketTournament || tournaments[0]?.id;
+                    const t = tournaments.find((x: { id: string }) => x.id === tid);
+                    return tid && t ? <BracketEditor tournamentId={tid} tournamentName={t.name} /> : null;
+                  })()}
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>

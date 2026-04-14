@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SkeletonStatCard, SkeletonGameCard } from '@/components/SkeletonCard';
+import { RefereeAIPanel } from '@/components/RefereeAIPanel';
 import { 
   Calendar, 
   Trophy, 
@@ -24,6 +25,7 @@ import {
   MessageCircle,
   Activity
 } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 const ACTIVITY_ICONS = {
@@ -38,6 +40,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { games, payments, notifications, loading } = useData();
   const navigate = useNavigate();
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   const upcomingGames = useMemo(() => games.filter(game => {
     if (user.role === 'referee') {
@@ -367,6 +370,16 @@ const Dashboard = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Referee AI Assistant Floating Button */}
+      {user?.role === 'referee' && (
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.5 }} className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-30">
+          <Button onClick={() => setAiPanelOpen(true)} className="h-14 w-14 rounded-2xl shadow-lg basketball-gradient text-white hover:opacity-90 hover:shadow-xl transition-all" data-testid="referee-ai-fab">
+            <Sparkles className="h-6 w-6" />
+          </Button>
+        </motion.div>
+      )}
+      <RefereeAIPanel open={aiPanelOpen} onClose={() => setAiPanelOpen(false)} />
     </>
   );
 };

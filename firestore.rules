@@ -180,5 +180,11 @@ service cloud.firestore {
     match /_game_reminders/{reminderId} {
       allow read, write: if false;
     }
+
+    // ── Tournament Brackets (managers write, all auth users read for real-time sync) ─
+    match /tournament_brackets/{bracketId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isAuth();
+    }
   }
 }
