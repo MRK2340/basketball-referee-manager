@@ -139,7 +139,7 @@ async def test_messages_page(page: Page, state: RegressionState) -> None:
         await search_input.fill("")
         state.record("messages_search_filter", "PASS")
     else:
-        state.record("messages_page_loads", f"FAIL: header={header is not None}, search={search_input is not None}")
+        state.record("messages_page_loads", f"FAIL: header={bool(header)}, search={bool(search_input)}")
         state.record("messages_search_filter", "FAIL: page not loaded properly")
 
 

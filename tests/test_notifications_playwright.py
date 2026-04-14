@@ -97,7 +97,7 @@ async def test_bell_badge(env: TestEnv) -> None:
     """TEST 3: Bell badge shows unread count after login."""
     await env.page.wait_for_timeout(3000)
     bell_btn = await env.page.wait_for_selector('[data-testid="topbar-notifications-button"]', timeout=8000)
-    assert bell_btn is not None
+    assert bell_btn
     unread_count: str = await env.page.evaluate("""() => {
         const badge = document.querySelector('[data-testid="topbar-notifications-button"] .absolute');
         return badge ? badge.textContent.trim() : '0';
@@ -111,7 +111,7 @@ async def test_notification_panel_opens(env: TestEnv) -> None:
     await bell_btn.click(force=True)
     await env.page.wait_for_timeout(1500)
     panel = await env.page.wait_for_selector('[data-testid="notification-panel"]', timeout=8000)
-    assert panel is not None
+    assert panel
     assert await panel.is_visible(), "NotificationPanel sheet not visible"
     env.record("TEST_4_notification_panel_opens", "PASS - NotificationPanel sheet opened")
 
@@ -226,6 +226,37 @@ async def test_no_js_crashes(env: TestEnv) -> None:
         env.record("TEST_10_no_crashes", f"FAIL - {len(critical)} critical errors: {str(critical[:2])[:200]}")
 
 
+# ── Test Runner Helpers ────────────────────────────────────────────────────────
+
+def _test_name(test_fn: object) -> str:
+    """Extract a readable test name from a function's docstring."""
+    doc = getattr(test_fn, '__doc__', None)
+    if doc:
+        return doc.split(":")[0].strip()
+    return getattr(test_fn, '__name__', 'unknown')
+
+
+async def _run_test_group(env: TestEnv, tests: list) -> None:
+    """Run a list of async test functions, recording failures."""
+    for test_fn in tests:
+        try:
+            await test_fn(env)
+        except Exception as e:
+            env.record(_test_name(test_fn), f"FAIL - {e}")
+
+
+def _print_summary(results: dict[str, str]) -> None:
+    """Print formatted test results summary."""
+    print("\n===== TEST RESULTS SUMMARY =====")
+    for k, v in results.items():
+        status = "PASS" if v.startswith("PASS") else ("PARTIAL" if v.startswith("PARTIAL") else "FAIL")
+        print(f"{status} - {k}: {v}")
+    passed = sum(1 for v in results.values() if v.startswith("PASS"))
+    partial = sum(1 for v in results.values() if v.startswith("PARTIAL"))
+    failed = sum(1 for v in results.values() if v.startswith("FAIL"))
+    print(f"\nTotal: {passed} PASS, {partial} PARTIAL, {failed} FAIL out of {len(results)}")
+
+
 # ── Test Runner ───────────────────────────────────────────────────────────────
 
 async def run_all_tests() -> dict[str, str]:
@@ -239,51 +270,20 @@ async def run_all_tests() -> dict[str, str]:
         env = TestEnv(page)
         env.attach_listeners()
 
-        # Referee tests
-        tests_referee = [
-            test_app_loads,
-            test_referee_login,
-            test_bell_badge,
-            test_notification_panel_opens,
-            test_mark_all_read,
-            test_notification_icons,
-        ]
-        for test_fn in tests_referee:
-            try:
-                await test_fn(env)
-            except Exception as e:
-                env.record(test_fn.__doc__.split(":")[0].strip() if test_fn.__doc__ else test_fn.__name__, f"FAIL - {e}")
+        await _run_test_group(env, [
+            test_app_loads, test_referee_login, test_bell_badge,
+            test_notification_panel_opens, test_mark_all_read, test_notification_icons,
+        ])
 
-        # Logout and switch to manager
         await logout_and_navigate(page)
 
-        tests_manager = [
-            test_manager_login,
-            test_assign_referee,
-            test_manager_sends_message,
-        ]
-        for test_fn in tests_manager:
-            try:
-                await test_fn(env)
-            except Exception as e:
-                env.record(test_fn.__doc__.split(":")[0].strip() if test_fn.__doc__ else test_fn.__name__, f"FAIL - {e}")
+        await _run_test_group(env, [
+            test_manager_login, test_assign_referee, test_manager_sends_message,
+        ])
 
-        # Final checks
-        try:
-            await test_no_js_crashes(env)
-        except Exception as e:
-            env.record("TEST_10_no_crashes", f"FAIL - {e}")
+        await _run_test_group(env, [test_no_js_crashes])
 
-        # Summary
-        print("\n===== TEST RESULTS SUMMARY =====")
-        for k, v in env.results.items():
-            status = "PASS" if v.startswith("PASS") else ("PARTIAL" if v.startswith("PARTIAL") else "FAIL")
-            print(f"{status} - {k}: {v}")
-        passed = sum(1 for v in env.results.values() if v.startswith("PASS"))
-        partial = sum(1 for v in env.results.values() if v.startswith("PARTIAL"))
-        failed = sum(1 for v in env.results.values() if v.startswith("FAIL"))
-        print(f"\nTotal: {passed} PASS, {partial} PARTIAL, {failed} FAIL out of {len(env.results)}")
-
+        _print_summary(env.results)
         await browser.close()
         return env.results
 
