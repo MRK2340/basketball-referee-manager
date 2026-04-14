@@ -215,12 +215,20 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // ── FCM Tokens (user-only write, server-only read for push delivery) ────
+    match /_fcm_tokens/{userId} {
+      allow read: if false;
+      allow create, update: if isAuth() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
     // ── Tournament Brackets (manager-only write, all auth read for real-time) ─
     match /tournament_brackets/{bracketId} {
       allow read: if isAuth();
       allow create: if isManager()
         && request.resource.data.manager_id == request.auth.uid;
-      allow update, delete: if isAuth() && request.auth.uid == resource.data.manager_id;
+      allow update, delete: if isManager()
+        && request.auth.uid == resource.data.manager_id;
     }
   }
 }

@@ -265,7 +265,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: userData.email.trim().toLowerCase(),
         role: userData.role || 'referee',
         phone: userData.phone || '',
-        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.email}`,
+        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${fbUser.uid}`,
         certifications: [],
         games_officiated: 0,
         experience: '0 years',
@@ -357,7 +357,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       Analytics.photoUploaded();
       toast({ title: 'Profile photo updated!' });
     } catch (error) {
-      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+      const msg = (error as Error)?.message || '';
+      const safe = msg.includes('storage') ? 'Upload failed. Please try again.'
+        : msg.includes('network') ? 'Network error. Please check your connection.'
+        : 'Upload failed. Please try again.';
+      toast({ title: 'Upload failed', description: safe, variant: 'destructive' });
     } finally {
       setLoading(false);
     }

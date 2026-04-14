@@ -902,3 +902,19 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 - All Firebase config in `.env` ✅
 - 98/98 Vitest tests passing ✅
 - Deployment agent status: **READY** ✅
+
+
+### Phase 49 - Security Hardening Round 2 (Complete — Apr 2026)
+
+**Issue 1: Tournament brackets Firestore rule** — `update, delete` changed from `isAuth()` to `isManager()` + ownership check. Only the manager who created a bracket can modify or delete it. Rules deployed to Firebase.
+
+**Issue 2: Avatar URL seeds user email** — Registration now seeds avatar with `fbUser.uid` instead of `userData.email`, preventing email enumeration via Dicebear avatar URLs.
+
+**Issue 3: FCM tokens stored plaintext in user profiles** — Moved FCM tokens from `users/{uid}.fcmToken` to private `_fcm_tokens/{userId}` collection. Rules: user-only create/update, no client read (Cloud Functions use Admin SDK). Updated `useFCM.ts` (client write), `sendPushNotification` and `processGameReminders` Cloud Functions (server read). Invalidated token cleanup also moved to `_fcm_tokens`.
+
+**Issue 4: Raw Firebase SDK errors leak** — `AuthContext.tsx:uploadAvatar` now returns sanitized error messages instead of raw `error.message`. `useFCM.ts:enablePushNotifications` now shows generic "Could not register" instead of raw SDK error.
+
+**Deploy required:** Cloud Functions update — `firebase deploy --only functions` (FCM token migration)
+**Firestore rules deployed:** ✅ (brackets + `_fcm_tokens` collection)
+**Files modified:** `firestore.rules`, `src/contexts/AuthContext.tsx`, `src/hooks/useFCM.ts`, `functions/index.js`
+- 98/98 Vitest tests passing

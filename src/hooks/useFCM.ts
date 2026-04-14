@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getToken, isSupported } from 'firebase/messaging';
 import { getMessaging } from 'firebase/messaging';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import app, { db } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
@@ -31,7 +31,12 @@ export const useFCM = (user: AppUser | null) => {
         const messaging = getMessaging(app);
         const token = await getToken(messaging, { vapidKey: VAPID_KEY });
         if (token) {
-          await updateDoc(doc(db, 'users', user.id), { fcmToken: token });
+          // Store FCM token in a private collection — not in user profile
+          // (user profiles are readable by all authenticated users)
+          await updateDoc(doc(db, '_fcm_tokens', user.id), { token, updated_at: new Date().toISOString() }).catch(() =>
+            // Doc may not exist yet — create it
+            setDoc(doc(db, '_fcm_tokens', user.id), { token, updated_at: new Date().toISOString() })
+          );
           setPushEnabled(true);
         }
       } catch {
@@ -64,7 +69,9 @@ export const useFCM = (user: AppUser | null) => {
       const messaging = getMessaging(app);
       const token = await getToken(messaging, { vapidKey: VAPID_KEY });
       if (token) {
-        await updateDoc(doc(db, 'users', user.id), { fcmToken: token });
+        await updateDoc(doc(db, '_fcm_tokens', user.id), { token, updated_at: new Date().toISOString() }).catch(() =>
+          setDoc(doc(db, '_fcm_tokens', user.id), { token, updated_at: new Date().toISOString() })
+        );
         setPushEnabled(true);
         Analytics.pushEnabled();
         toast({ title: 'Push notifications enabled!', description: "You'll receive alerts even when the app is closed." });
@@ -73,7 +80,7 @@ export const useFCM = (user: AppUser | null) => {
       return false;
     } catch (error: unknown) {
       logger.error('[FCM]', error);
-      toast({ title: 'Failed to enable push notifications', description: (error as Error).message, variant: 'destructive' });
+      toast({ title: 'Failed to enable push notifications', description: 'Could not register for push notifications. Please try again.', variant: 'destructive' });
       return false;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,7 +89,7 @@ export const useFCM = (user: AppUser | null) => {
   const disablePushNotifications = useCallback(async () => {
     if (!user?.id) return;
     try {
-      await updateDoc(doc(db, 'users', user.id), { fcmToken: null });
+      await updateDoc(doc(db, '_fcm_tokens', user.id), { token: null, updated_at: new Date().toISOString() }).catch(() => {});
       setPushEnabled(false);
       Analytics.pushDisabled();
       toast({ title: 'Push notifications disabled' });

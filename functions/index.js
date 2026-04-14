@@ -106,12 +106,15 @@ exports.sendPushNotification = onDocumentCreated(
       return;
     }
 
-    // Fetch recipient's Firestore profile for FCM token + preferences
+    // Fetch recipient's Firestore profile for preferences
     const userSnap = await db.collection('users').doc(recipientId).get();
     if (!userSnap.exists) return;
 
     const userData = userSnap.data();
-    const fcmToken = userData.fcmToken;
+
+    // Fetch FCM token from private collection (not user profile)
+    const tokenSnap = await db.collection('_fcm_tokens').doc(recipientId).get();
+    const fcmToken = tokenSnap.exists ? tokenSnap.data().token : null;
     if (!fcmToken) return;
 
     // Respect global push preference
@@ -143,7 +146,7 @@ exports.sendPushNotification = onDocumentCreated(
     } catch (err) {
       console.error('[FCM send]', err.message);
       if (err.code === 'messaging/registration-token-not-registered') {
-        await db.collection('users').doc(recipientId).update({ fcmToken: null });
+        await db.collection('_fcm_tokens').doc(recipientId).update({ token: null });
       }
     }
   }
@@ -237,11 +240,15 @@ exports.processGameReminders = onSchedule(
       batch.update(doc.ref, { sent: true });
 
       sendPromises.push((async () => {
-        // Fetch referee's FCM token
+        // Fetch referee's preferences from profile
         const userSnap = await db.collection('users').doc(reminder.referee_id).get();
         if (!userSnap.exists) return;
         const userData = userSnap.data();
-        if (!userData.fcmToken) return;
+
+        // Fetch FCM token from private collection
+        const tokenSnap = await db.collection('_fcm_tokens').doc(reminder.referee_id).get();
+        const fcmToken = tokenSnap.exists ? tokenSnap.data().token : null;
+        if (!fcmToken) return;
 
         // Check preferences
         const prefs = userData.notification_preferences || {};
@@ -262,7 +269,7 @@ exports.processGameReminders = onSchedule(
         // Send FCM push
         try {
           await fcm.send({
-            token: userData.fcmToken,
+            token: fcmToken,
             notification: {
               title: reminder.title,
               body: reminder.body,
@@ -279,7 +286,7 @@ exports.processGameReminders = onSchedule(
         } catch (err) {
           console.error('[Reminder FCM]', err.message);
           if (err.code === 'messaging/registration-token-not-registered') {
-            await db.collection('users').doc(reminder.referee_id).update({ fcmToken: null });
+            await db.collection('_fcm_tokens').doc(reminder.referee_id).update({ token: null });
           }
         }
       })());
