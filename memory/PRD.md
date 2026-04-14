@@ -701,3 +701,44 @@ The iWhistle application is now feature-complete with all planned P0, P1, and P2
 - Phase 39: Firestore deployment + Performance monitoring
 - Phase 40: AI backlog (chat persistence, auto-assign, voice input)
 - Phase 41: P2 completion (offline-first, push reminders, mobile UI)
+
+
+### Phase 42 - Referee AI Assistant + Tournament Bracket Editor (Complete — Apr 2026)
+
+**Feature 1: AI Assistant for Referees**
+- Sparkle FAB on referee Dashboard only (not visible to managers)
+- Slide-in panel with Gemini 2.5 Pro (same UX as manager panel)
+- Referee-specific function declarations: query_schedule, check_availability, set_availability, query_earnings, send_message, log_game
+- System prompt includes referee's games, availability, earnings, manager contacts
+- Chat persistence to Firestore (`_ai_chat_history/{userId}_referee`)
+- Voice input (Web Speech API), New Chat button
+- All actions preview before execution with confirm/skip
+
+**Feature 2: Real-Time Collaborative Tournament Bracket Editor**
+- New "Brackets" tab in Manager page
+- Tournament selector dropdown
+- Create Bracket dialog: format (single/double elimination, round-robin), teams (one per line)
+- Visual bracket tree: horizontal layout with rounds as columns
+- Real-time sync via Firestore `onSnapshot` — multiple users see changes instantly
+- "Live Sync" badge indicator
+- Set Score inline editor on each match
+- Winner advancement: completing a match auto-fills the next round
+- Supports all 3 formats:
+  - Single Elimination: standard bracket tree with seeding
+  - Double Elimination: winners bracket + losers bracket + grand final
+  - Round Robin: grid of all matchups across rounds
+- Firestore collection: `tournament_brackets`
+
+**New files:**
+- `src/lib/refereeAiAssistant.ts` — Referee AI service with function declarations
+- `src/components/RefereeAIPanel.tsx` — Referee AI chat panel
+- `src/lib/bracketUtils.ts` — Bracket generation (single/double elim, round-robin)
+- `src/pages/Manager/BracketEditor.tsx` — Bracket editor with real-time sync
+
+**Modified files:**
+- `src/pages/Dashboard.tsx` — Referee AI FAB + panel
+- `src/pages/Manager/index.tsx` — Brackets tab + tournament selector
+- `src/lib/firestoreService.ts` — saveBracket, loadBracket, deleteBracket
+- `firestore.rules` — `tournament_brackets` collection rules (deployed)
+
+- Testing: 100% pass — iteration_43.json (both features verified)
