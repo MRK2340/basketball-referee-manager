@@ -607,3 +607,60 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - `firestore.rules` — Added `_ai_chat_history` collection rules (deployed)
 
 - Testing: 100% pass — 8/8 test cases verified (iteration_39.json)
+
+
+### Phase 41 - P2 Features Complete (Complete — Apr 2026)
+
+**1. Offline-First Support (Firestore Persistence)**
+- `enableIndexedDbPersistence()` enabled on Firestore init — reads from IndexedDB cache when offline
+- Queued writes auto-sync when reconnected
+- `OfflineIndicator` component: amber banner "You're offline — changes will sync when reconnected"
+- Green "Back online — syncing changes" banner on reconnect (auto-dismisses after 3s)
+- Graceful error handling for multi-tab and unsupported browsers
+
+**2. Push Notification Scheduling for Game Reminders**
+- `scheduleGameReminder` Cloud Function: triggers on `game_assignments` document creation
+- Creates 24h and 1h reminder entries in `_game_reminders` Firestore collection
+- `processGameReminders` Cloud Function: runs every 15 minutes via Cloud Scheduler
+- Checks for due reminders, sends FCM push + in-app notification to referees
+- Respects user notification preferences (pushNotifications, scheduleChanges)
+- Auto-cleans invalid FCM tokens
+- Firestore rules: `_game_reminders` server-only (admin SDK bypasses rules)
+
+**3. Mobile-Responsive UI Refinements**
+- Manager tabs: icon-only on mobile (<640px), icons + labels on desktop (>=640px)
+- Horizontal scroll for tabs with hidden scrollbar (`no-scrollbar` CSS utility)
+- AI FAB button: `bottom-20` on mobile (above bottom nav), `bottom-6` on desktop
+- Messages page: `h-auto lg:h-[70vh]` for proper stacking on mobile
+- Dashboard stats: `grid-cols-1 sm:grid-cols-2 xl:grid-cols-4`
+- All pages properly responsive down to 390px viewport
+
+**New files:**
+- `src/components/OfflineIndicator.tsx` — Offline/online indicator
+- CSS: `.no-scrollbar` utility in `index.css`
+
+**Modified files:**
+- `src/lib/firebase.ts` — Added `enableIndexedDbPersistence`
+- `src/App.tsx` — Added `OfflineIndicator` component
+- `functions/index.js` — Added `scheduleGameReminder` + `processGameReminders`
+- `src/pages/Manager/index.tsx` — Mobile-responsive tabs, FAB positioning
+- `src/pages/Messages.tsx` — Height fix for mobile
+- `firestore.rules` — Added `_game_reminders` collection (server-only)
+
+**Deployed:**
+- Firestore rules (via Firebase CLI with CI token)
+- Cloud Functions: `scheduleGameReminder`, `processGameReminders`
+
+- Testing: 100% pass — 12/12 test cases verified (iteration_40.json)
+
+---
+
+## ALL P2 BACKLOG COMPLETE
+The iWhistle application is now feature-complete with all planned P0, P1, and P2 items shipped:
+- Phases 1-35: Core app, TypeScript migration, security hardening, package upgrades, code audit
+- Phase 36: Schedule Import (CSV/Excel/PDF)
+- Phase 37: Import enhancements (templates, duplicates, history/undo)
+- Phase 38: AI Manager Assistant (Gemini 2.5 Pro)
+- Phase 39: Firestore deployment + Performance monitoring
+- Phase 40: AI backlog (chat persistence, auto-assign, voice input)
+- Phase 41: P2 completion (offline-first, push reminders, mobile UI)
