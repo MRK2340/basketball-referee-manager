@@ -1,4 +1,4 @@
-import { useState, useCallback, type Dispatch, type SetStateAction } from 'react';
+import { useState, useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { fetchAppData, fetchMoreMessages } from '@/lib/firestoreService';
 import { traceAsync } from '@/lib/performanceTraces';
@@ -28,8 +28,13 @@ export const useDataFetching = (user: AppUser | null) => {
   const [independentGames, setIndependentGames] = useState<AnyArr>([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
 
+  // Ref to avoid recreating fetchData when user object reference changes
+  const userRef = useRef(user);
+  userRef.current = user;
+
   const fetchData = useCallback(async (isInitialLoad = true) => {
-    if (!user) {
+    const currentUser = userRef.current;
+    if (!currentUser) {
       setGames([]); setPayments([]); setMessages([]); setNotifications([]);
       setTournaments([]); setReferees([]); setAvailability([]); setGameReports([]);
       setConnections([]); setManagerProfiles([]); setHasMoreMessages(false);
@@ -41,7 +46,7 @@ export const useDataFetching = (user: AppUser | null) => {
     else setRefreshing(true);
 
     try {
-      const data = await traceAsync('fetch_app_data', () => fetchAppData(user));
+      const data = await traceAsync('fetch_app_data', () => fetchAppData(currentUser));
       setGames(data.games);
       setTournaments(data.tournaments);
       setPayments(data.payments);
@@ -72,22 +77,23 @@ export const useDataFetching = (user: AppUser | null) => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user]);
+  }, []); // Stable — uses userRef instead of user
 
   const loadMoreMessages = useCallback(async (
     currentMessages: MappedMessage[],
     currentReferees: MappedProfile[],
     currentManagers: MappedProfile[],
   ) => {
-    if (!user || !hasMoreMessages) return;
+    const currentUser = userRef.current;
+    if (!currentUser || !hasMoreMessages) return;
     const oldest = currentMessages[currentMessages.length - 1];
     if (!oldest?.timestamp) return;
 
     setRefreshing(true);
     try {
       const allUsers = [...currentReferees, ...currentManagers,
-        { id: user.id, name: user.name, avatarUrl: user.avatarUrl } as MappedProfile];
-      const { data: more, error } = await fetchMoreMessages(user, oldest.timestamp, allUsers);
+        { id: currentUser.id, name: currentUser.name, avatarUrl: currentUser.avatarUrl } as MappedProfile];
+      const { data: more, error } = await fetchMoreMessages(currentUser, oldest.timestamp, allUsers);
       if (error) throw new Error(error.message);
       setMessages(prev => [...prev, ...((more as MappedMessage[]) || [])]);
       setHasMoreMessages(((more as MappedMessage[]) || []).length === MESSAGE_PAGE_SIZE);
@@ -96,7 +102,7 @@ export const useDataFetching = (user: AppUser | null) => {
     } finally {
       setRefreshing(false);
     }
-  }, [user, hasMoreMessages]);
+  }, [hasMoreMessages]); // Stable — uses userRef
 
   return {
     loading, refreshing,

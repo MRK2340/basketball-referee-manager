@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, type ReactNode } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { auth, db, storage } from '@/lib/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -105,6 +105,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
+  const userRef = useRef<AppUser | null>(null);
+
+  /** Only update state if the user data actually changed (prevents unnecessary re-renders). */
+  const stableSetUser = (newUser: AppUser | null) => {
+    const prev = userRef.current;
+    if (prev === null && newUser === null) return;
+    if (prev && newUser && prev.id === newUser.id && prev.name === newUser.name && prev.email === newUser.email && prev.role === newUser.role && prev.avatarUrl === newUser.avatarUrl && prev.rating === newUser.rating) return;
+    userRef.current = newUser;
+    setUser(newUser);
+  };
 
   // Build app user object from Firebase UID + Firestore profile
   const buildUser = (uid: string, email: string | null, profile: Doc): AppUser => ({
@@ -168,14 +178,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               </button>
             ),
           });
-          setUser(null);
+          stableSetUser(null);
         } else if (profile) {
-          setUser(buildUser(firebaseUser.uid, firebaseUser.email, profile));
+          stableSetUser(buildUser(firebaseUser.uid, firebaseUser.email, profile));
         } else {
-          setUser(null);
+          stableSetUser(null);
         }
       } else {
-        setUser(null);
+        stableSetUser(null);
       }
       setLoading(false);
     });

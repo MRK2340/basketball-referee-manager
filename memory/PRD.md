@@ -658,6 +658,22 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 ## ALL P2 BACKLOG COMPLETE
 The iWhistle application is now feature-complete with all planned P0, P1, and P2 items shipped:
 - Phases 1-35: Core app, TypeScript migration, security hardening, package upgrades, code audit
+
+### Bug Fix — Auto-Reload Issue (Fixed — Apr 2026)
+
+**Root Cause:** Firebase Auth periodically refreshes tokens (~1hr), firing `onAuthStateChanged`. Each callback created a **new user object** via `buildUser()`, even when data was identical. This cascaded:
+1. `setUser(newObj)` → new user reference
+2. DataContext `useEffect([user, fetchData])` triggers (both deps changed)
+3. `fetchData(true)` → sets `loading = true` → full loading spinner → refetches all data → `loading = false`
+4. **Result:** Page unmounts/remounts while user is reading
+
+**Fix applied to 3 files:**
+1. **AuthContext.tsx** — `stableSetUser()`: Compares key fields (id, name, email, role, avatar, rating) before calling `setUser`. Skips if unchanged.
+2. **DataContext.tsx** — Changed `useEffect([user, fetchData])` → `useEffect([user?.id])` with ref tracking. Only triggers on actual user ID change.
+3. **useDataFetching.ts** — `fetchData` now uses `userRef` instead of `user` in its closure. `useCallback([])` — stable, never recreated.
+
+- Verified: Page stable for 10+ seconds with no reload/flash
+
 - Phase 36: Schedule Import (CSV/Excel/PDF)
 - Phase 37: Import enhancements (templates, duplicates, history/undo)
 - Phase 38: AI Manager Assistant (Gemini 2.5 Pro)

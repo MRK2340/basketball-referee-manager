@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDataFetching } from '@/hooks/useDataFetching';
 import { useTournamentActions } from '@/hooks/useTournamentActions';
@@ -51,9 +51,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   useRealtimeNotifications(user, setNotifications);
   useRealtimeMessages(user, setMessages, usersMap);
 
+  const userIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (user) fetchData();
-  }, [user, fetchData]);
+    if (user && user.id !== userIdRef.current) {
+      userIdRef.current = user.id;
+      fetchData(true);  // Initial load for new user
+    } else if (!user) {
+      userIdRef.current = null;
+      fetchData(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const tournamentActions    = useTournamentActions(user, fetchData);
   const gameActions          = useGameActions(user, fetchData);
