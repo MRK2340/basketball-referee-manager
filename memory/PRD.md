@@ -918,3 +918,13 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 **Firestore rules deployed:** ✅ (brackets + `_fcm_tokens` collection)
 **Files modified:** `firestore.rules`, `src/contexts/AuthContext.tsx`, `src/hooks/useFCM.ts`, `functions/index.js`
 - 98/98 Vitest tests passing
+
+
+### Phase 50 - Auth Race Condition Fix (Complete — Apr 2026)
+
+**Babel devDependencies:** Investigated — `@babel/generator`, `@babel/parser`, `@babel/traverse`, `@babel/types` are actively used by Emergent platform visual editor plugins (`vite-plugin-react-inline-editor.js`, `ast-utils.js`). Already `devDependencies`, excluded from production via `rollupOptions.external`. **Cannot remove.**
+
+**Auth state race condition:** `stableSetUser` previously compared only 6 hardcoded fields (`id`, `name`, `email`, `role`, `avatarUrl`, `rating`). Profile updates to `bio`, `location`, `phone`, `fcmToken`, notification preferences, etc. were silently dropped when `onAuthStateChanged` fired (token refresh). **Fixed:** Replaced field-by-field comparison with `JSON.stringify` deep equality. Now catches ANY field change while maintaining the render-skip optimization for token refresh cycles where nothing actually changed.
+
+**Files modified:** `src/contexts/AuthContext.tsx`
+- 98/98 Vitest tests passing

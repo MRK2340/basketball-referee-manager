@@ -121,11 +121,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
   const userRef = useRef<AppUser | null>(null);
 
-  /** Only update state if the user data actually changed (prevents unnecessary re-renders). */
+  /** Only update state if the user data actually changed (prevents unnecessary re-renders).
+   * Uses JSON serialization to catch ANY field change — not just a hardcoded subset. */
   const stableSetUser = (newUser: AppUser | null) => {
     const prev = userRef.current;
     if (prev === null && newUser === null) return;
-    if (prev && newUser && prev.id === newUser.id && prev.name === newUser.name && prev.email === newUser.email && prev.role === newUser.role && prev.avatarUrl === newUser.avatarUrl && prev.rating === newUser.rating) return;
+    if (prev && newUser) {
+      // Fast path: same reference
+      if (prev === newUser) return;
+      // Deep comparison via serialization — catches all field changes
+      if (JSON.stringify(prev) === JSON.stringify(newUser)) return;
+    }
     userRef.current = newUser;
     setUser(newUser);
   };
