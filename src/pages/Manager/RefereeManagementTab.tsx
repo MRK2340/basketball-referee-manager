@@ -1,18 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Star, MessageSquare, Users } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const RefereeManagementTab = ({ referees }) => {
-  const handleFeatureClick = (feature) => {
-    toast({
-      title: "🚧 Feature Coming Soon!",
-      description: `The ${feature} feature is under development. You can request it in a future prompt!`,
-    });
-  };
+  const navigate = useNavigate();
 
   return (
     <Card className="glass-effect border-slate-200 shadow-xs" data-testid="manager-referees-card">
@@ -56,10 +51,22 @@ const RefereeManagementTab = ({ referees }) => {
                 </TableCell>
                 <TableCell className="text-center text-slate-700">{referee.gamesOfficiated || 0}</TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" data-testid={`manager-view-referee-${referee.id}`} onClick={() => handleFeatureClick('view-profile')}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    data-testid={`manager-view-referee-${referee.id}`}
+                    onClick={() => navigate(`/referee/${referee.id}`)}
+                    title="View profile"
+                  >
                     <Users className="h-4 w-4 text-slate-500" />
                   </Button>
-                  <Button variant="ghost" size="icon" data-testid={`manager-message-referee-${referee.id}`} onClick={() => handleFeatureClick('send-message')}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    data-testid={`manager-message-referee-${referee.id}`}
+                    onClick={() => navigate('/messages', { state: { composeToId: referee.id, composeToName: referee.name } })}
+                    title="Send message"
+                  >
                     <MessageSquare className="h-4 w-4 text-blue-500" />
                   </Button>
                 </TableCell>

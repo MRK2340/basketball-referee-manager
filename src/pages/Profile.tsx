@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -29,6 +30,7 @@ import { format } from 'date-fns';
 const Profile = () => {
   const { user, updateProfile, uploadAvatar, resetPassword, loading: authLoading } = useAuth();
   const { refereeRatings } = useData();
+  const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -91,6 +93,10 @@ const Profile = () => {
   const handleFeatureClick = (feature) => {
     if (feature === 'change-password' && user?.email) {
       resetPassword(user.email);
+      return;
+    }
+    if (feature === 'notification-settings') {
+      navigate('/settings');
       return;
     }
     toast({

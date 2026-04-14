@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { useLocation } from 'react-router';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -21,6 +22,7 @@ import { toast } from '@/components/ui/use-toast';
 const Messages = () => {
   const { user } = useAuth();
   const { messages, messageActions, referees, managerProfiles, hasMoreMessages, loadMoreMessages, refreshing } = useData();
+  const location = useLocation();
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [newSubject, setNewSubject] = useState('');
@@ -29,6 +31,22 @@ const Messages = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCompose, setShowCompose] = useState(false);
   const [composeMode, setComposeMode] = useState('new');
+
+  // Auto-open compose when navigated with state (e.g., from Manager > Referee tab)
+  useEffect(() => {
+    const state = location.state as { composeToId?: string; composeToName?: string } | null;
+    if (state?.composeToId) {
+      setComposeMode('new');
+      setNewSubject('');
+      setNewMessage('');
+      setNewRecipientId(state.composeToId);
+      setNewRecipientName(state.composeToName || '');
+      setShowCompose(true);
+      setSelectedMessage(null);
+      // Clear the state so refreshing doesn't re-open compose
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   // Build the list of people this user can message
   const recipientOptions = useMemo(() => {

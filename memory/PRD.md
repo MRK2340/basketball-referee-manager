@@ -963,3 +963,23 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 **New files:** `src/hooks/useRemoteConfig.ts`
 **Modified:** `src/lib/firebase.ts`, `src/App.tsx`, `.env`
 - 98/98 Vitest tests passing
+
+
+### Phase 52 - "Coming Soon" Quick Wins (4/16 Complete — Apr 2026)
+
+**1. Manager: View Referee Profile** — `RefereeManagementTab.tsx` rebuilt with `useNavigate`. Person icon navigates to `/referee/:id` (public profile page). No more "Coming Soon".
+
+**2. Manager: Send Message to Referee** — Chat icon in Referees tab navigates to `/messages` with `{ state: { composeToId, composeToName } }`. `Messages.tsx` updated to read `location.state` and auto-open compose form with pre-filled recipient.
+
+**3. Profile: Notification Settings** — "Notification Settings" button now navigates to `/settings` page where notification toggles exist. No more "Coming Soon".
+
+**4. Games: View Game Report** — "View Report" button on each game card now opens `GameDetailSheet` with the game's data and matched report (from `gameReports`). Added `useState` for detail sheet + `onViewReport` callback.
+
+**Remaining "Coming Soon" items: 12**
+- Settings: Contact Support, Send Feedback, Login History (3)
+- Calendar: Sync to Google Calendar (1)
+- Games: Manage Live Game (1)
+- Payments: Payment Settings, View Receipt, Download Receipt, Setup Direct Deposit, Tax Documents, Update Payment Info, Payment Help (7 — but Payment Help can be combined with Contact Support)
+
+**Files modified:** `src/pages/Manager/RefereeManagementTab.tsx`, `src/pages/Messages.tsx`, `src/pages/Profile.tsx`, `src/pages/Games.tsx`
+- 98/98 Vitest tests passing

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router';
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { IndependentGamesTab } from '@/pages/Games/IndependentGamesTab';
+import GameDetailSheet from '@/components/GameDetailSheet';
 
 // ── Assigned Games Panel ─────────────────────────────────────────────────────
 const getStatusColor = (status) => {
@@ -31,7 +32,7 @@ const getStatusColor = (status) => {
   }
 };
 
-const AssignedGamesContent = ({ games, onFeatureClick }) => {
+const AssignedGamesContent = ({ games, onFeatureClick, onViewReport }) => {
   const completedGames = games.filter(g => g.status === 'completed');
   const upcomingGames = games.filter(g => g.status === 'scheduled');
   const inProgressGames = games.filter(g => g.status === 'in-progress');
@@ -144,7 +145,7 @@ const AssignedGamesContent = ({ games, onFeatureClick }) => {
                   <span>{game.date}</span>
                   <span className="text-green-600 font-semibold">${game.payment}</span>
                 </div>
-                <Button size="sm" variant="outline" data-testid={`games-view-report-${game.id}`} className="w-full mt-3 border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => onFeatureClick('view-game-report')}>
+                <Button size="sm" variant="outline" data-testid={`games-view-report-${game.id}`} className="w-full mt-3 border-slate-300 text-slate-700 hover:bg-slate-100" onClick={() => onViewReport(game)}>
                   View Report
                 </Button>
               </div>
@@ -164,9 +165,11 @@ const AssignedGamesContent = ({ games, onFeatureClick }) => {
 
 // ── Main Games Page ──────────────────────────────────────────────────────────
 const Games = () => {
-  const { games, payments, independentGames } = useData();
+  const { games, payments, independentGames, gameReports } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [detailGame, setDetailGame] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const totalEarnings = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
   const averageRating = 4.8;
@@ -191,6 +194,13 @@ const Games = () => {
       });
     }
   };
+
+  const handleViewReport = (game) => {
+    setDetailGame(game);
+    setDetailOpen(true);
+  };
+
+  const detailReport = detailGame ? gameReports.find(r => r.gameId === detailGame.id) : undefined;
 
   const statsRow = user?.role === 'referee'
     ? [
@@ -270,16 +280,17 @@ const Games = () => {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="assigned">
-              <AssignedGamesContent games={games} onFeatureClick={handleFeatureClick} />
+              <AssignedGamesContent games={games} onFeatureClick={handleFeatureClick} onViewReport={handleViewReport} />
             </TabsContent>
             <TabsContent value="independent">
               <IndependentGamesTab />
             </TabsContent>
           </Tabs>
         ) : (
-          <AssignedGamesContent games={games} onFeatureClick={handleFeatureClick} />
+          <AssignedGamesContent games={games} onFeatureClick={handleFeatureClick} onViewReport={handleViewReport} />
         )}
       </div>
+      <GameDetailSheet open={detailOpen} setOpen={setDetailOpen} game={detailGame} gameReport={detailReport} />
     </>
   );
 };
