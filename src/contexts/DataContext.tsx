@@ -14,14 +14,12 @@ import { useSettingsActions } from '@/hooks/useSettingsActions';
 import { useIndependentGameActions } from '@/hooks/useIndependentGameActions';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
+import type { DataContextValue } from '@/lib/types';
 import type { MappedProfile } from '@/lib/mappers';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyRecord = Record<string, any>;
+const DataContext = createContext<DataContextValue | null>(null);
 
-const DataContext = createContext<AnyRecord | null>(null);
-
-export const useData = () => {
+export const useData = (): DataContextValue => {
   const context = useContext(DataContext);
   if (!context) throw new Error('useData must be used within a DataProvider');
   return context;
@@ -59,7 +57,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (user && user.id !== userIdRef.current) {
       userIdRef.current = user.id;
-      fetchData(true);  // Initial load for new user
+      fetchData(true);
     } else if (!user) {
       userIdRef.current = null;
       fetchData(true);
@@ -79,7 +77,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const settingsActions      = useSettingsActions(user, fetchData);
   const independentGameActions = useIndependentGameActions(user, fetchData);
 
-  const value = {
+  const value: DataContextValue = {
     loading, refreshing,
     games, payments, messages, notifications,
     tournaments, referees, availability,

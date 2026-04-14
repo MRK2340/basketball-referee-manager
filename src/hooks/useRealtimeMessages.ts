@@ -11,10 +11,17 @@ import { toast } from '@/components/ui/use-toast';
 import type { AppUser } from '@/lib/types';
 import type { MappedMessage, MappedProfile } from '@/lib/mappers';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Doc = Record<string, any>;
+interface RawMessageDoc {
+  sender_id: string;
+  recipient_id: string;
+  subject: string;
+  content: string;
+  created_at: string | { toDate?: () => Date };
+  is_read: boolean;
+  participants: string[];
+}
 
-const mapRawMessage = (id: string, data: Doc, usersMap: Record<string, MappedProfile>, currentUserId: string): MappedMessage => {
+const mapRawMessage = (id: string, data: RawMessageDoc, usersMap: Record<string, MappedProfile>, currentUserId: string): MappedMessage => {
   const sender = usersMap[data.sender_id] || { name: 'System', avatarUrl: '' };
   const isMine = data.sender_id === currentUserId;
   return {

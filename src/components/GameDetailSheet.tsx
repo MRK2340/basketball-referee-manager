@@ -7,22 +7,23 @@ import {
   CheckCircle, AlertTriangle, Star, FileText
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import type { MappedGame, MappedGameReport } from '@/lib/mappers';
+import type { LucideIcon } from 'lucide-react';
 
-const statusConfig = {
+const statusConfig: Record<string, { color: string; label: string }> = {
   scheduled:    { color: 'bg-blue-100 text-blue-700 border-blue-200',   label: 'Scheduled' },
   'in-progress':{ color: 'bg-orange-100 text-orange-700 border-orange-200', label: 'In Progress' },
   completed:    { color: 'bg-green-100 text-green-700 border-green-200', label: 'Completed' },
 };
 
-const assignmentStatus = {
+const assignmentStatus: Record<string, { color: string; label: string }> = {
   accepted:  { color: 'bg-green-100 text-green-700',  label: 'Accepted' },
   assigned:  { color: 'bg-yellow-100 text-yellow-700', label: 'Pending' },
   declined:  { color: 'bg-red-100 text-red-700',      label: 'Declined' },
   requested: { color: 'bg-purple-100 text-purple-700', label: 'Requested' },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const InfoRow = ({ icon: Icon, label, value, iconColor = 'text-slate-500' }: { icon: any; label: string; value: string | number | null; iconColor?: string }) => (
+const InfoRow = ({ icon: Icon, label, value, iconColor = 'text-slate-500' }: { icon: LucideIcon; label: string; value: string | number | null; iconColor?: string }) => (
   <div className="flex items-start gap-3">
     <div className={`mt-0.5 ${iconColor}`}><Icon className="h-4 w-4" /></div>
     <div>
@@ -32,8 +33,7 @@ const InfoRow = ({ icon: Icon, label, value, iconColor = 'text-slate-500' }: { i
   </div>
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const GameDetailSheet = ({ open, setOpen, game, gameReport }: { open: boolean; setOpen: (v: boolean) => void; game: any; gameReport?: any }) => {
+const GameDetailSheet = ({ open, setOpen, game, gameReport }: { open: boolean; setOpen: (v: boolean) => void; game: MappedGame | null; gameReport?: MappedGameReport }) => {
   if (!game) return null;
 
   const cfg = statusConfig[game.status] || statusConfig.scheduled;

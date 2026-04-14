@@ -29,16 +29,30 @@ import { logger } from '@/lib/logger';
 import { writeAuditLog } from '@/lib/firestoreService';
 import type { AppUser } from '@/lib/types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Doc = Record<string, any>;
+interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  phone?: string;
+}
+
+interface ProfileUpdates {
+  name?: string;
+  phone?: string;
+  experience?: string;
+  bio?: string;
+  location?: string;
+  [key: string]: string | undefined;
+}
 
 interface AuthContextValue {
   user: AppUser | null;
   login: (email: string, password: string) => Promise<AppUser>;
-  register: (userData: Doc) => Promise<{ success: boolean; error?: string }>;
+  register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
-  updateProfile: (updates: Doc) => Promise<void>;
+  updateProfile: (updates: ProfileUpdates) => Promise<void>;
   uploadAvatar: (file: File) => Promise<void>;
   loading: boolean;
   createDemoAccounts: () => Promise<{ success: boolean }>;

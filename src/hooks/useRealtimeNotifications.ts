@@ -8,10 +8,7 @@ import { db } from '@/lib/firebase';
 import { toISOString } from '@/lib/timestampUtils';
 import { logger } from '@/lib/logger';
 import { toast } from '@/components/ui/use-toast';
-import type { AppUser } from '@/lib/types';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Notification = Record<string, any>;
+import type { AppUser, AppNotification } from '@/lib/types';
 
 const TYPE_LABELS: Record<string, string> = {
   assignment:   'Game Assignment',
@@ -23,7 +20,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export const useRealtimeNotifications = (
   user: AppUser | null,
-  setNotifications: Dispatch<SetStateAction<Notification[]>>,
+  setNotifications: Dispatch<SetStateAction<AppNotification[]>>,
 ) => {
   const isInitialized = useRef(false);
   const knownIds = useRef(new Set<string>());
@@ -51,7 +48,7 @@ export const useRealtimeNotifications = (
     let unsubscribe: Unsubscribe | undefined;
 
     const handleSnapshot = (snapshot: QuerySnapshot, useFallbackSort = false) => {
-      let allNotifs: Notification[] = snapshot.docs.map(d => {
+      let allNotifs: AppNotification[] = snapshot.docs.map(d => {
         const data = d.data();
         return { id: d.id, ...data, created_at: toISOString(data.created_at) };
       });

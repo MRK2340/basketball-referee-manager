@@ -5,6 +5,7 @@ import {
   TotpMultiFactorGenerator,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  type TotpSecret,
 } from 'firebase/auth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -30,8 +31,7 @@ const TwoFactorDialog = ({ open, setOpen, user }: TwoFactorDialogProps) => {
   const [secretKey, setSecretKey] = useState('');
   const [verifyCode, setVerifyCode] = useState('');
   const [loading, setLoading] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [totpSecret, setTotpSecret] = useState<any>(null);
+  const [totpSecret, setTotpSecret] = useState<TotpSecret | null>(null);
 
   const handleReauth = async () => {
     setLoading(true);

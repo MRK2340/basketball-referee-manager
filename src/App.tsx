@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import RouteTracker from '@/components/RouteTracker';
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import Layout from '@/components/Layout';
@@ -12,6 +12,8 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import PublicRoute from '@/components/PublicRoute';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
+import { SyncStatusIndicator } from '@/components/SyncStatusIndicator';
+import { useSyncStatus } from '@/hooks/useSyncStatus';
 
 // Lazy-loaded pages — improves initial bundle size
 const Dashboard          = lazy(() => import('@/pages/Dashboard'));
@@ -35,6 +37,13 @@ const FindManagersPage   = lazy(() => import('@/pages/FindManagers'));
 const RefereePublicProfile = lazy(() => import('@/pages/RefereePublicProfile'));
 const HelpCenter         = lazy(() => import('@/pages/HelpCenter'));
 
+/** Inner shell inside AuthProvider — can access auth context for sync monitoring */
+const SyncMonitor = () => {
+  const { user } = useAuth();
+  const syncState = useSyncStatus(user);
+  return <SyncStatusIndicator syncState={syncState} />;
+};
+
 function App() {
   return (
     <ErrorBoundary>
@@ -51,6 +60,7 @@ function App() {
           <DataProvider>
             <div className="min-h-screen">
               <OfflineIndicator />
+              <SyncMonitor />
               <RouteTracker />
               <Suspense fallback={<LoadingSpinner />}>
               <Routes>

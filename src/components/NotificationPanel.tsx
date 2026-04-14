@@ -20,8 +20,9 @@ import {
   Loader2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import type { AppNotification } from '@/lib/types';
 
-const TYPE_CONFIG = {
+const TYPE_CONFIG: Record<string, { icon: typeof MessageSquare; color: string; bg: string; label: string }> = {
   message:      { icon: MessageSquare, color: 'text-blue-600',   bg: 'bg-blue-50',   label: 'Message' },
   assignment:   { icon: ClipboardList, color: 'text-orange-600', bg: 'bg-orange-50', label: 'Assignment' },
   payment:      { icon: DollarSign,    color: 'text-green-600',  bg: 'bg-green-50',  label: 'Payment' },
@@ -29,8 +30,7 @@ const TYPE_CONFIG = {
   report:       { icon: FileText,      color: 'text-slate-600',  bg: 'bg-slate-100', label: 'Report' },
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const NotificationItem = ({ notification, onRead }: { notification: any; onRead: (id: string) => void }) => {
+const NotificationItem = ({ notification, onRead }: { notification: AppNotification; onRead: (id: string) => void }) => {
   const navigate = useNavigate();
   const cfg = TYPE_CONFIG[notification.type] || TYPE_CONFIG.message;
   const Icon = cfg.icon;

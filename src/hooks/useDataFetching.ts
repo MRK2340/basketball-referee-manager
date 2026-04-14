@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import {
   fetchAppData,
@@ -8,30 +8,31 @@ import {
   fetchMoreNotifications,
 } from '@/lib/firestoreService';
 import { traceAsync } from '@/lib/performanceTraces';
-import type { AppUser } from '@/lib/types';
-import type { MappedProfile, MappedMessage } from '@/lib/mappers';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyArr = any[];
-
-const PAGE_SIZE = 50;
+import type { AppUser, AppNotification, RefereeRating, IndependentGame, RefereeWithAvailability, NotificationPreferences } from '@/lib/types';
+import type {
+  MappedProfile, MappedGame, MappedTournament, MappedPayment,
+  MappedMessage, MappedAvailability, MappedGameReport, MappedConnection,
+} from '@/lib/mappers';
 
 export const useDataFetching = (user: AppUser | null) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [games, setGames] = useState<AnyArr>([]);
-  const [payments, setPayments] = useState<AnyArr>([]);
+  const [games, setGames] = useState<MappedGame[]>([]);
+  const [payments, setPayments] = useState<MappedPayment[]>([]);
   const [messages, setMessages] = useState<MappedMessage[]>([]);
-  const [notifications, setNotifications] = useState<AnyArr>([]);
-  const [tournaments, setTournaments] = useState<AnyArr>([]);
-  const [referees, setReferees] = useState<MappedProfile[]>([]);
-  const [availability, setAvailability] = useState<AnyArr>([]);
-  const [gameReports, setGameReports] = useState<AnyArr>([]);
-  const [refereeRatings, setRefereeRatings] = useState<AnyArr>([]);
-  const [notificationPreferences, setNotificationPreferences] = useState<Record<string, boolean>>({});
-  const [connections, setConnections] = useState<AnyArr>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [tournaments, setTournaments] = useState<MappedTournament[]>([]);
+  const [referees, setReferees] = useState<RefereeWithAvailability[]>([]);
+  const [availability, setAvailability] = useState<MappedAvailability[]>([]);
+  const [gameReports, setGameReports] = useState<MappedGameReport[]>([]);
+  const [refereeRatings, setRefereeRatings] = useState<RefereeRating[]>([]);
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>({
+    gameAssignments: true, scheduleChanges: true, paymentUpdates: true,
+    messages: true, emailNotifications: true, pushNotifications: false, smsNotifications: false,
+  });
+  const [connections, setConnections] = useState<MappedConnection[]>([]);
   const [managerProfiles, setManagerProfiles] = useState<MappedProfile[]>([]);
-  const [independentGames, setIndependentGames] = useState<AnyArr>([]);
+  const [independentGames, setIndependentGames] = useState<IndependentGame[]>([]);
 
   // Pagination state
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
@@ -39,7 +40,6 @@ export const useDataFetching = (user: AppUser | null) => {
   const [hasMoreTournaments, setHasMoreTournaments] = useState(false);
   const [hasMoreNotifications, setHasMoreNotifications] = useState(false);
 
-  // Ref to avoid recreating fetchData when user object reference changes
   const userRef = useRef(user);
   userRef.current = user;
 
@@ -60,16 +60,19 @@ export const useDataFetching = (user: AppUser | null) => {
 
     try {
       const data = await traceAsync('fetch_app_data', () => fetchAppData(currentUser));
-      setGames(data.games);
-      setTournaments(data.tournaments);
-      setPayments(data.payments);
-      setMessages(data.messages);
-      setNotifications(data.notifications);
-      setReferees(data.referees);
-      setAvailability(data.availability);
-      setGameReports(data.gameReports);
+      setGames(data.games || []);
+      setTournaments(data.tournaments || []);
+      setPayments(data.payments || []);
+      setMessages(data.messages || []);
+      setNotifications(data.notifications || []);
+      setReferees(data.referees || []);
+      setAvailability(data.availability || []);
+      setGameReports(data.gameReports || []);
       setRefereeRatings(data.refereeRatings || []);
-      setNotificationPreferences(data.notificationPreferences || {});
+      setNotificationPreferences(data.notificationPreferences || {
+        gameAssignments: true, scheduleChanges: true, paymentUpdates: true,
+        messages: true, emailNotifications: true, pushNotifications: false, smsNotifications: false,
+      });
       setConnections(data.connections || []);
       setManagerProfiles(data.managerProfiles || []);
       setIndependentGames(data.independentGames || []);
@@ -95,7 +98,7 @@ export const useDataFetching = (user: AppUser | null) => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []); // Stable — uses userRef instead of user
+  }, []);
 
   const loadMoreMessages = useCallback(async (
     currentMessages: MappedMessage[],
@@ -131,12 +134,10 @@ export const useDataFetching = (user: AppUser | null) => {
     try {
       const lastGame = games[games.length - 1];
       if (!lastGame) return;
-      const cursor = lastGame.gameDate || lastGame.game_date || '';
-      // We pass empty arrays for assignments/users/tournaments since the raw game data
-      // from fetchMoreGames needs the same mapper args. For simplicity, re-fetch raw.
+      const cursor = lastGame.date || '';
       const { data, error } = await fetchMoreGames(currentUser.id, cursor, [], [], []);
       if (error) throw new Error(error.message);
-      const result = data as { items: AnyArr; hasMore: boolean };
+      const result = data as { items: MappedGame[]; hasMore: boolean };
       setGames(prev => [...prev, ...result.items]);
       setHasMoreGames(result.hasMore);
     } catch (err: unknown) {
@@ -157,7 +158,7 @@ export const useDataFetching = (user: AppUser | null) => {
       const cursor = lastTournament.name || '';
       const { data, error } = await fetchMoreTournaments(currentUser.id, cursor, []);
       if (error) throw new Error(error.message);
-      const result = data as { items: AnyArr; hasMore: boolean };
+      const result = data as { items: MappedTournament[]; hasMore: boolean };
       setTournaments(prev => [...prev, ...result.items]);
       setHasMoreTournaments(result.hasMore);
     } catch (err: unknown) {
@@ -178,7 +179,7 @@ export const useDataFetching = (user: AppUser | null) => {
       const cursor = lastNotif.created_at || '';
       const { data, error } = await fetchMoreNotifications(currentUser.id, cursor);
       if (error) throw new Error(error.message);
-      const result = data as { items: AnyArr; hasMore: boolean };
+      const result = data as { items: AppNotification[]; hasMore: boolean };
       setNotifications(prev => [...prev, ...result.items]);
       setHasMoreNotifications(result.hasMore);
     } catch (err: unknown) {

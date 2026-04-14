@@ -97,14 +97,13 @@ const refereeFunctionDeclarations = [
 
 // ── Context Builder ──────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyArr = any[];
+import type { MappedAvailability, MappedPayment, IndependentGame } from '@/lib/types';
 
 const buildRefereeSystemPrompt = (
   games: MappedGame[],
-  availability: AnyArr,
-  payments: AnyArr,
-  independentGames: AnyArr,
+  availability: MappedAvailability[],
+  payments: MappedPayment[],
+  independentGames: IndependentGame[],
   managerProfiles: MappedProfile[],
   userId: string,
   userName: string,
@@ -190,9 +189,9 @@ export const sendRefereeMessage = async (
   chatHistory: ChatMessage[],
   context: {
     games: MappedGame[];
-    availability: AnyArr;
-    payments: AnyArr;
-    independentGames: AnyArr;
+    availability: MappedAvailability[];
+    payments: MappedPayment[];
+    independentGames: IndependentGame[];
     managerProfiles: MappedProfile[];
     userId: string;
     userName: string;

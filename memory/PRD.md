@@ -852,3 +852,33 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 **Files modified:** `src/lib/types.ts`, `src/lib/firestoreService.ts`, `src/lib/firebase.ts`, `src/hooks/useDataFetching.ts`, `src/contexts/DataContext.tsx`, `src/components/OfflineIndicator.tsx`, `src/components/NotificationPanel.tsx`, `src/pages/Manager/TournamentsTab.tsx`, `src/pages/Manager/index.tsx`
 - 98/98 Vitest tests passing
+
+
+### Phase 47 - Sync Conflict Resolution & TypeScript `any` Elimination (Complete — Apr 2026)
+
+**Issue: No sync conflict resolution — offline edits use last-write-wins with no merge strategy or user notification**
+- Created `useSyncStatus.ts` hook — monitors Firestore `onSnapshot` with `{ includeMetadataChanges: true }` on `game_assignments` and `tournaments` collections
+- Tracks `hasPendingWrites` metadata transitions to detect:
+  - **Queued writes**: amber banner "N pending changes — will sync when online"
+  - **Sync completion**: green banner "All changes synced" when offline writes commit
+  - **Server conflicts**: red banner "Data was modified by another session while you were offline" when server version differs from local during reconnect
+- Created `SyncStatusIndicator.tsx` component with animated pending/synced/conflict banners
+- `SyncMonitor` wired into `App.tsx` inside AuthProvider tree
+- Manager-specific: tournaments also monitored with per-tournament "Tournament updated" toasts
+
+**Issue: 35+ uses of `any` type — undermines TypeScript safety across hooks and contexts**
+- Reduced `any` usages from **35+ to 2** (only `Doc = Record<string, any>` in firestoreService/mappers for raw Firestore DocumentData)
+- Added 8 new interfaces to `types.ts`: `AppNotification`, `RefereeRating`, `IndependentGame`, `RefereeWithAvailability`, `AppData`, `DataContextValue`, `IconComponent`, `RegisterData`, `ProfileUpdates`
+- `useDataFetching.ts`: all 14 state variables now use proper types (`MappedGame[]`, `MappedPayment[]`, `AppNotification[]`, etc.)
+- `DataContext.tsx`: context value typed as `DataContextValue` (was `AnyRecord`)
+- `useRealtimeNotifications.ts`: `AppNotification` replaces `Record<string, any>`
+- `useRealtimeMessages.ts`: `RawMessageDoc` interface replaces `Doc`
+- `NotificationPanel.tsx`: `AppNotification` replaces `notification: any`
+- `GameDetailSheet.tsx`: `MappedGame | null` + `MappedGameReport` + `LucideIcon` replace `any` props
+- `TwoFactorDialog.tsx`: `TotpSecret` replaces `any`
+- `refereeAiAssistant.ts`: `MappedAvailability[]`, `MappedPayment[]`, `IndependentGame[]` replace `AnyArr`
+- `AuthContext.tsx`: `RegisterData` + `ProfileUpdates` interfaces replace `Doc`
+
+**New files:** `src/hooks/useSyncStatus.ts`, `src/components/SyncStatusIndicator.tsx`
+**Modified:** `src/lib/types.ts`, `src/hooks/useDataFetching.ts`, `src/contexts/DataContext.tsx`, `src/contexts/AuthContext.tsx`, `src/hooks/useRealtimeNotifications.ts`, `src/hooks/useRealtimeMessages.ts`, `src/components/NotificationPanel.tsx`, `src/components/GameDetailSheet.tsx`, `src/pages/Settings/TwoFactorDialog.tsx`, `src/lib/refereeAiAssistant.ts`, `src/App.tsx`
+- 98/98 Vitest tests passing
