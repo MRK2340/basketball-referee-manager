@@ -40,12 +40,13 @@ export const storage = getStorage(app);
 export const analytics = getAnalytics(app);
 
 // Offline-first: enable IndexedDB persistence for Firestore
-// Reads from cache when offline, queues writes until reconnected
 enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === 'failed-precondition') {
-    // Multiple tabs open — persistence only works in one tab at a time
+    console.warn('[iWhistle] Firestore persistence unavailable: multiple tabs open. Data will still work but won\'t be cached offline in this tab.');
   } else if (err.code === 'unimplemented') {
-    // Browser doesn't support IndexedDB
+    console.warn('[iWhistle] Firestore persistence unavailable: browser does not support IndexedDB. Offline mode disabled.');
+  } else {
+    console.warn('[iWhistle] Firestore persistence failed:', err.code || err.message);
   }
 });
 

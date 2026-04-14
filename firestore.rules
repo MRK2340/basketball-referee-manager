@@ -181,10 +181,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ── Tournament Brackets (managers write, all auth users read for real-time sync) ─
+    // ── Tournament Brackets (owner writes, all auth users read for real-time sync) ─
     match /tournament_brackets/{bracketId} {
       allow read: if isAuth();
-      allow create, update, delete: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && request.auth.uid == resource.data.manager_id;
     }
   }
 }

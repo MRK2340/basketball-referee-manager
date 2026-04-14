@@ -16,6 +16,7 @@ import {
   type MappedProfile, type MappedMessage,
 } from './mappers';
 import type { SafeResult, ServiceUser } from './types';
+import { validate, validateRequired, validateOptional, validateDate, validateTime, validateNumber, MAX_TEAM_NAME, MAX_VENUE_NAME, MAX_TOURNAMENT_NAME, MAX_MESSAGE_LENGTH, MAX_FEE, MAX_COURTS } from './validation';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,22 @@ type Doc = Record<string, any>;
 
 const createError = (message: string) => ({ message });
 
+/** Map raw Firebase/SDK errors to safe user-facing messages. */
+const sanitizeError = (raw: string): string => {
+  if (!raw) return 'An unexpected error occurred. Please try again.';
+  const lower = raw.toLowerCase();
+  if (lower.includes('permission-denied') || lower.includes('permission')) return 'You don\'t have permission to perform this action.';
+  if (lower.includes('not-found')) return 'The requested item was not found.';
+  if (lower.includes('already-exists')) return 'This item already exists.';
+  if (lower.includes('unauthenticated') || lower.includes('auth')) return 'Your session has expired. Please log in again.';
+  if (lower.includes('resource-exhausted') || lower.includes('quota')) return 'Too many requests. Please wait a moment and try again.';
+  if (lower.includes('unavailable') || lower.includes('network')) return 'Network error. Please check your connection.';
+  if (lower.includes('deadline-exceeded') || lower.includes('timeout')) return 'The request timed out. Please try again.';
+  if (lower.includes('invalid-argument')) return 'Invalid input. Please check your data and try again.';
+  if (lower.includes('failed-precondition')) return 'This action cannot be performed right now. Please try again later.';
+  return 'Something went wrong. Please try again.';
+};
+
 const safeHandle = async <T = true>(fn: () => Promise<T>): Promise<SafeResult<T>> => {
   try {
     const result = await fn();
@@ -33,7 +50,7 @@ const safeHandle = async <T = true>(fn: () => Promise<T>): Promise<SafeResult<T>
   } catch (err: unknown) {
     const e = err as Error;
     logger.error('[Firestore]', e);
-    return { error: createError(e.message || 'An unexpected error occurred.') };
+    return { error: createError(sanitizeError(e.message)) };
   }
 };
 
@@ -199,12 +216,20 @@ export const fetchAppData = async (user: ServiceUser) => {
 // ── Tournaments ───────────────────────────────────────────────────────────────
 
 export const addTournament = async (user: ServiceUser, tournamentData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can add tournaments.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
+  const err = validate(
+    validateRequired(tournamentData.name, 'Tournament name', MAX_TOURNAMENT_NAME),
+    validateRequired(tournamentData.location, 'Location', MAX_VENUE_NAME),
+    validateDate(tournamentData.startDate, 'Start date'),
+    validateDate(tournamentData.endDate, 'End date'),
+    validateNumber(Number(tournamentData.numberOfCourts), 'Courts', 1, MAX_COURTS),
+  );
+  if (err) throw new Error(`invalid-argument: ${err}`);
   await addDoc(collection(db, 'tournaments'), {
-    name: tournamentData.name,
+    name: tournamentData.name.trim(),
     start_date: tournamentData.startDate,
     end_date: tournamentData.endDate,
-    location: tournamentData.location,
+    location: tournamentData.location.trim(),
     number_of_courts: Number(tournamentData.numberOfCourts),
     manager_id: user.id,
   });
@@ -229,7 +254,16 @@ export const deleteTournamentRecord = async (user: ServiceUser, tournamentId: st
 // ── Games ─────────────────────────────────────────────────────────────────────
 
 export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can schedule games.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
+  const err = validate(
+    validateRequired(gameData.home_team, 'Home team', MAX_TEAM_NAME),
+    validateRequired(gameData.away_team, 'Away team', MAX_TEAM_NAME),
+    validateDate(gameData.game_date, 'Game date'),
+    validateOptional(gameData.venue, 'Venue', MAX_VENUE_NAME),
+    validateTime(gameData.game_time),
+    gameData.payment_amount != null ? validateNumber(Number(gameData.payment_amount), 'Payment', 0, MAX_FEE) : null,
+  );
+  if (err) throw new Error(`invalid-argument: ${err}`);
   await addDoc(collection(db, 'games'), {
     ...gameData,
     manager_id: user.id,
@@ -324,6 +358,19 @@ export const requestAssignment = async (user: ServiceUser, gameId: string) => sa
 
 export const sendMessageRecord = async (user: ServiceUser, messageData: Doc) => safeHandle(async () => {
   const recipientId = messageData.recipientId || messageData.recipient_id;
+  if (!recipientId || typeof recipientId !== 'string' || recipientId.trim().length === 0) {
+    throw new Error('invalid-argument: Recipient ID is required.');
+  }
+  if (recipientId === user.id) {
+    throw new Error('invalid-argument: Cannot send a message to yourself.');
+  }
+  const contentErr = validateOptional(messageData.content, 'Message content', MAX_MESSAGE_LENGTH);
+  if (contentErr) throw new Error(`invalid-argument: ${contentErr}`);
+  // Verify recipient exists
+  const recipientSnap = await getDoc(doc(db, 'users', recipientId));
+  if (!recipientSnap.exists()) {
+    throw new Error('not-found: Recipient not found.');
+  }
   await addDoc(collection(db, 'messages'), {
     sender_id: user.id, recipient_id: recipientId,
     participants: [user.id, recipientId],
@@ -1116,14 +1163,15 @@ export const generateAutoAssignSuggestions = async (
 
 import type { BracketData, BracketRound, BracketFormat } from './bracketUtils';
 
-export const saveBracket = async (bracket: BracketData): Promise<SafeResult<string>> => safeHandle(async () => {
-  const data = {
+export const saveBracket = async (bracket: BracketData, managerId?: string): Promise<SafeResult<string>> => safeHandle(async () => {
+  const data: Doc = {
     tournament_id: bracket.tournamentId,
     format: bracket.format,
     teams: bracket.teams,
     rounds: JSON.parse(JSON.stringify(bracket.rounds)),
     updated_at: new Date().toISOString(),
   };
+  if (managerId) data.manager_id = managerId;
   if (bracket.id) {
     await updateDoc(doc(db, 'tournament_brackets', bracket.id), data);
     return bracket.id;

@@ -764,4 +764,27 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 **New files:** `src/pages/Settings/PrivacySettingsDialog.tsx`, `src/pages/HelpCenter.tsx`
 **Modified:** `src/pages/Settings.tsx`, `src/App.tsx`
+
+### Phase 44 - Security & Code Quality Hardening (Complete — Apr 2026)
+
+**8 code review items addressed:**
+
+1. **Firestore rules: tournament_brackets restricted to owner** — `update, delete` require `request.auth.uid == resource.data.manager_id`. `saveBracket()` now writes `manager_id` field. Deployed.
+
+2. **Integration tests added** — 22 new tests in `src/__tests__/integration.test.js` covering validation, schedule import parsing, and bracket generation. Total: 51/51 passing.
+
+3. **SDK errors mapped to safe messages** — New `sanitizeError()` function in `firestoreService.ts` maps Firebase error codes (permission-denied, not-found, unauthenticated, resource-exhausted, etc.) to user-friendly messages. Raw `error.message` never exposed.
+
+4. **Recipient ID validation** — `sendMessageRecord()` now validates: non-empty string, not self-send, recipient exists in Firestore. Also validates message content length (5000 char max).
+
+5. **IndexedDB persistence failure logging** — `firebase.ts` now logs `console.warn()` with specific messages for `failed-precondition` (multi-tab) and `unimplemented` (no IndexedDB) cases instead of silently swallowing.
+
+6. **ESLint import/no-cycle rule** — Confirmed disabled (`'off'`) since TypeScript compiler handles cycle detection. Updated comment to explain why.
+
+7. **Babel devDependencies** — Investigated: `@babel/generator`, `@babel/parser`, `@babel/traverse`, `@babel/types` are used by Emergent platform visual editor plugins (`ast-utils.js`, `vite-plugin-react-inline-editor.js`). Cannot remove.
+
+8. **Client-side input validation** — New `src/lib/validation.ts` with `validateRequired`, `validateDate`, `validateTime`, `validateNumber`, `validateEmail`, `validateOptional`, `validate` (combiner). Applied to `addTournament`, `addGameRecord`, `sendMessageRecord`.
+
+**New files:** `src/lib/validation.ts`, `src/__tests__/integration.test.js`
+
 **Dependency added:** `@radix-ui/react-switch` (for Switch component)

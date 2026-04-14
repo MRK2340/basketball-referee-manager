@@ -275,7 +275,7 @@ export const BracketEditor = ({ tournamentId, tournamentName }: Props) => {
       tournamentId, format, teams, rounds, updatedAt: new Date().toISOString(),
     };
     setSaving(true);
-    const { data: id, error } = await saveBracket(newBracket);
+    const { data: id, error } = await saveBracket(newBracket, user?.id);
     if (error) toast({ title: 'Failed to create bracket', description: error.message, variant: 'destructive' });
     else {
       newBracket.id = id!;
@@ -309,7 +309,7 @@ export const BracketEditor = ({ tournamentId, tournamentName }: Props) => {
 
     const updated = { ...bracket, rounds: updatedRounds, updatedAt: new Date().toISOString() };
     setBracket(updated);
-    await saveBracket(updated);
+    await saveBracket(updated, user?.id);
     toast({ title: `${winnerName} wins!` });
   }, [bracket]);
 

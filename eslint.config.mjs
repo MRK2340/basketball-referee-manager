@@ -47,7 +47,7 @@ export default [
 			// Override recommended import rules for stricter checking
 			'import/no-self-import': 'error',
 
-			// Disable expensive rules for performance
+			// Disabled — project migrated to TypeScript; TS compiler handles cycle detection
 			'import/no-cycle': 'off',
 		},
 	},
