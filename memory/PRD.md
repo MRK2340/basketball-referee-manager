@@ -571,3 +571,39 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - `src/lib/performanceTraces.ts` — Custom trace helpers
 
 - Verified: Import history working with Undo, Performance SDK auto-collecting
+
+
+### Phase 40 - AI Backlog Features (Complete — Apr 2026)
+
+**1. AI Chat History Persistence**
+- Chat messages saved to `_ai_chat_history` Firestore collection (per user, last 50 messages)
+- Auto-loads previous conversation when reopening the AI panel
+- "New Chat" button in header clears conversation and starts fresh
+- Debounced save (1s) to avoid excessive writes
+- Firestore rules: `_ai_chat_history/{userId}` — user-only read/write
+
+**2. AI-Powered Auto-Assign After Bulk Import**
+- "Auto-Assign Referees" button appears on bulk import done step
+- Algorithm: queries connected referees, availability, and existing assignments
+- Scoring: availability (+50), rating (*5), load balancing (-15 per existing assignment)
+- Review panel with checkboxes → confirm → batch assign
+- Shows info message if no connected referees found
+
+**3. Voice Input for AI Assistant**
+- Microphone button next to text input (outline icon → red pulse when active)
+- Uses Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`)
+- Browser-native — no API key needed (Chrome, Edge, Safari)
+- Interim results fill the input field in real-time
+- Hidden when browser doesn't support Speech API
+
+**New files:**
+- `src/components/AutoAssignPanel.tsx` — Auto-assign suggestion UI with confirm/cancel
+- Firestore functions: `saveAIChatHistory`, `loadAIChatHistory`, `clearAIChatHistory`, `generateAutoAssignSuggestions`
+
+**Modified files:**
+- `src/components/AIAssistantPanel.tsx` — Chat persistence, voice input, new chat button
+- `src/pages/Manager/BulkGameImportDialog.tsx` — Auto-assign panel on done step
+- `src/lib/firestoreService.ts` — Added 4 new functions
+- `firestore.rules` — Added `_ai_chat_history` collection rules (deployed)
+
+- Testing: 100% pass — 8/8 test cases verified (iteration_39.json)
