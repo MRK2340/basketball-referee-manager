@@ -5,6 +5,7 @@
  */
 import app from './firebase';
 import { getAI, getGenerativeModel, VertexAIBackend, type GenerativeModel } from 'firebase/ai';
+import { traceAsync } from './performanceTraces';
 import type { MappedGame, MappedTournament, MappedProfile } from './mappers';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -234,7 +235,7 @@ export const sendAssistantMessage = async (
     { role: 'user' as const, parts: [{ text: userMessage }] },
   ];
 
-  const result = await gemini.generateContent({ contents });
+  const result = await traceAsync('ai_assistant_response', () => gemini.generateContent({ contents }));
   const response = result.response;
   const candidate = response.candidates?.[0];
 

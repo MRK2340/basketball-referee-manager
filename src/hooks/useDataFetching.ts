@@ -1,6 +1,7 @@
 import { useState, useCallback, type Dispatch, type SetStateAction } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { fetchAppData, fetchMoreMessages } from '@/lib/firestoreService';
+import { traceAsync } from '@/lib/performanceTraces';
 import type { AppUser } from '@/lib/types';
 import type { MappedProfile, MappedMessage } from '@/lib/mappers';
 
@@ -40,7 +41,7 @@ export const useDataFetching = (user: AppUser | null) => {
     else setRefreshing(true);
 
     try {
-      const data = await fetchAppData(user);
+      const data = await traceAsync('fetch_app_data', () => fetchAppData(user));
       setGames(data.games);
       setTournaments(data.tournaments);
       setPayments(data.payments);

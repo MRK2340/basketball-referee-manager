@@ -3,6 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
+import { getPerformance, type FirebasePerformance } from 'firebase/performance';
 
 // C2 — Startup validation: fail fast with a clear error if any Firebase config is missing.
 // This prevents silent failures where the app loads but all Firebase calls 404.
@@ -37,4 +38,14 @@ export const auth = getAuth(app);
 export const db = getFirestore(app, 'refereemanager');
 export const storage = getStorage(app);
 export const analytics = getAnalytics(app);
+
+// Firebase Performance Monitoring — auto-collects page load, network requests, route changes
+let perf: FirebasePerformance | null = null;
+try {
+  perf = getPerformance(app);
+} catch {
+  // Performance SDK may fail in non-browser environments (SSR, tests)
+}
+export const performance = perf;
+
 export default app;

@@ -543,3 +543,31 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 
 - Testing: 100% pass — 12/12 test cases verified (iteration_38.json)
 - Vertex AI enabled and Gemini 2.5 Pro responding to messages
+
+
+### Phase 39 - Firestore Deployment + Performance Monitoring (Complete — Apr 2026)
+
+**Task 1: Firestore Rules & Indexes Deployment**
+- Deployed `_import_history` collection rules (user CRUD on own records)
+- Deployed composite index for `_import_history(user_id, created_at desc)`
+- Import History + Undo now fully functional end-to-end
+- Command: `firebase deploy --only firestore:rules,firestore:indexes --token <CI_TOKEN>`
+
+**Task 2: Firebase Performance SDK**
+- Added `getPerformance()` to `firebase.ts` — auto-collects page load, network requests, route changes
+- Created `src/lib/performanceTraces.ts` — custom trace utilities (`startTrace`, `stopTrace`, `traceAsync`)
+- Instrumented key flows:
+  - `fetch_app_data` — traces full data load on login/refresh
+  - `ai_assistant_response` — traces Gemini 2.5 Pro response latency
+- Performance data visible in Firebase Console → Performance tab
+- SDK initializes safely (try/catch for non-browser environments)
+
+**Modified files:**
+- `src/lib/firebase.ts` — Added `getPerformance()` export
+- `src/hooks/useDataFetching.ts` — Wrapped `fetchAppData` in `traceAsync`
+- `src/lib/aiAssistant.ts` — Wrapped Gemini call in `traceAsync`
+
+**New files:**
+- `src/lib/performanceTraces.ts` — Custom trace helpers
+
+- Verified: Import history working with Undo, Performance SDK auto-collecting
