@@ -507,3 +507,39 @@ Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AA
 - **Deploy required**: `firebase deploy --only firestore:rules,firestore:indexes`
 
 - Testing: 10/12 pass (iteration_37.json). 2 INFO items require Firestore rules deployment for full undo testing.
+
+
+### Phase 38 - AI Manager Assistant (Complete — Apr 2026)
+
+**Feature 3: AI Manager Assistant (Gemini 2.5 Pro)**
+- Floating sparkle button (FAB) on Manager page — opens slide-in chat panel
+- Powered by Firebase AI Logic (Vertex AI in Firebase) with Gemini 2.5 Pro
+- Natural language → structured function calls → preview → execute
+- System prompt injects current context (tournaments, games, referees with IDs)
+- Resolves relative dates ("this Saturday"), team names, tournament references
+
+**Supported actions via function calling:**
+1. `create_games` — Single games, doubleheaders, batch creation
+2. `create_tournament` — Full tournament creation
+3. `assign_referee` — Assign referee to game by name
+4. `update_game` — Change time, venue, payment
+5. `cancel_games` — Delete games
+6. `complete_games` — Mark games as completed
+
+**UI Features:**
+- Slide-in panel (420px) with backdrop overlay
+- Chat history with user (blue) / assistant (gray) message styling
+- Action cards with confirm/skip buttons before execution
+- Loading state with "Thinking..." animation
+- Error handling for Vertex AI not-enabled state
+- Only visible to manager role (not referees)
+
+**New files:**
+- `src/lib/aiAssistant.ts` — AI service (model init, function declarations, system prompt builder, response parser)
+- `src/components/AIAssistantPanel.tsx` — Chat panel UI component
+
+**Modified files:**
+- `src/pages/Manager/index.tsx` — Added FAB button and AI panel
+
+- Testing: 100% pass — 12/12 test cases verified (iteration_38.json)
+- Vertex AI enabled and Gemini 2.5 Pro responding to messages
