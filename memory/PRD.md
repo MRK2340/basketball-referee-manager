@@ -675,6 +675,27 @@ The iWhistle application is now feature-complete with all planned P0, P1, and P2
 - Verified: Page stable for 10+ seconds with no reload/flash
 
 - Phase 36: Schedule Import (CSV/Excel/PDF)
+
+### Bug Fix — Page Auto-Reload Issue (FIXED — Apr 2026)
+
+**Root Cause:** The Kubernetes proxy/ingress terminates idle WebSocket connections after ~30-60 seconds. Vite's HMR client detects the dropped connection → polls `/__vite_ping` → when the server responds → calls `location.reload()`. This causes a full page reload every 30-60 seconds while the user is reading.
+
+**Fix (two-part):**
+1. **React-level stabilization** (Phase earlier):
+   - `AuthContext.tsx` — `stableSetUser()` prevents unnecessary re-renders on auth token refresh
+   - `DataContext.tsx` — Effect depends on `user?.id` instead of full `user` object
+   - `useDataFetching.ts` — `fetchData` uses `userRef` for stable callback
+
+2. **Vite client patch** (this fix):
+   - Patched `node_modules/vite/dist/client/client.mjs` line 974
+   - Replaced `location.reload()` in the WS disconnect handler with `console.debug('[vite] reconnected after WS drop — skipping reload')`
+   - Also added `server.hmr.timeout: 120000` and `server.hmr.overlay: false` in `vite.config.js`
+   - Server-side WebSocket keepalive plugin sends pings every 15s
+   - Client-side fetch keepalive pings `/__vite_ping` every 20s
+   - Postinstall script at `scripts/patch-vite-client.sh` re-applies patch after `yarn install`
+
+- Verified: Page survived 100+ seconds with ZERO reloads — WS dropped and reconnected silently
+
 - Phase 37: Import enhancements (templates, duplicates, history/undo)
 - Phase 38: AI Manager Assistant (Gemini 2.5 Pro)
 - Phase 39: Firestore deployment + Performance monitoring
