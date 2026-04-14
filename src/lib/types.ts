@@ -21,7 +21,14 @@ export interface AppUser extends MappedProfile {
 /** Result of safeHandle — either data or error, never both */
 export type SafeResult<T = true> =
   | { data: T; error?: undefined }
-  | { error: { message: string }; data?: undefined };
+  | { error: FirestoreError; data?: undefined };
+
+/** Structured error returned by safeHandle — preserves code for conditional retry */
+export interface FirestoreError {
+  message: string;
+  code: string;
+  retryable: boolean;
+}
 
 /** Notification preference settings */
 export interface NotificationPreferences {

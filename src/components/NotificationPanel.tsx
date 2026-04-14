@@ -16,7 +16,8 @@ import {
   Trophy,
   FileText,
   CheckCheck,
-  Bell
+  Bell,
+  Loader2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -74,7 +75,7 @@ interface NotificationPanelProps {
 }
 
 const NotificationPanel = ({ open, onOpenChange }: NotificationPanelProps) => {
-  const { notifications, notificationActions } = useData();
+  const { notifications, notificationActions, hasMoreNotifications, loadMoreNotifications, refreshing } = useData();
   const { markNotificationRead, markAllNotificationsRead } = notificationActions;
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -128,6 +129,21 @@ const NotificationPanel = ({ open, onOpenChange }: NotificationPanelProps) => {
                 onRead={markNotificationRead}
               />
             ))
+          )}
+          {hasMoreNotifications && (
+            <div className="p-3 border-t border-slate-100">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs"
+                disabled={refreshing}
+                onClick={loadMoreNotifications}
+                data-testid="load-more-notifications-btn"
+              >
+                {refreshing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : null}
+                Load older notifications
+              </Button>
+            </div>
           )}
         </div>
       </SheetContent>

@@ -13,12 +13,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, FileSpreadsheet } from 'lucide-react';
+import { Plus, Edit, Trash2, FileSpreadsheet, Loader2 } from 'lucide-react';
 import TournamentFormDialog from '@/pages/Manager/TournamentFormDialog';
 import { BulkGameImportDialog } from '@/pages/Manager/BulkGameImportDialog';
 import { ImportHistoryPanel } from '@/components/ImportHistoryPanel';
 
-const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTournament }) => {
+const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTournament, hasMoreTournaments, loadMoreTournaments, refreshing }) => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingTournament, setEditingTournament] = useState(null);
@@ -142,6 +142,22 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
           </div>
         </CardContent>
       </Card>
+
+      {/* Load more tournaments */}
+      {hasMoreTournaments && (
+        <div className="flex justify-center mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadMoreTournaments}
+            disabled={refreshing}
+            data-testid="load-more-tournaments-btn"
+          >
+            {refreshing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Load more tournaments
+          </Button>
+        </div>
+      )}
 
       {/* Bulk Game Import Dialog */}
       <BulkGameImportDialog open={bulkImportOpen} onOpenChange={setBulkImportOpen} />

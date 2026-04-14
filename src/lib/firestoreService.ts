@@ -25,22 +25,58 @@ import { logger } from './logger';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Doc = Record<string, any>;
 
-const createError = (message: string) => ({ message });
+/** Firestore error codes that are safe to retry (transient failures). */
+const RETRYABLE_CODES = new Set([
+  'unavailable', 'resource-exhausted', 'deadline-exceeded', 'aborted', 'internal',
+]);
 
-/** Map raw Firebase/SDK errors to safe user-facing messages. */
-const sanitizeError = (raw: string): string => {
-  if (!raw) return 'An unexpected error occurred. Please try again.';
-  const lower = raw.toLowerCase();
-  if (lower.includes('permission-denied') || lower.includes('permission')) return 'You don\'t have permission to perform this action.';
-  if (lower.includes('not-found')) return 'The requested item was not found.';
-  if (lower.includes('already-exists')) return 'This item already exists.';
-  if (lower.includes('unauthenticated') || lower.includes('auth')) return 'Your session has expired. Please log in again.';
-  if (lower.includes('resource-exhausted') || lower.includes('quota')) return 'Too many requests. Please wait a moment and try again.';
-  if (lower.includes('unavailable') || lower.includes('network')) return 'Network error. Please check your connection.';
-  if (lower.includes('deadline-exceeded') || lower.includes('timeout')) return 'The request timed out. Please try again.';
-  if (lower.includes('invalid-argument')) return 'Invalid input. Please check your data and try again.';
-  if (lower.includes('failed-precondition')) return 'This action cannot be performed right now. Please try again later.';
-  return 'Something went wrong. Please try again.';
+/** Extract the Firestore error code from an error object or message string. */
+const extractErrorCode = (err: unknown): string => {
+  const e = err as { code?: string; message?: string };
+  // Firebase SDK errors have a `code` property like "firestore/permission-denied"
+  if (e.code) {
+    const parts = e.code.split('/');
+    return parts[parts.length - 1].toLowerCase();
+  }
+  // Client-side throws use the code as the message prefix: "permission-denied: ..."
+  const msg = e.message || '';
+  const colonIdx = msg.indexOf(':');
+  if (colonIdx > 0 && colonIdx < 30) {
+    // Normalize "PERMISSION_DENIED" → "permission-denied"
+    return msg.slice(0, colonIdx).trim().toLowerCase().replace(/_/g, '-');
+  }
+  // Last resort: scan for known keywords
+  const lower = msg.toLowerCase();
+  if (lower.includes('permission-denied') || lower.includes('permission')) return 'permission-denied';
+  if (lower.includes('not-found')) return 'not-found';
+  if (lower.includes('unauthenticated')) return 'unauthenticated';
+  if (lower.includes('unavailable')) return 'unavailable';
+  if (lower.includes('invalid-argument')) return 'invalid-argument';
+  return 'unknown';
+};
+
+/** Map error codes to safe user-facing messages. */
+const sanitizeError = (code: string, raw: string): string => {
+  switch (code) {
+    case 'permission-denied': return 'You don\'t have permission to perform this action.';
+    case 'not-found': return 'The requested item was not found.';
+    case 'already-exists': return 'This item already exists.';
+    case 'unauthenticated': return 'Your session has expired. Please log in again.';
+    case 'resource-exhausted': return 'Too many requests. Please wait a moment and try again.';
+    case 'unavailable': return 'Network error. Please check your connection.';
+    case 'deadline-exceeded': return 'The request timed out. Please try again.';
+    case 'invalid-argument': return 'Invalid input. Please check your data and try again.';
+    case 'failed-precondition': return 'This action cannot be performed right now. Please try again later.';
+    case 'aborted': return 'The operation was interrupted. Please try again.';
+    default: {
+      // Fallback: check raw message for known patterns
+      if (!raw) return 'An unexpected error occurred. Please try again.';
+      const lower = raw.toLowerCase();
+      if (lower.includes('network')) return 'Network error. Please check your connection.';
+      if (lower.includes('timeout')) return 'The request timed out. Please try again.';
+      return 'Something went wrong. Please try again.';
+    }
+  }
 };
 
 const safeHandle = async <T = true>(fn: () => Promise<T>): Promise<SafeResult<T>> => {
@@ -49,8 +85,15 @@ const safeHandle = async <T = true>(fn: () => Promise<T>): Promise<SafeResult<T>
     return { data: (result ?? true) as T };
   } catch (err: unknown) {
     const e = err as Error;
+    const code = extractErrorCode(err);
     logger.error('[Firestore]', e);
-    return { error: createError(sanitizeError(e.message)) };
+    return {
+      error: {
+        message: sanitizeError(code, e.message || ''),
+        code,
+        retryable: RETRYABLE_CODES.has(code),
+      },
+    };
   }
 };
 
@@ -72,6 +115,8 @@ const chunkArray = <T>(arr: T[], size: number): T[][] => {
 };
 
 // ── fetchAppData ───────────────────────────────────────────────────
+
+const INITIAL_PAGE = 100;
 
 export const fetchAppData = async (user: ServiceUser) => {
   if (!user) return {} as Doc;
@@ -210,6 +255,11 @@ export const fetchAppData = async (user: ServiceUser) => {
     connections: connectionsRaw.map(mapConnection),
     managerProfiles: managerProfilesRaw,
     independentGames: indGamesRaw.sort((a, b) => (b.date || '').localeCompare(a.date || '')),
+    // Pagination cursors — true when the initial page is full (more data may exist)
+    hasMoreGames: isManager && gamesRaw.length === INITIAL_PAGE,
+    hasMoreTournaments: isManager && tournamentsRaw.length === INITIAL_PAGE,
+    hasMoreMessages: messagesRaw.length === INITIAL_PAGE,
+    hasMoreNotifications: notificationsRaw.length === INITIAL_PAGE,
   };
 };
 
@@ -832,9 +882,13 @@ export const undoImport = async (user: ServiceUser, importId: string): Promise<S
 const PAGE_SIZE = 50;
 
 /**
- * Fetch the next page of messages.
+ * Fetch the next page of messages (cursor-based by created_at).
  */
-export const fetchMoreMessages = async (user, afterTimestamp, allUsers) => safeHandle(async () => {
+export const fetchMoreMessages = async (
+  user: ServiceUser,
+  afterTimestamp: string,
+  allUsers: MappedProfile[],
+) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'messages'),
     where('participants', 'array-contains', user.id),
@@ -842,15 +896,20 @@ export const fetchMoreMessages = async (user, afterTimestamp, allUsers) => safeH
     startAfter(afterTimestamp),
     limit(PAGE_SIZE),
   ));
-  return docsToArr(snap).map(m => mapMessage(m, allUsers));
+  const docs = docsToArr(snap);
+  return { items: docs.map(m => mapMessage(m, allUsers)), hasMore: docs.length === PAGE_SIZE };
 });
 
 /**
- * Fetch the next page of games for a manager (cursor-based).
- * @param {string} managerId
- * @param {string} afterDatetime - "YYYY-MM-DDThh:mm" of the last loaded game
+ * Fetch the next page of games for a manager (cursor-based by game_date).
  */
-export const fetchMoreGames = async (managerId: string, afterDatetime: string) => safeHandle(async () => {
+export const fetchMoreGames = async (
+  managerId: string,
+  afterDatetime: string,
+  assignmentsRaw: Doc[],
+  allUsers: MappedProfile[],
+  tournamentsRaw: Doc[],
+) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'games'),
     where('manager_id', '==', managerId),
@@ -858,15 +917,21 @@ export const fetchMoreGames = async (managerId: string, afterDatetime: string) =
     startAfter(afterDatetime),
     limit(PAGE_SIZE),
   ));
-  return { docs: docsToArr(snap), hasMore: snap.docs.length === PAGE_SIZE };
+  const docs = docsToArr(snap);
+  return {
+    items: docs.map(g => mapGame(g.id, g, assignmentsRaw, allUsers, tournamentsRaw)),
+    hasMore: docs.length === PAGE_SIZE,
+  };
 });
 
 /**
- * Fetch the next page of tournaments for a manager (cursor-based).
- * @param {string} managerId
- * @param {string} afterName - name of the last loaded tournament (alphabetical cursor)
+ * Fetch the next page of tournaments for a manager (cursor-based by name).
  */
-export const fetchMoreTournaments = async (managerId: string, afterName: string) => safeHandle(async () => {
+export const fetchMoreTournaments = async (
+  managerId: string,
+  afterName: string,
+  gamesRaw: Doc[],
+) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'tournaments'),
     where('manager_id', '==', managerId),
@@ -874,7 +939,26 @@ export const fetchMoreTournaments = async (managerId: string, afterName: string)
     startAfter(afterName),
     limit(PAGE_SIZE),
   ));
-  return { docs: docsToArr(snap), hasMore: snap.docs.length === PAGE_SIZE };
+  const docs = docsToArr(snap);
+  return { items: docs.map(t => mapTournament(t, gamesRaw)), hasMore: docs.length === PAGE_SIZE };
+});
+
+/**
+ * Fetch the next page of notifications (cursor-based by created_at).
+ */
+export const fetchMoreNotifications = async (
+  userId: string,
+  afterTimestamp: string,
+) => safeHandle(async () => {
+  const snap = await getDocs(query(
+    collection(db, 'notifications'),
+    where('recipient_id', '==', userId),
+    orderBy('created_at', 'desc'),
+    startAfter(afterTimestamp),
+    limit(PAGE_SIZE),
+  ));
+  const docs = docsToArr(snap);
+  return { items: docs, hasMore: docs.length === PAGE_SIZE };
 });
 
 

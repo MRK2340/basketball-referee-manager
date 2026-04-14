@@ -37,6 +37,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     gameReports, refereeRatings, notificationPreferences,
     connections, managerProfiles, independentGames,
     hasMoreMessages, loadMoreMessages,
+    hasMoreGames, loadMoreGames,
+    hasMoreTournaments, loadMoreTournaments,
+    hasMoreNotifications, loadMoreNotifications,
     fetchData,
   } = useDataFetching(user);
 
@@ -83,6 +86,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     gameReports, refereeRatings, notificationPreferences,
     connections, managerProfiles, independentGames,
     hasMoreMessages, loadMoreMessages,
+    hasMoreGames, loadMoreGames,
+    hasMoreTournaments, loadMoreTournaments,
+    hasMoreNotifications, loadMoreNotifications,
     fetchData,
     tournamentActions,
     gameActions,

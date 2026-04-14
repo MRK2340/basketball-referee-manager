@@ -820,3 +820,35 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 **Deploy required:** Paste `/app/firestore.rules` into Firebase Console > Firestore > Rules > Publish
 **Files modified:** `firestore.rules`, `src/lib/firestoreService.ts`, `src/__tests__/firestoreService.test.js`
+
+
+### Phase 46 - Pagination, Error Context & Persistence Feedback (Complete — Apr 2026)
+
+**Issue 8: No pagination — queries hard-capped at 100 with no cursor continuation**
+- `fetchAppData` now returns `hasMoreGames`, `hasMoreTournaments`, `hasMoreMessages`, `hasMoreNotifications` flags (true when initial page is full)
+- Added `fetchMoreNotifications(userId, afterTimestamp)` cursor-based pagination function
+- Updated `fetchMoreGames` and `fetchMoreTournaments` to return mapped items (not raw docs) + `hasMore` flag
+- Updated `fetchMoreMessages` to return `{ items, hasMore }` instead of flat array
+- `useDataFetching.ts` now tracks `hasMore*` state for games, tournaments, messages, notifications + exposes `loadMore*` callbacks
+- `DataContext.tsx` exposes all 4 `hasMore*` flags and `loadMore*` callbacks
+- UI: "Load more tournaments" button on TournamentsTab, "Load older notifications" button in NotificationPanel, existing Messages "Load more" button updated for new response format
+- `INITIAL_PAGE = 100` constant replaces magic numbers
+
+**Issue 9: IndexedDB persistence failures silently ignored**
+- `firebase.ts` now exports `getPersistenceStatus()` async function returning `'enabled' | 'multi-tab' | 'unsupported' | 'error'`
+- `OfflineIndicator.tsx` checks persistence status on mount and shows a dismissable toast banner:
+  - "Offline mode unavailable — another tab is open" (multi-tab)
+  - "Offline mode unavailable — browser not supported" (unsupported)
+  - "Offline mode failed to initialize" (error)
+  - Auto-dismisses after 6 seconds
+
+**Issue 10: Generic Firestore error wrapper discards error context**
+- `SafeResult` error type upgraded from `{ message: string }` to `FirestoreError { message, code, retryable }`
+- New `extractErrorCode(err)` extracts Firebase error code from SDK `.code` property, message prefix, or keyword scan. Normalizes to lowercase kebab-case.
+- `sanitizeError` refactored from string scanning to code-based switch statement
+- `safeHandle` now returns `{ code, retryable }` alongside the sanitized message
+- `RETRYABLE_CODES` set: `unavailable`, `resource-exhausted`, `deadline-exceeded`, `aborted`, `internal`
+- Callers can now conditionally retry: `if (error.retryable) { /* retry */ }`
+
+**Files modified:** `src/lib/types.ts`, `src/lib/firestoreService.ts`, `src/lib/firebase.ts`, `src/hooks/useDataFetching.ts`, `src/contexts/DataContext.tsx`, `src/components/OfflineIndicator.tsx`, `src/components/NotificationPanel.tsx`, `src/pages/Manager/TournamentsTab.tsx`, `src/pages/Manager/index.tsx`
+- 98/98 Vitest tests passing

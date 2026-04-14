@@ -21,7 +21,7 @@ import { AIAssistantPanel } from '@/components/AIAssistantPanel';
 
 const Manager = () => {
   const { user } = useAuth();
-  const { tournaments, games, referees, gameReports, connections, tournamentActions, assignmentActions, connectionActions } = useData();
+  const { tournaments, games, referees, gameReports, connections, tournamentActions, assignmentActions, connectionActions, hasMoreTournaments, loadMoreTournaments, refreshing } = useData();
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
   const [selectedBracketTournament, setSelectedBracketTournament] = useState('');
 
@@ -93,6 +93,9 @@ const Manager = () => {
               addTournament={tournamentActions.addTournament}
               updateTournament={tournamentActions.updateTournament}
               deleteTournament={tournamentActions.deleteTournament}
+              hasMoreTournaments={hasMoreTournaments}
+              loadMoreTournaments={loadMoreTournaments}
+              refreshing={refreshing}
             />
           </TabsContent>
 

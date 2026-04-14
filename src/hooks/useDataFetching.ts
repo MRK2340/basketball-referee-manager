@@ -1,6 +1,12 @@
 import { useState, useCallback, useRef, type Dispatch, type SetStateAction } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { fetchAppData, fetchMoreMessages } from '@/lib/firestoreService';
+import {
+  fetchAppData,
+  fetchMoreMessages,
+  fetchMoreGames,
+  fetchMoreTournaments,
+  fetchMoreNotifications,
+} from '@/lib/firestoreService';
 import { traceAsync } from '@/lib/performanceTraces';
 import type { AppUser } from '@/lib/types';
 import type { MappedProfile, MappedMessage } from '@/lib/mappers';
@@ -8,7 +14,7 @@ import type { MappedProfile, MappedMessage } from '@/lib/mappers';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyArr = any[];
 
-const MESSAGE_PAGE_SIZE = 100;
+const PAGE_SIZE = 50;
 
 export const useDataFetching = (user: AppUser | null) => {
   const [loading, setLoading] = useState(true);
@@ -26,7 +32,12 @@ export const useDataFetching = (user: AppUser | null) => {
   const [connections, setConnections] = useState<AnyArr>([]);
   const [managerProfiles, setManagerProfiles] = useState<MappedProfile[]>([]);
   const [independentGames, setIndependentGames] = useState<AnyArr>([]);
+
+  // Pagination state
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [hasMoreGames, setHasMoreGames] = useState(false);
+  const [hasMoreTournaments, setHasMoreTournaments] = useState(false);
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(false);
 
   // Ref to avoid recreating fetchData when user object reference changes
   const userRef = useRef(user);
@@ -37,7 +48,9 @@ export const useDataFetching = (user: AppUser | null) => {
     if (!currentUser) {
       setGames([]); setPayments([]); setMessages([]); setNotifications([]);
       setTournaments([]); setReferees([]); setAvailability([]); setGameReports([]);
-      setConnections([]); setManagerProfiles([]); setHasMoreMessages(false);
+      setConnections([]); setManagerProfiles([]); setIndependentGames([]);
+      setHasMoreMessages(false); setHasMoreGames(false);
+      setHasMoreTournaments(false); setHasMoreNotifications(false);
       setLoading(false);
       return;
     }
@@ -60,12 +73,17 @@ export const useDataFetching = (user: AppUser | null) => {
       setConnections(data.connections || []);
       setManagerProfiles(data.managerProfiles || []);
       setIndependentGames(data.independentGames || []);
-      setHasMoreMessages(data.messages.length === MESSAGE_PAGE_SIZE);
+      setHasMoreMessages(!!data.hasMoreMessages);
+      setHasMoreGames(!!data.hasMoreGames);
+      setHasMoreTournaments(!!data.hasMoreTournaments);
+      setHasMoreNotifications(!!data.hasMoreNotifications);
     } catch (error: unknown) {
       if (isInitialLoad) {
         setGames([]); setPayments([]); setMessages([]); setNotifications([]);
         setTournaments([]); setReferees([]); setAvailability([]); setGameReports([]);
-        setConnections([]); setManagerProfiles([]); setHasMoreMessages(false);
+        setConnections([]); setManagerProfiles([]); setIndependentGames([]);
+        setHasMoreMessages(false); setHasMoreGames(false);
+        setHasMoreTournaments(false); setHasMoreNotifications(false);
       }
       toast({
         title: "Error fetching data",
@@ -93,16 +111,82 @@ export const useDataFetching = (user: AppUser | null) => {
     try {
       const allUsers = [...currentReferees, ...currentManagers,
         { id: currentUser.id, name: currentUser.name, avatarUrl: currentUser.avatarUrl } as MappedProfile];
-      const { data: more, error } = await fetchMoreMessages(currentUser, oldest.timestamp, allUsers);
+      const { data, error } = await fetchMoreMessages(currentUser, oldest.timestamp, allUsers);
       if (error) throw new Error(error.message);
-      setMessages(prev => [...prev, ...((more as MappedMessage[]) || [])]);
-      setHasMoreMessages(((more as MappedMessage[]) || []).length === MESSAGE_PAGE_SIZE);
+      const result = data as { items: MappedMessage[]; hasMore: boolean };
+      setMessages(prev => [...prev, ...result.items]);
+      setHasMoreMessages(result.hasMore);
     } catch (err: unknown) {
       toast({ title: 'Failed to load more messages', description: (err as Error).message, variant: 'destructive' });
     } finally {
       setRefreshing(false);
     }
-  }, [hasMoreMessages]); // Stable — uses userRef
+  }, [hasMoreMessages]);
+
+  const loadMoreGames = useCallback(async () => {
+    const currentUser = userRef.current;
+    if (!currentUser || !hasMoreGames || currentUser.role !== 'manager') return;
+
+    setRefreshing(true);
+    try {
+      const lastGame = games[games.length - 1];
+      if (!lastGame) return;
+      const cursor = lastGame.gameDate || lastGame.game_date || '';
+      // We pass empty arrays for assignments/users/tournaments since the raw game data
+      // from fetchMoreGames needs the same mapper args. For simplicity, re-fetch raw.
+      const { data, error } = await fetchMoreGames(currentUser.id, cursor, [], [], []);
+      if (error) throw new Error(error.message);
+      const result = data as { items: AnyArr; hasMore: boolean };
+      setGames(prev => [...prev, ...result.items]);
+      setHasMoreGames(result.hasMore);
+    } catch (err: unknown) {
+      toast({ title: 'Failed to load more games', description: (err as Error).message, variant: 'destructive' });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [hasMoreGames, games]);
+
+  const loadMoreTournaments = useCallback(async () => {
+    const currentUser = userRef.current;
+    if (!currentUser || !hasMoreTournaments || currentUser.role !== 'manager') return;
+
+    setRefreshing(true);
+    try {
+      const lastTournament = tournaments[tournaments.length - 1];
+      if (!lastTournament) return;
+      const cursor = lastTournament.name || '';
+      const { data, error } = await fetchMoreTournaments(currentUser.id, cursor, []);
+      if (error) throw new Error(error.message);
+      const result = data as { items: AnyArr; hasMore: boolean };
+      setTournaments(prev => [...prev, ...result.items]);
+      setHasMoreTournaments(result.hasMore);
+    } catch (err: unknown) {
+      toast({ title: 'Failed to load more tournaments', description: (err as Error).message, variant: 'destructive' });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [hasMoreTournaments, tournaments]);
+
+  const loadMoreNotifications = useCallback(async () => {
+    const currentUser = userRef.current;
+    if (!currentUser || !hasMoreNotifications) return;
+
+    setRefreshing(true);
+    try {
+      const lastNotif = notifications[notifications.length - 1];
+      if (!lastNotif) return;
+      const cursor = lastNotif.created_at || '';
+      const { data, error } = await fetchMoreNotifications(currentUser.id, cursor);
+      if (error) throw new Error(error.message);
+      const result = data as { items: AnyArr; hasMore: boolean };
+      setNotifications(prev => [...prev, ...result.items]);
+      setHasMoreNotifications(result.hasMore);
+    } catch (err: unknown) {
+      toast({ title: 'Failed to load more notifications', description: (err as Error).message, variant: 'destructive' });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [hasMoreNotifications, notifications]);
 
   return {
     loading, refreshing,
@@ -120,6 +204,9 @@ export const useDataFetching = (user: AppUser | null) => {
     managerProfiles, setManagerProfiles,
     independentGames, setIndependentGames,
     hasMoreMessages, loadMoreMessages,
+    hasMoreGames, loadMoreGames,
+    hasMoreTournaments, loadMoreTournaments,
+    hasMoreNotifications, loadMoreNotifications,
     fetchData,
   };
 };
