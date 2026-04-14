@@ -2,6 +2,6 @@
   "name": "frontend-launcher",
   "version": "1.0.0",
   "scripts": {
-    "start": "cd /app && yarn start"
+    "start": "cd .. && yarn start"
   }
 }
