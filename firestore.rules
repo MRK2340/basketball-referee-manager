@@ -190,11 +190,23 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ── Audit Log (append-only for authenticated users) ─────────────────────
+    // ── Audit Log (append-only for authenticated users, readable by owner) ───
     match /_audit_log/{logId} {
       allow create: if isAuth()
         && request.resource.data.user_id == request.auth.uid;
+      allow read: if isAuth() && resource.data.user_id == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // ── User Feedback (create-only for authenticated users) ──────────────────
+    match /_feedback/{feedbackId} {
+      allow create: if isAuth() && request.resource.data.user_id == request.auth.uid;
       allow read, update, delete: if false;
+    }
+
+    // ── Payment Info (user-only CRUD on own record) ───────────────────────────
+    match /_payment_info/{userId} {
+      allow read, write: if isAuth() && request.auth.uid == userId;
     }
 
     // ── Import History (users can CRUD their own import records) ─────────────

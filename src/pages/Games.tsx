@@ -21,6 +21,8 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { IndependentGamesTab } from '@/pages/Games/IndependentGamesTab';
 import GameDetailSheet from '@/components/GameDetailSheet';
+import { LiveGamePanel } from '@/pages/Games/LiveGamePanel';
+import type { MappedGame } from '@/lib/mappers';
 
 // ── Assigned Games Panel ─────────────────────────────────────────────────────
 const getStatusColor = (status) => {
@@ -32,7 +34,7 @@ const getStatusColor = (status) => {
   }
 };
 
-const AssignedGamesContent = ({ games, onFeatureClick, onViewReport }) => {
+const AssignedGamesContent = ({ games, onFeatureClick, onViewReport }: { games: MappedGame[]; onFeatureClick: (feature: string, game?: MappedGame) => void; onViewReport: (game: MappedGame) => void }) => {
   const completedGames = games.filter(g => g.status === 'completed');
   const upcomingGames = games.filter(g => g.status === 'scheduled');
   const inProgressGames = games.filter(g => g.status === 'in-progress');
@@ -63,7 +65,7 @@ const AssignedGamesContent = ({ games, onFeatureClick, onViewReport }) => {
                     <span>{game.venue}</span>
                     <span className="font-medium">${game.payment}</span>
                   </div>
-                  <Button size="sm" data-testid={`games-manage-live-${game.id}`} className="w-full mt-3 basketball-gradient hover:opacity-90 text-white" onClick={() => onFeatureClick('manage-live-game')}>
+                  <Button size="sm" data-testid={`games-manage-live-${game.id}`} className="w-full mt-3 basketball-gradient hover:opacity-90 text-white" onClick={() => onFeatureClick('manage-live-game', game)}>
                     Manage Game
                   </Button>
                 </div>
@@ -168,8 +170,10 @@ const Games = () => {
   const { games, payments, independentGames, gameReports } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [detailGame, setDetailGame] = useState(null);
+  const [detailGame, setDetailGame] = useState<MappedGame | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [liveGame, setLiveGame]     = useState<MappedGame | null>(null);
+  const [liveOpen, setLiveOpen]     = useState(false);
 
   const totalEarnings = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
   const averageRating = 4.8;
@@ -184,9 +188,12 @@ const Games = () => {
     ? (independentGames || []).filter(g => g.date?.startsWith(String(currentYear))).length
     : 0;
 
-  const handleFeatureClick = (feature) => {
+  const handleFeatureClick = (feature: string, game?: MappedGame) => {
     if (feature === 'detailed-analytics') {
       navigate('/analytics');
+    } else if (feature === 'manage-live-game' && game) {
+      setLiveGame(game);
+      setLiveOpen(true);
     } else {
       toast({
         title: "Feature Coming Soon!",
@@ -291,6 +298,7 @@ const Games = () => {
         )}
       </div>
       <GameDetailSheet open={detailOpen} setOpen={setDetailOpen} game={detailGame} gameReport={detailReport} />
+      <LiveGamePanel open={liveOpen} onOpenChange={setLiveOpen} game={liveGame} />
     </>
   );
 };

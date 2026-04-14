@@ -13,6 +13,8 @@ import AccountSecuritySettings from './Settings/AccountSecuritySettings';
 import SupportSettings from './Settings/SupportSettings';
 import TwoFactorDialog from './Settings/TwoFactorDialog';
 import { PrivacySettingsDialog } from './Settings/PrivacySettingsDialog';
+import { LoginHistoryDialog } from './Settings/LoginHistoryDialog';
+import { FeedbackDialog } from './Settings/FeedbackDialog';
 
 const Settings = () => {
   const { user, resetPassword, logout } = useAuth();
@@ -84,7 +86,9 @@ const Settings = () => {
     });
   };
 
-  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
+  const [showPrivacyDialog, setShowPrivacyDialog]       = useState(false);
+  const [showLoginHistoryDialog, setShowLoginHistoryDialog] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog]       = useState(false);
 
   const handleFeatureClick = async (feature: string) => {
     if (feature === 'change-password' && user?.email) {
@@ -129,6 +133,18 @@ const Settings = () => {
     }
     if (feature === 'help-center') {
       navigate('/help');
+      return;
+    }
+    if (feature === 'contact-support') {
+      navigate('/contact');
+      return;
+    }
+    if (feature === 'send-feedback') {
+      setShowFeedbackDialog(true);
+      return;
+    }
+    if (feature === 'login-history') {
+      setShowLoginHistoryDialog(true);
       return;
     }
     toast({
@@ -199,6 +215,8 @@ const Settings = () => {
       </div>
       {user && <TwoFactorDialog open={show2FADialog} setOpen={setShow2FADialog} user={user} />}
       <PrivacySettingsDialog open={showPrivacyDialog} onOpenChange={setShowPrivacyDialog} />
+      {user && <LoginHistoryDialog open={showLoginHistoryDialog} onOpenChange={setShowLoginHistoryDialog} user={user} />}
+      {user && <FeedbackDialog open={showFeedbackDialog} onOpenChange={setShowFeedbackDialog} user={user} />}
     </>
   );
 };

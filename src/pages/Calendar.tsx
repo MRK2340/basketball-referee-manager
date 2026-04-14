@@ -139,14 +139,52 @@ export default function Calendar() {
     }
   };
 
-  const handleFeatureClick = (feature) => {
-    let description = "This feature isn't implemented yet—but don't worry! You can request it in your next prompt! 🚀";
+  const handleFeatureClick = (feature: string) => {
     if (feature === 'sync-calendar') {
-      description = "Full calendar sync with services like Google Calendar or Outlook is coming soon.";
+      // Generate .ics file of all upcoming games
+      const upcoming = games.filter(g => g.status === 'scheduled' || g.status === 'assigned');
+      if (upcoming.length === 0) {
+        toast({ title: 'No upcoming games', description: 'You have no scheduled games to export.', variant: 'destructive' });
+        return;
+      }
+      const lines: string[] = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//iWhistle//Basketball Referee Manager//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-CALNAME:iWhistle Game Schedule',
+      ];
+      upcoming.forEach(g => {
+        const dateStr = (g.date || '').replace(/-/g, '');
+        const timeStr = (g.time || '10:00').replace(':', '') + '00';
+        const uid = `game-${g.id}@iwhistle`;
+        const summary = `Game: ${g.homeTeam} vs ${g.awayTeam}`;
+        const desc = `Tournament: ${g.tournamentName}. Division: ${g.division}. Payment: $${g.payment}`;
+        lines.push('BEGIN:VEVENT');
+        lines.push(`UID:${uid}`);
+        lines.push(`DTSTART:${dateStr}T${timeStr}`);
+        lines.push(`DTEND:${dateStr}T${String(Number(timeStr.slice(0, 2)) + 2).padStart(2, '0')}${timeStr.slice(2)}`);
+        lines.push(`SUMMARY:${summary}`);
+        lines.push(`LOCATION:${g.venue || ''}`);
+        lines.push(`DESCRIPTION:${desc}`);
+        lines.push('STATUS:CONFIRMED');
+        lines.push('END:VEVENT');
+      });
+      lines.push('END:VCALENDAR');
+      const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'iWhistle_GameSchedule.ics';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: 'Calendar exported', description: `${upcoming.length} upcoming game${upcoming.length > 1 ? 's' : ''} exported as .ics file.` });
+      return;
     }
     toast({
-      title: "🚧 Feature Coming Soon!",
-      description: description,
+      title: 'Feature not available',
+      description: 'This feature is coming in a future update.',
     });
   };
 

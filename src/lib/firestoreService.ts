@@ -1296,3 +1296,93 @@ export const loadBracket = async (tournamentId: string): Promise<SafeResult<Brac
 export const deleteBracket = async (bracketId: string): Promise<SafeResult> => safeHandle(async () => {
   await deleteDoc(doc(db, 'tournament_brackets', bracketId));
 });
+
+// ── Login History ──────────────────────────────────────────────────────────
+
+export interface LoginEvent {
+  id: string;
+  action: string;
+  target: string;
+  details: string;
+  timestamp: string;
+}
+
+export const fetchLoginHistory = async (userId: string): Promise<SafeResult<LoginEvent[]>> => safeHandle(async () => {
+  const snap = await getDocs(query(
+    collection(db, '_audit_log'),
+    where('user_id', '==', userId),
+    where('action', 'in', ['login', 'login_mfa']),
+    orderBy('timestamp', 'desc'),
+    limit(15),
+  ));
+  return snap.docs.map(d => {
+    const data = d.data();
+    return {
+      id: d.id,
+      action: data.action || '',
+      target: data.target || '',
+      details: data.details || '',
+      timestamp: toISOString(data.timestamp),
+    };
+  });
+});
+
+// ── Feedback ───────────────────────────────────────────────────────────────
+
+export const saveFeedback = async (
+  userId: string, category: string, message: string,
+): Promise<SafeResult> => safeHandle(async () => {
+  await addDoc(collection(db, '_feedback'), {
+    user_id: userId,
+    category,
+    message: message.slice(0, 2000),
+    created_at: serverTimestamp(),
+  });
+});
+
+// ── Payment Info ───────────────────────────────────────────────────────────
+
+export interface PaymentInfo {
+  preferredMethod: string;
+  bankName: string;
+  routingLast4: string;
+  accountLast4: string;
+  accountType: string;
+  venmoHandle: string;
+  zellePhone: string;
+  paypalEmail: string;
+  updatedAt: string;
+}
+
+export const fetchPaymentInfo = async (userId: string): Promise<SafeResult<PaymentInfo | null>> => safeHandle(async () => {
+  const snap = await getDoc(doc(db, '_payment_info', userId));
+  if (!snap.exists()) return null;
+  const d = snap.data();
+  return {
+    preferredMethod: d.preferred_method || '',
+    bankName: d.bank_name || '',
+    routingLast4: d.routing_last4 || '',
+    accountLast4: d.account_last4 || '',
+    accountType: d.account_type || 'checking',
+    venmoHandle: d.venmo_handle || '',
+    zellePhone: d.zelle_phone || '',
+    paypalEmail: d.paypal_email || '',
+    updatedAt: toISOString(d.updated_at),
+  };
+});
+
+export const savePaymentInfo = async (
+  userId: string, info: Partial<PaymentInfo>,
+): Promise<SafeResult> => safeHandle(async () => {
+  await setDoc(doc(db, '_payment_info', userId), {
+    preferred_method: info.preferredMethod || '',
+    bank_name: info.bankName || '',
+    routing_last4: info.routingLast4 || '',
+    account_last4: info.accountLast4 || '',
+    account_type: info.accountType || 'checking',
+    venmo_handle: info.venmoHandle || '',
+    zelle_phone: info.zellePhone || '',
+    paypal_email: info.paypalEmail || '',
+    updated_at: serverTimestamp(),
+  }, { merge: true });
+});

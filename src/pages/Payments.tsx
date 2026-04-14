@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,15 +25,32 @@ import {
   Download,
   CreditCard,
   AlertCircle,
-  ChevronDown
+  ChevronDown,
+  FileText,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { ReceiptDialog } from '@/pages/Payments/ReceiptDialog';
+import { DirectDepositDialog } from '@/pages/Payments/DirectDepositDialog';
+import { PaymentSettingsDialog } from '@/pages/Payments/PaymentSettingsDialog';
+import { TaxDocumentsDialog } from '@/pages/Payments/TaxDocumentsDialog';
+import { PayPeriodReportDialog } from '@/pages/Payments/PayPeriodReportDialog';
+import type { MappedPayment } from '@/lib/mappers';
 
 const Payments = () => {
   // Hooks at the top
   const { payments, games, paymentActions } = useData();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
-  const [selectedPaymentIds, setSelectedPaymentIds] = useState(new Set());
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState(new Set<string>());
+
+  // Dialog state
+  const [receiptPayment, setReceiptPayment]     = useState<MappedPayment | null>(null);
+  const [receiptOpen, setReceiptOpen]           = useState(false);
+  const [showDirectDeposit, setShowDirectDeposit]     = useState(false);
+  const [showPaymentSettings, setShowPaymentSettings] = useState(false);
+  const [showTaxDocuments, setShowTaxDocuments]       = useState(false);
+  const [showPayPeriodReport, setShowPayPeriodReport] = useState(false);
 
   const filteredPayments = payments.filter(payment => {
     if (filter === 'all') return true;
@@ -127,7 +146,57 @@ const Payments = () => {
     toast({ title: 'Schedule exported', description: 'schedule.csv has been downloaded.' });
   };
 
-  const handleFeatureClick = (feature) => {
+  const handleFeatureClick = (feature: string, payment?: MappedPayment) => {
+    if (feature === 'view-receipt' && payment) {
+      setReceiptPayment(payment);
+      setReceiptOpen(true);
+      return;
+    }
+    if (feature === 'download-receipt' && payment) {
+      // Generate quick receipt PDF
+      const game = games.find(g => g.id === payment.gameId);
+      const gameLabel = game ? `${game.homeTeam} vs ${game.awayTeam}` : 'N/A';
+      const lines = [
+        '============================================================',
+        '                    iWhistle RECEIPT                        ',
+        '          Leadership Under Pressure                         ',
+        '============================================================',
+        `Receipt ID:  ${payment.id.slice(0, 12).toUpperCase()}`,
+        `Date:        ${payment.date || '—'}`,
+        `Game:        ${gameLabel}`,
+        `Tournament:  ${game?.tournamentName || 'N/A'}`,
+        `Amount:      $${payment.amount}`,
+        `Method:      ${payment.method || '—'}`,
+        `Status:      ${payment.status}`,
+        '============================================================',
+        `Generated: ${new Date().toLocaleDateString()}`,
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `iWhistle_Receipt_${payment.id.slice(0, 8)}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: 'Receipt downloaded' });
+      return;
+    }
+    if (feature === 'payment-settings') {
+      setShowPaymentSettings(true);
+      return;
+    }
+    if (feature === 'setup-direct-deposit' || feature === 'update-payment-info') {
+      setShowDirectDeposit(true);
+      return;
+    }
+    if (feature === 'tax-documents') {
+      setShowTaxDocuments(true);
+      return;
+    }
+    if (feature === 'payment-help') {
+      navigate('/help');
+      return;
+    }
     toast({
       title: "Feature Coming Soon",
       description: "This feature isn't implemented yet.",
@@ -180,7 +249,7 @@ const Payments = () => {
             <p className="max-w-2xl text-slate-600">Track earnings, review payment status, and keep your referee income organized.</p>
           </div>
           
-          <div className="flex space-x-3">
+          <div className="flex space-x-3 flex-wrap gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -214,6 +283,17 @@ const Payments = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            {user?.role === 'referee' && (
+              <Button
+                variant="outline"
+                data-testid="payments-pay-period-report-button"
+                className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                onClick={() => setShowPayPeriodReport(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Pay Period Report
+              </Button>
+            )}
             <Button 
               className="basketball-gradient hover:opacity-90 text-white"
               data-testid="payments-settings-button"
@@ -410,7 +490,7 @@ const Payments = () => {
                               variant="outline"
                               data-testid={`payment-view-receipt-${payment.id}`}
                               className="border-slate-300 text-slate-700 hover:bg-slate-100"
-                              onClick={() => handleFeatureClick('view-receipt')}
+                              onClick={() => handleFeatureClick('view-receipt', payment)}
                             >
                               View Receipt
                             </Button>
@@ -419,7 +499,7 @@ const Payments = () => {
                                 size="sm"
                                 data-testid={`payment-download-receipt-${payment.id}`}
                                 className="basketball-gradient hover:opacity-90 text-white"
-                                onClick={() => handleFeatureClick('download-receipt')}
+                                onClick={() => handleFeatureClick('download-receipt', payment)}
                               >
                                 <Download className="h-4 w-4 mr-1" />
                                 Download
@@ -534,6 +614,34 @@ const Payments = () => {
           </Card>
         </motion.div>
       </div>
+
+      {/* Dialogs */}
+      <ReceiptDialog
+        open={receiptOpen}
+        onOpenChange={setReceiptOpen}
+        payment={receiptPayment}
+        game={receiptPayment ? games.find(g => g.id === receiptPayment.gameId) : undefined}
+      />
+      {user && (
+        <>
+          <DirectDepositDialog open={showDirectDeposit} onOpenChange={setShowDirectDeposit} user={user} />
+          <PaymentSettingsDialog open={showPaymentSettings} onOpenChange={setShowPaymentSettings} user={user} />
+          <TaxDocumentsDialog
+            open={showTaxDocuments}
+            onOpenChange={setShowTaxDocuments}
+            payments={payments}
+            games={games}
+            refereeName={user.name || 'Referee'}
+          />
+          <PayPeriodReportDialog
+            open={showPayPeriodReport}
+            onOpenChange={setShowPayPeriodReport}
+            payments={payments}
+            games={games}
+            refereeName={user.name || 'Referee'}
+          />
+        </>
+      )}
     </>
   );
 };
