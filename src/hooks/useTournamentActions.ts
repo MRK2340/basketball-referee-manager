@@ -4,6 +4,7 @@ import {
   addTournament as addTournamentRecord,
   updateTournamentRecord,
   deleteTournamentRecord,
+  archiveTournamentRecord,
 } from '@/lib/firestoreService';
 
 export const useTournamentActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
@@ -65,5 +66,26 @@ export const useTournamentActions = (user: AppUser | null, fetchData: (isInitial
     }
   };
 
-  return { addTournament, updateTournament, deleteTournament };
+  const archiveTournament = async (tournamentId: string, archived: boolean) => {
+    if (!user || user.role !== 'manager') return;
+    const { error } = await archiveTournamentRecord(user, tournamentId, archived);
+
+    if (error) {
+      toast({
+        title: archived ? "Error archiving tournament" : "Error restoring tournament",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: archived ? "Tournament Archived" : "Tournament Restored",
+        description: archived
+          ? "The tournament has been moved to archives."
+          : "The tournament has been restored to active.",
+      });
+      fetchData(false);
+    }
+  };
+
+  return { addTournament, updateTournament, deleteTournament, archiveTournament };
 };

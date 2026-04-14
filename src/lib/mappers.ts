@@ -94,6 +94,7 @@ export interface MappedTournament {
   id: string; name: string; startDate: string; endDate: string;
   location: string; numberOfCourts: number; managerId: string;
   games: number; refereesNeeded: number;
+  archived: boolean; archivedAt: string | null;
 }
 
 export const mapTournament = (t: Doc, gamesArr: Doc[]): MappedTournament => ({
@@ -103,6 +104,8 @@ export const mapTournament = (t: Doc, gamesArr: Doc[]): MappedTournament => ({
   managerId: t.manager_id,
   games: (gamesArr || []).filter((g: Doc) => g.tournament_id === t.id).length,
   refereesNeeded: 0,
+  archived: t.archived || false,
+  archivedAt: t.archived_at || null,
 });
 
 export interface MappedPayment {

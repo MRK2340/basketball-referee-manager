@@ -983,3 +983,19 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 **Files modified:** `src/pages/Manager/RefereeManagementTab.tsx`, `src/pages/Messages.tsx`, `src/pages/Profile.tsx`, `src/pages/Games.tsx`
 - 98/98 Vitest tests passing
+
+
+### Phase 53 - Tournament Archive Feature (Complete — Apr 2026)
+
+**New feature:** Managers can archive concluded tournaments and restore them later.
+
+- **Firestore:** `archiveTournamentRecord` sets `archived: true/false` + `archived_at` timestamp on tournament documents
+- **Hook:** `archiveTournament(id, archived)` in `useTournamentActions.ts` with success/error toasts
+- **UI:** `TournamentsTab.tsx` rebuilt with Active/Archived sub-tabs + badge counts:
+  - Active tab: Edit, Archive (amber), Delete buttons per row
+  - Archived tab: Restore (green), Delete buttons per row; rows dimmed with "Archived" badge
+  - Archive/Restore confirmation dialog with contextual messaging
+- **Mapper:** `MappedTournament` interface extended with `archived: boolean` and `archivedAt: string | null`
+
+**Files modified:** `src/lib/firestoreService.ts`, `src/hooks/useTournamentActions.ts`, `src/pages/Manager/TournamentsTab.tsx`, `src/pages/Manager/index.tsx`, `src/lib/mappers.ts`
+- 98/98 Vitest tests passing

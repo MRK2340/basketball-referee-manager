@@ -301,6 +301,14 @@ export const deleteTournamentRecord = async (user: ServiceUser, tournamentId: st
   await deleteDoc(doc(db, 'tournaments', tournamentId));
 });
 
+export const archiveTournamentRecord = async (user: ServiceUser, tournamentId: string, archived: boolean) => safeHandle(async () => {
+  if (user?.role !== 'manager') throw new Error('permission-denied');
+  await updateDoc(doc(db, 'tournaments', tournamentId), {
+    archived,
+    archived_at: archived ? new Date().toISOString() : null,
+  });
+});
+
 // ── Games ─────────────────────────────────────────────────────────────────────
 
 export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {

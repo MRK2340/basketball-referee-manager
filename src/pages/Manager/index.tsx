@@ -93,6 +93,7 @@ const Manager = () => {
               addTournament={tournamentActions.addTournament}
               updateTournament={tournamentActions.updateTournament}
               deleteTournament={tournamentActions.deleteTournament}
+              archiveTournament={tournamentActions.archiveTournament}
               hasMoreTournaments={hasMoreTournaments}
               loadMoreTournaments={loadMoreTournaments}
               refreshing={refreshing}
