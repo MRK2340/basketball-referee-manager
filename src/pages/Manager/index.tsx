@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router';
 import { motion } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck, UserCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck, UserCheck, Sparkles } from 'lucide-react';
 import TournamentsTab from './TournamentsTab';
 import GameAssignmentsTab from './GameAssignmentsTab';
 import RefereeManagementTab from './RefereeManagementTab';
@@ -14,10 +15,12 @@ import StandingsTab from './StandingsTab';
 import LeaderboardTab from './LeaderboardTab';
 import AvailabilityCalendarTab from './AvailabilityCalendarTab';
 import RosterTab from './RosterTab';
+import { AIAssistantPanel } from '@/components/AIAssistantPanel';
 
 const Manager = () => {
   const { user } = useAuth();
   const { tournaments, games, referees, gameReports, connections, tournamentActions, assignmentActions, connectionActions } = useData();
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   if (user?.role !== 'manager') {
     return <Navigate to="/" replace />;
@@ -121,6 +124,25 @@ const Manager = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* AI Assistant Floating Button */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', delay: 0.5 }}
+        className="fixed bottom-6 right-6 z-30"
+      >
+        <Button
+          onClick={() => setAiPanelOpen(true)}
+          className="h-14 w-14 rounded-2xl shadow-lg basketball-gradient text-white hover:opacity-90 hover:shadow-xl transition-all"
+          data-testid="ai-assistant-fab"
+        >
+          <Sparkles className="h-6 w-6" />
+        </Button>
+      </motion.div>
+
+      {/* AI Assistant Panel */}
+      <AIAssistantPanel open={aiPanelOpen} onClose={() => setAiPanelOpen(false)} />
     </>
   );
 };
