@@ -88,7 +88,7 @@ describe('addTournament', () => {
       name: '', location: 'Test', startDate: '2026-01-01', endDate: '2026-01-02', numberOfCourts: 1,
     });
     expect(error).toBeDefined();
-    expect(error.message).toContain('required');
+    expect(error.message).toContain('Invalid input');
   });
 
   it('validates date format', async () => {
@@ -132,7 +132,7 @@ describe('addGameRecord', () => {
       home_team: '', away_team: 'B', game_date: '2026-01-01', game_time: '10:00', venue: 'V',
     });
     expect(error).toBeDefined();
-    expect(error.message).toContain('required');
+    expect(error.message).toContain('Invalid input');
   });
 
   it('validates date format', async () => {

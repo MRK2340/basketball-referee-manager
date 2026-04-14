@@ -788,3 +788,35 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 **New files:** `src/lib/validation.ts`, `src/__tests__/integration.test.js`
 
 **Dependency added:** `@radix-ui/react-switch` (for Switch component)
+
+
+### Phase 45 - Server-Side RBAC Enforcement (Complete — Apr 2026)
+
+**Security vulnerability: RBAC was enforced only on the client side** — `user.role !== 'manager'` checks in frontend hooks/service functions could be bypassed via browser console state patching.
+
+**Fix: Hardened 12 Firestore security rules with server-side RBAC using `isManager()`/`isReferee()` + ownership validation + field-level restrictions:**
+
+| Collection | Gap Fixed | Rule Added |
+|---|---|---|
+| `game_assignments` create | No ownership validation, no status constraint | Manager: `manager_id == auth.uid`. Referee: `referee_id == auth.uid && status == 'pending'` |
+| `game_assignments` update | Referee could modify any field | Referee restricted to `status` + `decline_reason` only via `changedFields().hasOnly()` |
+| `tournament_brackets` create | `isAuth()` allowed referees | Changed to `isManager() && manager_id == auth.uid` |
+| `messages` create | No `sender_id` validation | `sender_id == auth.uid && auth.uid in participants` |
+| `game_reports` update | Both roles could update any field | Referee: cannot touch resolution fields. Manager: can only write resolution fields + status |
+| `manager_connections` update | Referee could self-approve | Restricted to `isManager() && manager_id == auth.uid` |
+| `tournaments` create | No ownership check | Added `manager_id == auth.uid` |
+| `games` create | No ownership check | Added `manager_id == auth.uid` |
+| `payments` create | No ownership check | Added `manager_id == auth.uid` |
+| `referee_ratings` create | No ownership check | Added `manager_id == auth.uid` |
+| `referee_availability` create | Relied on `resource == null` | Added `referee_id == auth.uid` |
+| `_audit_log` create | No ownership check | Added `user_id == auth.uid` |
+
+**Additional improvements:**
+- Added `changedFields()` helper function to Firestore rules for field-level update restrictions
+- Normalized all 22 client-side role-check error messages to use `permission-denied` prefix for consistent `sanitizeError()` mapping
+- `saveBracket()` now requires `managerId` parameter (non-optional)
+- Updated test assertions to match sanitized error message format
+- 98/98 Vitest tests passing
+
+**Deploy required:** Paste `/app/firestore.rules` into Firebase Console > Firestore > Rules > Publish
+**Files modified:** `firestore.rules`, `src/lib/firestoreService.ts`, `src/__tests__/firestoreService.test.js`

@@ -19,19 +19,20 @@ service cloud.firestore {
       return isAuth() && getRole() == 'referee';
     }
 
+    // Returns the set of fields that changed between the incoming write and the existing doc
+    function changedFields() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
     // ── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
-      // Authenticated users can read any profile; unauthenticated can read referee profiles (public)
       allow read: if isAuth() || resource.data.role == 'referee';
       allow create: if isAuth() && request.auth.uid == userId;
-      // Prevent role-escalation: users cannot modify their own `role` field
       allow update: if isAuth() && request.auth.uid == userId
         && !('role' in request.resource.data.diff(resource.data).affectedKeys());
     }
 
     // ── Meta (seed guard) ─────────────────────────────────────────────────────
-    // Read: any auth'd user can check the seed guard.
-    // Write: only allowed if the doc does not yet exist (prevents re-seeding).
     match /_meta/{docId} {
       allow read: if isAuth();
       allow write: if isAuth() && resource == null;
@@ -40,25 +41,44 @@ service cloud.firestore {
     // ── Tournaments ───────────────────────────────────────────────────────────
     match /tournaments/{tournamentId} {
       allow read: if isAuth();
-      allow create: if isManager();
+      allow create: if isManager()
+        && request.resource.data.manager_id == request.auth.uid;
       allow update, delete: if isManager() && resource.data.manager_id == request.auth.uid;
     }
 
     // ── Games ─────────────────────────────────────────────────────────────────
     match /games/{gameId} {
       allow read: if isAuth();
-      allow create: if isManager();
+      allow create: if isManager()
+        && request.resource.data.manager_id == request.auth.uid;
       allow update: if isManager() && resource.data.manager_id == request.auth.uid;
       allow delete: if isManager() && resource.data.manager_id == request.auth.uid;
     }
 
     // ── Game Assignments ──────────────────────────────────────────────────────
+    // Managers create with status 'assigned' and their own manager_id.
+    // Referees create with status 'pending' and their own referee_id.
+    // Referees can only update status + decline_reason on their own assignments.
     match /game_assignments/{assignmentId} {
       allow read: if isAuth();
-      allow create: if isAuth() &&
-        (isManager() || isReferee());
-      allow update: if isAuth() &&
-        (isManager() || request.auth.uid == resource.data.referee_id);
+      allow create: if isAuth() && (
+        // Manager assigning a referee — must own the assignment
+        (isManager()
+          && request.resource.data.manager_id == request.auth.uid)
+        ||
+        // Referee requesting assignment — must be self, status must be pending
+        (isReferee()
+          && request.resource.data.referee_id == request.auth.uid
+          && request.resource.data.status == 'pending')
+      );
+      allow update: if isAuth() && (
+        // Managers can update any assignment field
+        isManager()
+        ||
+        // Referees can only update status + decline_reason on their own assignments
+        (request.auth.uid == resource.data.referee_id
+          && changedFields().hasOnly(['status', 'decline_reason']))
+      );
       allow delete: if isManager();
     }
 
@@ -68,6 +88,7 @@ service cloud.firestore {
         (request.auth.uid == resource.data.manager_id ||
          request.auth.uid == resource.data.referee_id);
       allow create: if isManager() &&
+        request.resource.data.manager_id == request.auth.uid &&
         request.resource.data.amount is number &&
         request.resource.data.amount >= 0 &&
         request.resource.data.amount <= 10000;
@@ -75,21 +96,18 @@ service cloud.firestore {
     }
 
     // ── Messages ──────────────────────────────────────────────────────────────
+    // Sender must be the authenticated user and must be in participants list.
     match /messages/{messageId} {
       allow read: if isAuth() &&
         request.auth.uid in resource.data.participants;
-      allow create: if isAuth();
+      allow create: if isAuth()
+        && request.resource.data.sender_id == request.auth.uid
+        && request.auth.uid in request.resource.data.participants;
       allow update: if isAuth() &&
         request.auth.uid in resource.data.participants;
     }
 
     // ── Notifications ─────────────────────────────────────────────────────────
-    // H4 fix: tightened from `isAuth()` (any user could spam anyone)
-    // Rules now enforce:
-    //   • Required fields must be present on every new notification
-    //   • Managers can create any notification type (assignments, payments, etc.)
-    //   • Referees/others can only create 'message' type notifications (replies)
-    //   • Recipients can mark their own notifications as read (update)
     match /notifications/{notifId} {
       allow read: if isAuth() && request.auth.uid == resource.data.recipient_id;
       allow create: if isAuth()
@@ -101,31 +119,40 @@ service cloud.firestore {
     // ── Referee Availability ──────────────────────────────────────────────────
     match /referee_availability/{availId} {
       allow read: if isAuth();
-      allow create, update, delete: if isReferee() &&
-        (resource == null || request.auth.uid == resource.data.referee_id);
+      allow create: if isReferee()
+        && request.resource.data.referee_id == request.auth.uid;
+      allow update, delete: if isReferee() &&
+        request.auth.uid == resource.data.referee_id;
     }
 
     // ── Game Reports ──────────────────────────────────────────────────────────
+    // Referee can update their own report fields (NOT resolution fields).
+    // Manager can ONLY update resolution fields on reports they manage.
     match /game_reports/{reportId} {
       allow read: if isAuth() &&
         (request.auth.uid == resource.data.referee_id ||
          request.auth.uid == resource.data.manager_id);
-      allow create: if isReferee();
-      allow update: if isAuth() &&
-        (request.auth.uid == resource.data.referee_id ||
-         request.auth.uid == resource.data.manager_id);
+      allow create: if isReferee()
+        && request.resource.data.referee_id == request.auth.uid;
+      allow update: if isAuth() && (
+        // Referee: own report, cannot touch resolution fields
+        (request.auth.uid == resource.data.referee_id
+          && !changedFields().hasAny(['resolution_note', 'resolved_by', 'resolved_at']))
+        ||
+        // Manager: can only set resolution fields + status
+        (isManager() && request.auth.uid == resource.data.manager_id
+          && changedFields().hasOnly(['resolution_note', 'resolved_by', 'resolved_at', 'status']))
+      );
     }
 
     // ── Referee Ratings ───────────────────────────────────────────────────────
-    // Public read for individual referee ratings (supports public profile).
-    // Managers see all, referees see own, unauthenticated see by referee_id.
     match /referee_ratings/{ratingId} {
       allow read: if isAuth() || true;
       allow create: if isManager() &&
+        request.resource.data.manager_id == request.auth.uid &&
         request.resource.data.stars is number &&
         request.resource.data.stars >= 1 &&
         request.resource.data.stars <= 5;
-      // Managers can only update ratings they originally created
       allow update: if isManager() && resource.data.manager_id == request.auth.uid &&
         request.resource.data.stars is number &&
         request.resource.data.stars >= 1 &&
@@ -133,14 +160,16 @@ service cloud.firestore {
     }
 
     // ── Manager Connections ───────────────────────────────────────────────────
+    // Only referees can create. Only managers can update (approve/reject).
+    // Either party can delete (withdraw/remove).
     match /manager_connections/{connId} {
       allow read: if isAuth() &&
         (request.auth.uid == resource.data.manager_id ||
          request.auth.uid == resource.data.referee_id);
-      allow create: if isReferee();
-      allow update: if isAuth() &&
-        (request.auth.uid == resource.data.manager_id ||
-         request.auth.uid == resource.data.referee_id);
+      allow create: if isReferee()
+        && request.resource.data.referee_id == request.auth.uid;
+      allow update: if isManager()
+        && request.auth.uid == resource.data.manager_id;
       allow delete: if isAuth() &&
         (request.auth.uid == resource.data.manager_id ||
          request.auth.uid == resource.data.referee_id);
@@ -148,8 +177,12 @@ service cloud.firestore {
 
     // ── Independent Games (referee-private) ───────────────────────────────────
     match /independent_games/{gameId} {
-      allow read, create, update, delete: if isReferee() &&
-        (resource == null || request.auth.uid == resource.data.referee_id);
+      allow read: if isReferee() &&
+        request.auth.uid == resource.data.referee_id;
+      allow create: if isReferee() &&
+        request.resource.data.referee_id == request.auth.uid;
+      allow update, delete: if isReferee() &&
+        request.auth.uid == resource.data.referee_id;
     }
 
     // ── Rate Limits (server-only — no client access) ────────────────────────
@@ -157,9 +190,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ── Audit Log (append-only for authenticated users, read for admins) ────
+    // ── Audit Log (append-only for authenticated users) ─────────────────────
     match /_audit_log/{logId} {
-      allow create: if isAuth();
+      allow create: if isAuth()
+        && request.resource.data.user_id == request.auth.uid;
       allow read, update, delete: if false;
     }
 
@@ -181,10 +215,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ── Tournament Brackets (owner writes, all auth users read for real-time sync) ─
+    // ── Tournament Brackets (manager-only write, all auth read for real-time) ─
     match /tournament_brackets/{bracketId} {
       allow read: if isAuth();
-      allow create: if isAuth();
+      allow create: if isManager()
+        && request.resource.data.manager_id == request.auth.uid;
       allow update, delete: if isAuth() && request.auth.uid == resource.data.manager_id;
     }
   }

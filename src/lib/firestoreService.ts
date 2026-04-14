@@ -236,7 +236,7 @@ export const addTournament = async (user: ServiceUser, tournamentData: Doc) => s
 });
 
 export const updateTournamentRecord = async (user: ServiceUser, tournamentId: string, tournamentData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can update tournaments.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'tournaments', tournamentId), {
     name: tournamentData.name,
     start_date: tournamentData.startDate,
@@ -247,7 +247,7 @@ export const updateTournamentRecord = async (user: ServiceUser, tournamentId: st
 });
 
 export const deleteTournamentRecord = async (user: ServiceUser, tournamentId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can delete tournaments.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   await deleteDoc(doc(db, 'tournaments', tournamentId));
 });
 
@@ -272,7 +272,7 @@ export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHan
 });
 
 export const markGameCompleted = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can complete games.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'games', gameId), { status: 'completed' });
   // Create payment records for active assignments
   const assignmentsSnap = await getDocs(query(collection(db, 'game_assignments'), where('game_id', '==', gameId)));
@@ -296,7 +296,7 @@ export const markGameCompleted = async (user: ServiceUser, gameId: string) => sa
 // ── Assignments ───────────────────────────────────────────────────────────────
 
 export const assignReferee = async (user: ServiceUser, gameId: string, refereeId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can assign referees.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   // Check for existing assignment
   const existing = await getDocs(query(
     collection(db, 'game_assignments'),
@@ -319,7 +319,7 @@ export const assignReferee = async (user: ServiceUser, gameId: string, refereeId
 });
 
 export const unassignReferee = async (user: ServiceUser, assignmentId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can unassign referees.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   await deleteDoc(doc(db, 'game_assignments', assignmentId));
 });
 
@@ -331,7 +331,7 @@ export const updateAssignment = async (user: ServiceUser, assignmentId: string, 
 });
 
 export const assignCourtSchedule = async (user: ServiceUser, assignments: {gameId: string; refereeId: string}[]) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can assign court schedules.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   const batch = writeBatch(db);
   assignments.forEach(({ gameId, refereeId }) => {
     const ref = doc(collection(db, 'game_assignments'));
@@ -393,7 +393,7 @@ export const markMessageRead = async (user: ServiceUser, messageId: string) => s
 // ── Availability ──────────────────────────────────────────────────────────────
 
 export const addAvailabilityRecord = async (user: ServiceUser, startDate: string, endDate: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can set availability.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   await addDoc(collection(db, 'referee_availability'), {
     referee_id: user.id, start_time: startDate, end_time: endDate,
   });
@@ -402,7 +402,7 @@ export const addAvailabilityRecord = async (user: ServiceUser, startDate: string
 // ── Game Reports ──────────────────────────────────────────────────────────────
 
 export const submitGameReportRecord = async (user: ServiceUser, reportData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can submit game reports.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   const existing = await getDocs(query(
     collection(db, 'game_reports'),
     where('game_id', '==', reportData.gameId),
@@ -452,7 +452,7 @@ export const markAllNotificationsReadRecord = async (user: ServiceUser) => safeH
 // ── Payments ──────────────────────────────────────────────────────────────────
 
 export const batchMarkPaymentsPaidRecord = async (user: ServiceUser, paymentIds: string[]) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can process payments.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   const batch = writeBatch(db);
   paymentIds.forEach(id => batch.update(doc(db, 'payments', id), { status: 'paid', payment_date: new Date().toISOString().slice(0, 10) }));
   await batch.commit();
@@ -461,7 +461,7 @@ export const batchMarkPaymentsPaidRecord = async (user: ServiceUser, paymentIds:
 // ── Batch Unassign ────────────────────────────────────────────────────────────
 
 export const batchUnassignRefereesRecord = async (user: ServiceUser, gameIds: string[]) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can batch-unassign.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   // H1 fix: single batch query per chunk instead of one getDocs() per game
   const chunks = chunkArray(gameIds, 30);
   const snaps = await Promise.all(
@@ -477,7 +477,7 @@ export const batchUnassignRefereesRecord = async (user: ServiceUser, gameIds: st
 // ── Referee Ratings ───────────────────────────────────────────────────────────
 
 export const rateRefereeRecord = async (user: ServiceUser, gameId: string, refereeId: string, stars: number, feedback: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can rate referees.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   // Validate star rating bounds
   const s = Number(stars);
   if (!Number.isFinite(s) || s < 1 || s > 5) throw new Error('Rating must be between 1 and 5.');
@@ -505,7 +505,7 @@ export const saveNotificationPreferencesRecord = async (user: ServiceUser, prefs
 // ── Report Resolution ─────────────────────────────────────────────────────────
 
 export const addReportResolutionRecord = async (user: ServiceUser, reportId: string, note: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can resolve reports.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'game_reports', reportId), {
     resolution_note: note, resolved_by: user.id,
     resolved_at: new Date().toISOString(), status: 'resolved',
@@ -515,7 +515,7 @@ export const addReportResolutionRecord = async (user: ServiceUser, reportId: str
 // ── Manager Connections ───────────────────────────────────────────────────────
 
 export const requestManagerConnectionRecord = async (user: ServiceUser, managerId: string, note: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can request connections.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   const existing = await getDocs(query(
     collection(db, 'manager_connections'),
     where('referee_id', '==', user.id),
@@ -529,12 +529,12 @@ export const requestManagerConnectionRecord = async (user: ServiceUser, managerI
 });
 
 export const respondToConnectionRecord = async (user: ServiceUser, connectionId: string, newStatus: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can respond to connections.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'manager_connections', connectionId), { status: newStatus });
 });
 
 export const withdrawConnectionRecord = async (user: ServiceUser, managerId: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can withdraw requests.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   const snap = await getDocs(query(
     collection(db, 'manager_connections'),
     where('referee_id', '==', user.id),
@@ -547,7 +547,7 @@ export const withdrawConnectionRecord = async (user: ServiceUser, managerId: str
 // ── Independent Games ─────────────────────────────────────────────────────────
 
 export const addIndependentGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can log independent games.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   await addDoc(collection(db, 'independent_games'), {
     referee_id: user.id, date: gameData.date, time: gameData.time || '',
     location: gameData.location || '', organization: gameData.organization || '',
@@ -557,7 +557,7 @@ export const addIndependentGameRecord = async (user: ServiceUser, gameData: Doc)
 });
 
 export const updateIndependentGameRecord = async (user: ServiceUser, gameId: string, gameData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can update independent games.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   await updateDoc(doc(db, 'independent_games', gameId), {
     date: gameData.date, time: gameData.time || '', location: gameData.location || '',
     organization: gameData.organization || '', game_type: gameData.game_type || 'other',
@@ -566,7 +566,7 @@ export const updateIndependentGameRecord = async (user: ServiceUser, gameId: str
 });
 
 export const deleteIndependentGameRecord = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can delete independent games.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   await deleteDoc(doc(db, 'independent_games', gameId));
 });
 
@@ -581,7 +581,7 @@ export const batchImportRefereeSchedule = async (
   futureDates: { date: string; time: string }[],
   fileName: string,
 ): Promise<SafeResult<ImportResult>> => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can import schedules.');
+  if (user?.role !== 'referee') throw new Error('permission-denied');
   const errors: string[] = [];
   let gamesAdded = 0;
   let availabilityAdded = 0;
@@ -661,7 +661,7 @@ export const batchImportManagerGames = async (
   games: BulkGameData[],
   fileName: string,
 ): Promise<SafeResult<{ added: number; errors: string[]; importId: string }>> => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can import games.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
   const errors: string[] = [];
   let added = 0;
   const createdIds: string[] = [];
@@ -1030,7 +1030,7 @@ export const generateAutoAssignSuggestions = async (
   user: ServiceUser,
   tournamentId: string,
 ): Promise<SafeResult<AutoAssignSuggestion[]>> => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('Only managers can auto-assign.');
+  if (user?.role !== 'manager') throw new Error('permission-denied');
 
   // Fetch tournament games
   const gamesSnap = await getDocs(query(
@@ -1163,15 +1163,16 @@ export const generateAutoAssignSuggestions = async (
 
 import type { BracketData, BracketRound, BracketFormat } from './bracketUtils';
 
-export const saveBracket = async (bracket: BracketData, managerId?: string): Promise<SafeResult<string>> => safeHandle(async () => {
+export const saveBracket = async (bracket: BracketData, managerId: string): Promise<SafeResult<string>> => safeHandle(async () => {
+  if (!managerId) throw new Error('permission-denied');
   const data: Doc = {
     tournament_id: bracket.tournamentId,
     format: bracket.format,
     teams: bracket.teams,
     rounds: JSON.parse(JSON.stringify(bracket.rounds)),
     updated_at: new Date().toISOString(),
+    manager_id: managerId,
   };
-  if (managerId) data.manager_id = managerId;
   if (bracket.id) {
     await updateDoc(doc(db, 'tournament_brackets', bracket.id), data);
     return bracket.id;
