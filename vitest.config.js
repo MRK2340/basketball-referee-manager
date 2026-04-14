@@ -5,10 +5,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/__tests__/**/*.test.{js,jsx}'],
+    include: ['src/__tests__/**/*.test.{js,jsx,ts,tsx}'],
     coverage: {
       provider: 'v8',
-      include: ['src/lib/mappers.js', 'src/constants.js'],
+      include: [
+        'src/lib/**',
+        'src/hooks/**',
+        'src/contexts/**',
+      ],
       reporter: ['text', 'html'],
     },
   },
