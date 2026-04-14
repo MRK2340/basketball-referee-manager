@@ -16,7 +16,7 @@ import asyncio
 from typing import Optional
 from playwright.async_api import async_playwright, Page, BrowserContext
 
-BASE_URL = "https://league-scheduler-dev.preview.emergentagent.com"
+BASE_URL = "https://aau-league-staging-1.preview.emergentagent.com"
 REFEREE_EMAIL = "referee@demo.com"
 REFEREE_PASS = "Referee123"
 MANAGER_EMAIL = "manager@demo.com"

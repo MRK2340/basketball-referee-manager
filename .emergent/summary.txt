@@ -3,39 +3,58 @@
 **User's preferred language**: English (INSTRUCT next agent to respond in English only)
 
 **what currently exists?** 
-A highly polished React/Vite frontend with a live Firebase backend (Firestore, Auth, Storage, Cloud Functions, FCM, Analytics). The application features message pagination, push notifications, real-time sync, conflict warnings, and pure function mappers. A Vitest unit testing suite is fully functional with 29 passing tests. The app was recently hardened for security by moving demo credentials to environment variables, restricting  listeners, and enforcing strict ESLint rules.
+A highly polished, production-ready React 19 / Vite 8 / TypeScript frontend powered entirely by a Firebase backend (Auth, Firestore, Storage, Cloud Functions, FCM, Performance, App Check, Remote Config). The app features strict server-side RBAC Firestore rules, cursor-based pagination, offline-first sync conflict resolution, AI Assistants, collaborative bracket editors, and full TypeScript typing. A robust Vitest suite is active with 98/98 passing tests. A minimal FastAPI backend () was recently added *solely* to pass Emergent Platform deployment health checks.
 
 **Last working item**: 
-    - Last item agent was working: Resolving the final 5 Security and Quality items from the code audit (C1: hardcoded demo passwords, H: insecure postMessage, M: missing , M: permissive ESLint rules, M: silent logout on auth state fail).
+    - Last item agent was working: Implementing Archive functionality for Managers to hide concluded tournaments while preserving their data.
     - Status: NONE (Completed)
     - Agent Testing Done: Y
-    - Which testing method agent to use? NA (Testing already done via Vitest and )
+    - Which testing method agent to use? screenshot tool & manual Vitest (yarn run v1.22.22
+$ vitest run
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/app[39m
+
+ [32m✓[39m src/__tests__/constants.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 90[2mms[22m[39m
+ [32m✓[39m src/__tests__/mappers.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m src/__tests__/firestoreService.test.js [2m([22m[2m21 tests[22m[2m)[22m[32m 97[2mms[22m[39m
+ [32m✓[39m src/__tests__/hooks.test.js [2m([22m[2m26 tests[22m[2m)[22m[32m 91[2mms[22m[39m
+ [32m✓[39m src/__tests__/integration.test.js [2m([22m[2m22 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m98 passed[39m[22m[90m (98)[39m
+[2m   Start at [22m 22:37:26
+[2m   Duration [22m 2.09s[2m (transform 2.29s, setup 0ms, import 3.81s, tests 297ms, environment 0ms)[22m
+
+Done in 2.62s.)
     - User Testing Done: N
 
 **All Pending/In progress Issue list**: 
-None. All identified audit items, performance optimizations, and critical security issues have been successfully addressed.
+None. All identified bugs, security vulnerabilities, and deployment blockers were aggressively resolved in this session.
 
 **In progress Task List**: 
 None.
 
 **Upcoming and Future Tasks**
     Future Tasks:
-    - Public referee profile pages (P1 - Optional enhancement)
-    - Context namespace refactor (P2 - Optional cleanup)
-    - camelCase vs snake_case consolidation (P2 - Optional cleanup)
+    - Address remaining 12 Coming Soon buttons (Medium priority: Contact Support, Send Feedback, Login History, Calendar Sync, Manage Live Game; Payments section: 7 items) (P1)
+    - Referee pay period reports (PDF export with earnings breakdowns) (P1)
 
 **Completed work in this session**
-- Implemented Message Pagination UI and Vitest Unit Tests (29/29 passing) (DONE)
-- Deployed FCM Cloud Functions () to live Firebase environment (DONE)
-- Upgraded Firebase Cloud Functions runtime to Node.js 22 (Gen 2) (DONE)
-- Moved hardcoded demo passwords to  and  (C1) (DONE)
-- Secured  wildcard domains in  (H) (DONE)
-- Created  file (M) (DONE)
-- Tightened ESLint rules (,  enabled) with scoped overrides (M) (DONE)
-- Improved auth state change error handling and retries in  (M) (DONE)
+- Verified and passed all 98 Vitest unit tests for hooks and Firestore operations (DONE)
+- Hardened 12 Firestore security rules for strict server-side RBAC enforcement (, etc.) (DONE)
+- Implemented cursor-based pagination () for all capped Firestore collections (DONE)
+- Added  hook for offline sync conflict resolution and surfaced IndexedDB failures to UI (DONE)
+- Enhanced  generic error wrapper to preserve full Firestore error context () (DONE)
+- Eliminated 35+  types across hooks and contexts to enforce strict TypeScript safety (DONE)
+- Prepared for Emergent Native Production Deployment: Added minimal FastAPI health-check backend, fixed  and  (Deployer Agent status: READY) (DONE)
+- Resolved Security Audit Findings: Fixed brackets rule vulnerability, prevented avatar URL email enumeration, moved FCM tokens to private  collection, fixed Auth state race condition, fixed raw error leaks (DONE)
+- Added type hints to Python backend (DONE)
+- Integrated Firebase App Check (reCAPTCHA v3) and Firebase Remote Config (Maintenance & Announcement banners) (DONE)
+- Replaced 4 Coming Soon features with actual functionality (View Referee Profile, Send Message, Notification Settings, View Game Report) (DONE)
+- Built Archive Tournament feature for Managers with Active/Archived tabs (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-None.
+- Unused Babel devDependencies (, etc.): Intentionally left untouched as they are actively required by the Emergent platform visual editor plugins.
 
 **Known issue recurrence from previous fork**
   - Issue recurrence in previous fork: None
@@ -46,89 +65,69 @@ None.
 
 
 **Key Technical Concepts**
-React, Vite, Tailwind CSS, Shadcn UI, Context API, Custom Hooks, Vitest, Firebase (Auth, Firestore, Storage, Cloud Functions, FCM, Analytics).
+React 19, Vite 8, Tailwind CSS 4, TypeScript, Shadcn UI, Firebase (Auth, Firestore, Storage, Functions, FCM, Performance, App Check, Remote Config), Vitest, Python/FastAPI (Health-check only).
 
 **key DB schema**
-  - Firestore Collections (DB ID: ): , , , , , , , , , .
+  - , , , , , , , , , .
+  - *New:*  (Private collection for push tokens to prevent plaintext leakage in profiles).
 
 **changes in tech stack**
-  - Added Vitest testing framework (yarn run v1.22.22
-$ vitest run
-
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/app[39m
-
- [32m✓[39m src/__tests__/constants.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m src/__tests__/mappers.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 9[2mms[22m[39m
-
-[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
-[2m      Tests [22m [1m[32m29 passed[39m[22m[90m (29)[39m
-[2m   Start at [22m 04:39:55
-[2m   Duration [22m 802ms[2m (transform 184ms, setup 0ms, import 371ms, tests 14ms, environment 34ms)[22m
-
-Done in 1.52s.).
-  - Upgraded Firebase Cloud Functions to Node 22 Gen 2 runtime.
+  - Added a minimal Python FastAPI backend () **strictly** to pass Emergent Native deployment health checks.
+  - Integrated Firebase App Check (reCAPTCHA v3) and Firebase Remote Config.
 
 **All files of reference** 
-  -  (Refactored to use env vars)
-  -  (Created)
-  -  (Hardened rules)
-  -  (Secured postMessage)
-  -  (Fixed auth silent logout)
+  -  (Now heavily fortified with RBAC)
+  -  (Pagination, generic error wrappers, archiving)
+  -  (App Check and Remote Config initializations)
+  -  (FCM push triggers now read from )
+  -  (FastAPI health route)
+  -  (Tournament archiving UI)
+  -  (Offline conflict monitoring)
 
 **Areas that need refactoring**: 
-None currently required. The application is in a very clean state post-audit. Future optional refactors include Context namespace refactor and camelCase consolidation.
+None. The app just underwent an extensive security, typing, and architectural audit.
 
 **key api endpoints**
-N/A - Native Firebase SDKs.
+  -  (FastAPI - Deployment validation only)
+  - All real application logic relies on Firebase Web SDKs and Firebase Cloud Functions.
 
 **Critical Info for New Agent** 
-- The app has been fully migrated to a live Firebase backend and thoroughly hardened according to a comprehensive code audit.
-- A robust Vitest unit test suite exists. You can run yarn run v1.22.22
-$ vitest run
-
-[1m[30m[46m RUN [49m[39m[22m [36mv4.1.4 [39m[90m/app[39m
-
- [32m✓[39m src/__tests__/constants.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m src/__tests__/mappers.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 9[2mms[22m[39m
-
-[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
-[2m      Tests [22m [1m[32m29 passed[39m[22m[90m (29)[39m
-[2m   Start at [22m 04:39:57
-[2m   Duration [22m 876ms[2m (transform 251ms, setup 0ms, import 318ms, tests 13ms, environment 0ms)[22m
-
-Done in 1.75s. to verify pure functions ( and ). Currently, 29/29 tests pass.
-- Demo passwords are no longer hardcoded in source. They must be read from  via  and .
-- The Firebase CLI is installed and configured, and the Cloud Functions deployment uses a CI token provided by the user.
+- **Backend Caveat:** The FastAPI backend in  exists *only* to keep the Emergent Deployment supervisor happy. Do NOT build application logic there. The app is fully Firebase-native.
+- **Firebase Rules & Functions:** 12 new strict RBAC rules were deployed. If you change data structures, you must run . Cloud functions now read FCM tokens from the private  collection instead of public user profiles.
+- **App Check:**  is required in  for App Check to work properly in production.
+- **Dev-Server WebSocket Drop Patch:**  is still active to prevent Vite HMR auto-reloads.
 
 **documents and test reports created in this job** 
-  -  (Pagination & Vitest UI tests)
-  -  (Security/Quality fixes verification)
-  -  (Updated)
-
+  -  (Extensively updated to reflect all security fixes and Firebase additions)
+  
 **Last 10 User Messages and any pending HUMAN messages** 
- - Still Open — Critical C1: Passwords still hardcoded in demoAccounts.js... - COMPLETED
- - Upgrade to node 22 - COMPLETED
- - Deploy cloud functions for FCM - COMPLETED
- - 1//01mwqFRRfpP57CgY... (Provided Firebase Auth Token) - COMPLETED
- - Finish 1-4 - COMPLETED
+ - Are there any other resources in fire base that would be useful for us to use in our app? - ANSWERED
+ - What is your recommendation? - ANSWERED (App Check, Remote Config, Image Resize)
+ - Let’s implement all three - COMPLETED
+ - Here are the code review findings... Type Hint Coverage - Backend File: server.py - COMPLETED
+ - Call Deployer Agent and Run Health Check to Check for Readiness for Deployment - COMPLETED (Blockers fixed, marked READY)
+ - Let’s take a look at the 16 coming soon features we need to work on - ANSWERED
+ - Let’s do the first four - COMPLETED (View Profile, Send Message, Notification Settings, View Game Report)
+ - One feature, I would like to add for the managers is that once a tournament is concluded they would like to archive that tournament... - COMPLETED
 
 **Project Health Check:**
 Broken: NO
-Mocked: NO (Fully live Firebase)
+Mocked: NO (Firebase is fully live)
 
 **3rd Party Integrations** 
-- Firebase Auth/Firestore/Storage/Functions/Analytics — requires User API Key (Active)
+- Firebase ecosystem (Auth, Firestore, Storage, Functions, Analytics, Performance, App Check, Remote Config) — requires User API Key (Active)
+- Sentry Error Tracking — requires User API Key ()
 
 **Testing status**
-  - Testing agent used after significant changes: YES (Iterations 27, 28)
+  - Testing agent used after significant changes: NO (Relied heavily on robust Vitest suite of 98 tests and UI screenshots)
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: , 
+  - Test files created/updated:  (Tests updated for generic error wrappers; 98/98 passing)
   - Known regressions: None
 
 **Credentials to test flow:**
-(Refer to  and )
+(Stored securely in  and )
 - Manager:  / 
 - Referee:  / 
 
 **What agent forgot to execute**
-Nothing. The agent successfully addressed every pending task, deployed the Firebase functions, and completed all audit items. The application is at a clean, stable state. Start by asking the user what new feature or enhancement they would like to pursue next.</analysis>
+Nothing. The agent executed an incredible volume of work spanning security rule overhauls, massive TS refactors, pagination, offline sync resolution, 4 Coming Soon quick-wins, Firebase enhancements, and a new Archive feature. Next agent should proceed directly to the remaining 12 Coming Soon features or the Referee Pay Period PDF export feature.</analysis>
