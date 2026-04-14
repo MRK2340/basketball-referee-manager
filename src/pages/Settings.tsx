@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
@@ -11,11 +12,13 @@ import PreferencesSettings from './Settings/PreferencesSettings';
 import AccountSecuritySettings from './Settings/AccountSecuritySettings';
 import SupportSettings from './Settings/SupportSettings';
 import TwoFactorDialog from './Settings/TwoFactorDialog';
+import { PrivacySettingsDialog } from './Settings/PrivacySettingsDialog';
 
 const Settings = () => {
   const { user, resetPassword, logout } = useAuth();
   const { notificationPreferences, settingsActions } = useData();
   const { pushEnabled, permissionStatus, enablePushNotifications, disablePushNotifications } = useFCM(user);
+  const navigate = useNavigate();
 
   const [notifications, setNotifications] = useState(() => ({
     gameAssignments: true,
@@ -81,6 +84,8 @@ const Settings = () => {
     });
   };
 
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
+
   const handleFeatureClick = async (feature: string) => {
     if (feature === 'change-password' && user?.email) {
       resetPassword(user.email);
@@ -116,6 +121,14 @@ const Settings = () => {
     }
     if (feature === 'two-factor-auth' && user) {
       setShow2FADialog(true);
+      return;
+    }
+    if (feature === 'privacy-settings') {
+      setShowPrivacyDialog(true);
+      return;
+    }
+    if (feature === 'help-center') {
+      navigate('/help');
       return;
     }
     toast({
@@ -185,6 +198,7 @@ const Settings = () => {
         </motion.div>
       </div>
       {user && <TwoFactorDialog open={show2FADialog} setOpen={setShow2FADialog} user={user} />}
+      <PrivacySettingsDialog open={showPrivacyDialog} onOpenChange={setShowPrivacyDialog} />
     </>
   );
 };

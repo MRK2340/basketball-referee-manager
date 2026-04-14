@@ -742,3 +742,26 @@ The iWhistle application is now feature-complete with all planned P0, P1, and P2
 - `firestore.rules` — `tournament_brackets` collection rules (deployed)
 
 - Testing: 100% pass — iteration_43.json (both features verified)
+
+
+### Phase 43 - Privacy Settings + Help Center (Complete — Apr 2026)
+
+**Privacy Settings:**
+- Dialog at Settings > Account & Security > Privacy Settings
+- 4 toggles: Public Profile, Show Email, Show Rating, Show Availability
+- Saves to Firestore `users/{uid}` as `privacy_*` fields
+- Defaults: profile public=true, email=false, rating=true, availability=true
+
+**Help Center:**
+- Dedicated page at `/help` route (protected, requires login)
+- 7 FAQ sections: Getting Started, Schedule & Games, Tournaments & Brackets, Payments & Earnings, AI Assistant, Account & Security, Notifications
+- Collapsible Q&A items with smooth animation
+- "Contact Support" link to /contact page
+- Linked from Settings > Support > Help Center button
+
+**Remaining "Coming Soon" buttons (future backlog):**
+Login History, Contact Support, Send Feedback, all Payment page buttons (Settings/Direct Deposit/Tax Docs/Receipts), Profile Notification Settings, Calendar Sync, Games Manage Live/View Report, Manager Referee Management View Profile/Send Message
+
+**New files:** `src/pages/Settings/PrivacySettingsDialog.tsx`, `src/pages/HelpCenter.tsx`
+**Modified:** `src/pages/Settings.tsx`, `src/App.tsx`
+**Dependency added:** `@radix-ui/react-switch` (for Switch component)

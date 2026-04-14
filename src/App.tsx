@@ -33,6 +33,7 @@ const ContactPage        = lazy(() => import('@/pages/ContactPage'));
 const NotFound           = lazy(() => import('@/pages/NotFound'));
 const FindManagersPage   = lazy(() => import('@/pages/FindManagers'));
 const RefereePublicProfile = lazy(() => import('@/pages/RefereePublicProfile'));
+const HelpCenter         = lazy(() => import('@/pages/HelpCenter'));
 
 function App() {
   return (
@@ -100,6 +101,11 @@ function App() {
                 <Route path="/settings" element={
                   <ProtectedRoute>
                     <Layout><Settings /></Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/help" element={
+                  <ProtectedRoute>
+                    <Layout><HelpCenter /></Layout>
                   </ProtectedRoute>
                 } />
                 <Route path="/analytics" element={
