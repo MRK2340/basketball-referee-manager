@@ -34,7 +34,7 @@ const BottomNavigation = () => {
               key={item.path}
               to={item.path}
               data-testid={`bottom-nav-${item.label.toLowerCase()}`}
-              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[60px] relative ${
+              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-all duration-200 min-w-[52px] sm:min-w-[60px] relative ${
                 isActive
                   ? isDark ? 'text-amber-300' : 'text-[#0080C8]'
                   : isDark ? 'text-blue-200/60' : 'text-slate-500'

@@ -337,7 +337,7 @@ export const AIAssistantPanel = ({ open, onClose }: Props) => {
             </ScrollArea>
 
             {/* Input */}
-            <div className="px-4 py-3 border-t border-slate-200 bg-white">
+            <div className="px-4 py-3 border-t border-slate-200 bg-white mobile-safe">
               <div className="flex items-center gap-2">
                 {speechSupported && (
                   <Button

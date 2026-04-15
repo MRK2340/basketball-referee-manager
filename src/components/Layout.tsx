@@ -38,7 +38,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 h-full w-80 z-50 lg:hidden"
+              className="fixed left-0 top-0 h-full w-80 max-w-[90vw] z-50 lg:hidden"
             >
               <Sidebar onClose={() => setSidebarOpen(false)} />
             </motion.div>
