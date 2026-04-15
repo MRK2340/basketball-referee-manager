@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "cd .. && yarn start",
-    "build": "cd .. && yarn build && ln -sfn /app/dist /app/frontend/dist",
+    "build": "cd .. && yarn build",
     "postinstall": "cd .. && yarn install"
   }
 }
