@@ -23,7 +23,7 @@ npm-debug.log*
 .eslintcache
 .vite/
 
-# Credential and secret files (not .env — needed for deployment)
+# Credential and secret files (not .env — it holds PUBLIC Firebase config needed for build)
 credentials.json
 *.pem
 *.key
@@ -31,30 +31,3 @@ credentials.json
 
 # Emergent platform internal files
 memory/test_credentials.md
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
