@@ -1,8 +1,8 @@
 // Firebase Cloud Messaging Service Worker
 // Handles background push notifications when the app is not in focus
 
-importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/12.11.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.12.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.12.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: 'AIzaSyAjk1notFHFwsxEE34IuUWp20FujMe_6zk',

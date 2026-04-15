@@ -17,6 +17,10 @@ const { getMessaging } = require('firebase-admin/messaging');
 initializeApp();
 
 const db = getFirestore('refereemanager');
+
+// Hosting origin — used for FCM notification icons.
+// GCLOUD_PROJECT is set automatically by the Firebase Functions runtime.
+const HOSTING_ORIGIN = `https://${process.env.GCLOUD_PROJECT || 'iwhistle-6f5d1'}.web.app`;
 const fcm = getMessaging();
 
 // ── Rate Limiting ───────────────────────────────────────────────────────────
@@ -135,7 +139,7 @@ exports.sendPushNotification = onDocumentCreated(
         },
         webpush: {
           notification: {
-            icon: 'https://iwhistle-6f5d1.web.app/favicon.ico',
+            icon: `${HOSTING_ORIGIN}/favicon.ico`,
             requireInteraction: false,
           },
           fcmOptions: {
@@ -276,8 +280,8 @@ exports.processGameReminders = onSchedule(
             },
             webpush: {
               notification: {
-                icon: 'https://iwhistle-6f5d1.web.app/favicon.ico',
-                badge: 'https://iwhistle-6f5d1.web.app/favicon.ico',
+                icon: `${HOSTING_ORIGIN}/favicon.ico`,
+                badge: `${HOSTING_ORIGIN}/favicon.ico`,
                 requireInteraction: true,
               },
               fcmOptions: { link: '/schedule' },

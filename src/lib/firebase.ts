@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 import { getPerformance, type FirebasePerformance } from 'firebase/performance';
@@ -37,7 +37,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app, 'refereemanager');
+
+// ── Firestore with offline persistence ─────────────────────────────────────
+// Uses the modern localCache API (replaces deprecated enableIndexedDbPersistence).
+// persistentMultipleTabManager allows all browser tabs to share the offline cache.
+export type PersistenceStatus = 'enabled' | 'unsupported' | 'error';
+let _persistenceStatus: PersistenceStatus = 'enabled';
+let _db: ReturnType<typeof initializeFirestore>;
+try {
+  _db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  }, 'refereemanager');
+} catch {
+  _persistenceStatus = 'unsupported';
+  console.warn('[iWhistle] Firestore persistence unavailable — falling back to memory cache. Offline mode disabled.');
+  _db = initializeFirestore(app, { localCache: memoryLocalCache() }, 'refereemanager');
+}
+export const db = _db;
+
+/** Returns the Firestore offline persistence status. */
+export const getPersistenceStatus = async (): Promise<PersistenceStatus> => _persistenceStatus;
+
 export const storage = getStorage(app);
 export const analytics = getAnalytics(app);
 
@@ -97,31 +117,6 @@ export const loadRemoteConfig = async (): Promise<Record<string, string | boolea
   } catch {
     return {};
   }
-};
-
-// Offline-first: enable IndexedDB persistence for Firestore
-// Export status so the UI can inform the user if offline mode is unavailable
-export type PersistenceStatus = 'enabled' | 'multi-tab' | 'unsupported' | 'error';
-let _persistenceStatus: PersistenceStatus = 'enabled';
-const _persistenceReady = enableIndexedDbPersistence(db)
-  .then(() => { _persistenceStatus = 'enabled'; })
-  .catch((err) => {
-    if (err.code === 'failed-precondition') {
-      _persistenceStatus = 'multi-tab';
-      console.warn('[iWhistle] Firestore persistence unavailable: multiple tabs open. Data will still work but won\'t be cached offline in this tab.');
-    } else if (err.code === 'unimplemented') {
-      _persistenceStatus = 'unsupported';
-      console.warn('[iWhistle] Firestore persistence unavailable: browser does not support IndexedDB. Offline mode disabled.');
-    } else {
-      _persistenceStatus = 'error';
-      console.warn('[iWhistle] Firestore persistence failed:', err.code || err.message);
-    }
-  });
-
-/** Returns the IndexedDB persistence status after initialization completes. */
-export const getPersistenceStatus = async (): Promise<PersistenceStatus> => {
-  await _persistenceReady;
-  return _persistenceStatus;
 };
 
 // Firebase Performance Monitoring — auto-collects page load, network requests, route changes
