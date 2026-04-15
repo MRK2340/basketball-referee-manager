@@ -2,7 +2,8 @@
   "name": "frontend-launcher",
   "version": "1.0.0",
   "scripts": {
-    "start": "cd .. && yarn start",
+    "start": "cd .. && if [ -d dist ]; then npx serve dist -s -l tcp://0.0.0.0:3000; else yarn start; fi",
+    "build": "cd .. && yarn build && ln -sfn /app/dist /app/frontend/dist",
     "postinstall": "cd .. && yarn install"
   }
 }
