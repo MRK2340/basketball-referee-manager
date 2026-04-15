@@ -8,7 +8,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "start": "npx serve dist -s -l ${PORT:-3000}",
+    "start": "node serve.js",
     "build": "node tools/generate-llms.js || true && vite build",
     "preview": "vite preview --host :: --port 3000",
     "lint": "eslint . --quiet"
