@@ -146,7 +146,7 @@ const Payments = () => {
     toast({ title: 'Schedule exported', description: 'schedule.csv has been downloaded.' });
   };
 
-  const handleFeatureClick = (feature: string, payment?: MappedPayment) => {
+  const handleFeatureClick = async (feature: string, payment?: MappedPayment) => {
     if (feature === 'view-receipt' && payment) {
       setReceiptPayment(payment);
       setReceiptOpen(true);
