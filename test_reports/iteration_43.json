@@ -63,7 +63,7 @@
   "should_main_agent_self_test": false,
   "context_for_next_testing_agent": "Both features are fully working. Referee AI Assistant shows FAB on referee dashboard, opens panel with all controls (input, send, mic, new chat), and Gemini 2.5 Pro responds with function calling. Bracket Editor renders correctly with tournament selector, format badge, team count, Live Sync badge, bracket tree with Semi Finals and Finals, all 4 teams displayed, and Set Score functionality working. The BracketEditor rendering issue from iteration 41/42 has been fixed.",
   "environment_notes": {
-    "preview_url_status": "Preview URL (https://aau-league-staging-1.preview.emergentagent.com) was unavailable due to inactivity. Tests were run on localhost:3000 which is working correctly.",
+    "preview_url_status": "Preview URL (https://aau-tournament-stage.preview.emergentagent.com) was unavailable due to inactivity. Tests were run on localhost:3000 which is working correctly.",
     "console_warnings": "Firebase analytics and performance fetch errors (expected in localhost environment without external network access)"
   }
 }
