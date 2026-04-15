@@ -31,21 +31,6 @@ credentials.json
 
 # Emergent platform internal files
 memory/test_credentials.md
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
+
+# Prevent npm lockfile conflicts (project uses yarn)
+package-lock.json
