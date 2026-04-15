@@ -23,7 +23,11 @@ npm-debug.log*
 .eslintcache
 .vite/
 
-# Credential and secret files (not .env — needed for deployment)
+# Environment and credential files
+.env
+.env.*
+!.env.example
+*.env
 credentials.json
 *.pem
 *.key
@@ -31,30 +35,3 @@ credentials.json
 
 # Emergent platform internal files
 memory/test_credentials.md
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials

@@ -5,7 +5,8 @@
     "database": "refereemanager"
   },
   "functions": {
-    "source": "functions"
+    "source": "functions",
+    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" install"]
   },
   "storage": {
     "rules": "storage.rules"
@@ -13,8 +14,15 @@
   "hosting": {
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "predeploy": ["yarn build"],
     "rewrites": [{ "source": "**", "destination": "/index.html" }],
     "headers": [
+      {
+        "source": "/index.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
       {
         "source": "**/*.@(js|css|map)",
         "headers": [
@@ -32,7 +40,7 @@
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleapis.com https://*.googleusercontent.com https://firebasestorage.googleapis.com https://api.dicebear.com https://api.qrserver.com https://horizons-cdn.hostinger.com https://images.unsplash.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebaselogging.googleapis.com wss://*.firebaseio.com https://*.sentry.io; frame-src https://apis.google.com https://*.firebaseapp.com https://www.google.com; worker-src 'self'"
+            "value": "default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com https://www.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleapis.com https://*.googleusercontent.com https://firebasestorage.googleapis.com https://api.dicebear.com https://api.qrserver.com https://horizons-cdn.hostinger.com https://images.unsplash.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebaselogging.googleapis.com wss://*.firebaseio.com https://*.sentry.io; frame-src https://apis.google.com https://*.firebaseapp.com https://www.google.com; worker-src 'self' blob:"
           },
           {
             "key": "X-Content-Type-Options",
@@ -45,6 +53,10 @@
           {
             "key": "Referrer-Policy",
             "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "camera=(), microphone=(), geolocation=(self), payment=()"
           }
         ]
       }
