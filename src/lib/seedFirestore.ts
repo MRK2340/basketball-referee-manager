@@ -260,7 +260,7 @@ export const checkAndSeedDemoData = async () => {
 
     await seedDemoData(managerId, refereeId);
     await setDoc(doc(db, '_meta', 'demo_seed'), { seeded: true, seeded_at: new Date().toISOString() });
-    console.log('[iWhistle] Demo data seeded successfully');
+    logger.info('[iWhistle] Demo data seeded successfully');
   } catch (err) {
     logger.error('[iWhistle] Seed error:', err);
   }

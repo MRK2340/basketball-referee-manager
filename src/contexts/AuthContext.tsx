@@ -11,6 +11,7 @@ import {
   sendEmailVerification,
   getMultiFactorResolver,
   TotpMultiFactorGenerator,
+  type MultiFactorError,
   type MultiFactorResolver,
 } from 'firebase/auth';
 import {
@@ -234,7 +235,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Handle MFA challenge
       const err = error as { code?: string };
       if (err.code === 'auth/multi-factor-auth-required') {
-        const resolver = getMultiFactorResolver(auth, error as never);
+        const resolver = getMultiFactorResolver(auth, error as MultiFactorError);
         setMfaResolver(resolver);
         throw new Error('MFA_REQUIRED');
       }
@@ -283,8 +284,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       await setDoc(doc(db, 'users', fbUser.uid), profile);
 
-      // Send email verification
-      try { await sendEmailVerification(fbUser); } catch { /* best-effort */ }
+      // Send email verification — best-effort, does not block registration
+      try { await sendEmailVerification(fbUser); } catch (e) { logger.warn('[Auth] Email verification send failed:', e); }
 
       Analytics.signUp(userData.role || 'referee');
       toast({ title: 'Account created!', description: 'A verification email has been sent. You can now sign in.' });

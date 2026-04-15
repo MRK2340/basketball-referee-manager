@@ -33,19 +33,24 @@ export const useRemoteConfig = (): RemoteFlags => {
   const [flags, setFlags] = useState<RemoteFlags>({ ...DEFAULTS, loading: true });
 
   useEffect(() => {
-    loadRemoteConfig().then((values) => {
-      setFlags({
-        maintenanceMode: typeof values.maintenanceMode === 'boolean' ? values.maintenanceMode : DEFAULTS.maintenanceMode,
-        maintenanceMessage: (values.maintenanceMessage as string) || DEFAULTS.maintenanceMessage,
-        featureAiAssistant: typeof values.featureAiAssistant === 'boolean' ? values.featureAiAssistant : DEFAULTS.featureAiAssistant,
-        featureBracketEditor: typeof values.featureBracketEditor === 'boolean' ? values.featureBracketEditor : DEFAULTS.featureBracketEditor,
-        featureScheduleImport: typeof values.featureScheduleImport === 'boolean' ? values.featureScheduleImport : DEFAULTS.featureScheduleImport,
-        featurePushNotifications: typeof values.featurePushNotifications === 'boolean' ? values.featurePushNotifications : DEFAULTS.featurePushNotifications,
-        announcementBanner: (values.announcementBanner as string) || DEFAULTS.announcementBanner,
-        announcementBannerColor: (values.announcementBannerColor as string) || DEFAULTS.announcementBannerColor,
-        loading: false,
+    loadRemoteConfig()
+      .then((values) => {
+        setFlags({
+          maintenanceMode: typeof values.maintenanceMode === 'boolean' ? values.maintenanceMode : DEFAULTS.maintenanceMode,
+          maintenanceMessage: (values.maintenanceMessage as string) || DEFAULTS.maintenanceMessage,
+          featureAiAssistant: typeof values.featureAiAssistant === 'boolean' ? values.featureAiAssistant : DEFAULTS.featureAiAssistant,
+          featureBracketEditor: typeof values.featureBracketEditor === 'boolean' ? values.featureBracketEditor : DEFAULTS.featureBracketEditor,
+          featureScheduleImport: typeof values.featureScheduleImport === 'boolean' ? values.featureScheduleImport : DEFAULTS.featureScheduleImport,
+          featurePushNotifications: typeof values.featurePushNotifications === 'boolean' ? values.featurePushNotifications : DEFAULTS.featurePushNotifications,
+          announcementBanner: (values.announcementBanner as string) || DEFAULTS.announcementBanner,
+          announcementBannerColor: (values.announcementBannerColor as string) || DEFAULTS.announcementBannerColor,
+          loading: false,
+        });
+      })
+      .catch(() => {
+        // Remote Config is optional — fall back to defaults and unblock the app
+        setFlags((prev) => ({ ...prev, loading: false }));
       });
-    });
   }, []);
 
   return flags;

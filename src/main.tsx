@@ -17,5 +17,5 @@ if (rootElement) {
     <App />
   );
 } else {
-  console.error("Fatal Error: 'root' element not found in index.html. Application cannot mount.");
+  logger.error("[main] Fatal: 'root' element not found in index.html — application cannot mount.");
 }
