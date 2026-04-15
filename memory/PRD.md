@@ -1065,3 +1065,21 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 
 **Files modified:** `firestore.rules` (deployed), `src/pages/Payments.tsx`, `src/pages/Games/LiveGamePanel.tsx`
 - 98/98 Vitest tests passing
+
+
+
+### Phase 56 - Deployment Fix + Bug Fix (Complete — Feb 2026)
+
+**Deployment Fix (ROOT CAUSE: Missing `build` script in `/app/frontend/package.json`):**
+- Added `"build": "cd .. && yarn build && ln -sfn /app/dist /app/frontend/dist"` to `/app/frontend/package.json`
+- The Emergent deployment process runs `yarn build` in `/app/frontend/` — this command was completely missing, causing the deployment build step to fail
+- Build creates `dist/` at `/app/dist/` (root Vite project), then symlinks it to `/app/frontend/dist/` (where deployment expects it)
+- Removed stale `package-lock.json` (project uses yarn exclusively)
+- Added `serve` production dependency as fallback static file server
+- Deployment agent: PASS ✅
+
+**Bug Fix: Contact Support route (from iteration_44):**
+- `/contact` route was already fixed by previous agent (PublicRoute wrapper removed)
+- Verified: line 104 of App.tsx shows `<Route path="/contact" element={<ContactPage />} />` (no PublicRoute)
+
+**Testing:** 98/98 Vitest tests pass, build succeeds from `/app/frontend/`, all services running
