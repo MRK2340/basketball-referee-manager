@@ -1083,3 +1083,22 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 - Verified: line 104 of App.tsx shows `<Route path="/contact" element={<ContactPage />} />` (no PublicRoute)
 
 **Testing:** 98/98 Vitest tests pass, build succeeds from `/app/frontend/`, all services running
+
+
+### Phase 57 - Firebase Hosting Deployment Prep (Complete — Feb 2026)
+
+**Switched deployment target from Emergent to Firebase Hosting (user decision).**
+
+- Updated `firebase.json` hosting config:
+  - SPA rewrite: `** → /index.html`
+  - Cache headers: JS/CSS immutable (1yr), images (1wk)
+  - Updated CSP to include all external domains (DiceBear, QR Server, Hostinger CDN, Unsplash, Sentry, reCAPTCHA, Firebase Remote Config/Logging)
+  - Security headers: X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+- `.firebaserc` already configured for project `iwhistle-6f5d1`
+- Production build verified: `yarn build` → `dist/` (5.4MB, 120 assets)
+- Created `DEPLOY.md` with full deployment instructions
+- 98/98 Vitest tests passing
+
+**Deploy command:** `yarn build && firebase deploy`
+**Live URL:** https://iwhistle-6f5d1.web.app
+
