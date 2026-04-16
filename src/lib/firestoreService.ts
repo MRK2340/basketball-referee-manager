@@ -771,6 +771,92 @@ export const batchImportManagerGames = async (
   return { added, errors, importId };
 });
 
+// ── Batch Import: League Schedule ─────────────────────────────────────────────
+
+export interface LeagueImportGame {
+  date: string;
+  time: string;
+  homeTeam: string;
+  awayTeam: string;
+  venue: string;
+  division: string;
+  payment: number;
+  refereeIds: string[];    // IDs of referees to assign
+}
+
+export const batchImportLeagueSchedule = async (
+  user: ServiceUser,
+  tournamentId: string,
+  games: LeagueImportGame[],
+  fileName: string,
+): Promise<SafeResult<{ gamesAdded: number; assignmentsAdded: number; importId: string }>> => safeHandle(async () => {
+  if (user?.role !== 'manager') throw new Error('permission-denied');
+  let gamesAdded = 0;
+  let assignmentsAdded = 0;
+  const createdGameIds: string[] = [];
+
+  const gameChunks = chunkArray(games, 200);
+  for (const chunk of gameChunks) {
+    const batch = writeBatch(db);
+    for (const g of chunk) {
+      const gameRef = doc(collection(db, 'games'));
+      batch.set(gameRef, {
+        tournament_id: tournamentId,
+        manager_id: user.id,
+        home_team: g.homeTeam || 'TBD',
+        away_team: g.awayTeam || 'TBD',
+        game_date: g.date,
+        game_time: g.time ? (g.time.length === 5 ? `${g.time}:00` : g.time) : '',
+        venue: g.venue || '',
+        division: g.division || '',
+        level: '',
+        payment_amount: Number(g.payment) || 0,
+        required_certifications: [],
+        status: 'scheduled',
+        home_score: null,
+        away_score: null,
+      });
+      createdGameIds.push(gameRef.id);
+      gamesAdded++;
+
+      // Create assignments for each referee
+      for (const refId of g.refereeIds) {
+        if (!refId) continue;
+        const assignRef = doc(collection(db, 'game_assignments'));
+        batch.set(assignRef, {
+          game_id: gameRef.id,
+          referee_id: refId,
+          manager_id: user.id,
+          status: 'assigned',
+          decline_reason: null,
+        });
+        assignmentsAdded++;
+      }
+    }
+    await batch.commit();
+  }
+
+  // Save import history
+  let importId = '';
+  try {
+    const historyRef = await addDoc(collection(db, '_import_history'), {
+      user_id: user.id,
+      import_type: 'league_schedule',
+      tournament_id: tournamentId,
+      file_name: fileName,
+      games_added: gamesAdded,
+      assignments_added: assignmentsAdded,
+      game_ids: createdGameIds,
+      created_at: new Date().toISOString(),
+    });
+    importId = historyRef.id;
+  } catch {
+    // Non-critical
+  }
+
+  return { gamesAdded, assignmentsAdded, importId };
+});
+
 // ── Duplicate Detection ──────────────────────────────────────────────────────
 
 /** Check for existing independent games matching date + organization. */

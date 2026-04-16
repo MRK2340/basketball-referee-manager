@@ -1,0 +1,73 @@
+{
+  "summary": "Iteration 46: Tested League Schedule Import feature for iWhistle basketball referee manager app. All 9 features PASS. The multi-step wizard (Upload > League Setup > Map Referees > Review Games) works correctly. File upload parses Excel correctly (27 games across 10 nights, 6 referee names detected). Import creates tournament + games in Firestore successfully.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "feature_verification": {
+    "import_league_schedule_button_visible": {
+      "status": "PASS",
+      "detail": "Green 'Import League Schedule' button visible on Manager > Tournaments tab with CalendarRange icon"
+    },
+    "league_import_dialog_opens": {
+      "status": "PASS",
+      "detail": "Dialog opens with title 'Import League Schedule' and description about creating season with games and referee assignments"
+    },
+    "step_indicator_shows_4_steps": {
+      "status": "PASS",
+      "detail": "Step indicator shows: Upload > League Setup > Map Referees > Review Games"
+    },
+    "file_upload_accepts_xlsx": {
+      "status": "PASS",
+      "detail": "Dropzone accepts .xlsx/.xls files, shows format instructions. File input has accept='.xlsx,.xls'"
+    },
+    "league_setup_step_fields": {
+      "status": "PASS",
+      "detail": "Shows Name (auto-filled from file), Location*, Courts, Division, Pay Per Game fields. Badge shows '27 games across 10 nights'"
+    },
+    "map_referees_step": {
+      "status": "PASS",
+      "detail": "Shows 6 detected referee names (Brett, James, Osei, Shaheen, Shawn, Wayne) with dropdown selectors to map to system referees"
+    },
+    "review_games_step": {
+      "status": "PASS",
+      "detail": "Shows 27 game rows with date grouping (Wednesday dates), time slots (19:00, 20:00, 21:00), and Home/Away team input fields"
+    },
+    "import_creates_tournament_and_games": {
+      "status": "PASS",
+      "detail": "Import button creates league tournament + 27 games in Firestore. New tournament 'ADULT BASKETBALL Spring 2026(Wednesday Nights)' appears in list"
+    },
+    "done_step_shows_success": {
+      "status": "PASS",
+      "detail": "Done step shows green checkmark, 'League Import Complete', '27 games created', '0 referee assignments' (0 because no refs were mapped), and Close button"
+    }
+  },
+  "test_report_links": ["/app/test_reports/iteration_46.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "GOOD: Multi-step wizard with proper state management and step transitions",
+    "GOOD: Excel parser correctly handles grouped row format with dates, times, and referee names",
+    "GOOD: Auto-matching of referee names by partial name match is a nice UX feature",
+    "GOOD: All interactive elements have proper data-testid attributes for testing",
+    "GOOD: Proper error handling with toast notifications for import failures",
+    "MINOR: Console shows Firebase deprecation warning about enableIndexedDbPersistence() - consider updating to FirestoreSettings.cache"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (Firebase backend - frontend-only test)",
+    "frontend": "100% (9/9 features passing)"
+  },
+  "test_credentials": {
+    "manager": "manager@demo.com / manager123",
+    "referee": "referee@demo.com / Referee123"
+  },
+  "seed_data_creation": "Created new tournament 'ADULT BASKETBALL Spring 2026(Wednesday Nights)' with 27 games via import feature",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "League Schedule Import feature fully working. Test file at /tmp/schedule.xlsx contains ADULT BASKETBALL Spring 2026 league data with 8 regular game nights (3 games each at 19:00, 20:00, 21:00) + 2 tournament dates = 27 total games. Parser detects 6 referee names. Import creates tournament and games in Firestore. Previous iteration 45 tested Tournament Payouts feature - all passing."
+}

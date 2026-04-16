@@ -15,9 +15,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, FileSpreadsheet, Loader2, Archive, ArchiveRestore } from 'lucide-react';
+import { Plus, Edit, Trash2, FileSpreadsheet, Loader2, Archive, ArchiveRestore, CalendarRange } from 'lucide-react';
 import TournamentFormDialog from '@/pages/Manager/TournamentFormDialog';
 import { BulkGameImportDialog } from '@/pages/Manager/BulkGameImportDialog';
+import { LeagueImportDialog } from '@/pages/Manager/LeagueImportDialog';
 import { ImportHistoryPanel } from '@/components/ImportHistoryPanel';
 
 const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTournament, archiveTournament, hasMoreTournaments, loadMoreTournaments, refreshing }) => {
@@ -29,6 +30,7 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [archivingTournament, setArchivingTournament] = useState(null);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [leagueImportOpen, setLeagueImportOpen] = useState(false);
 
   const activeTournaments = useMemo(() => tournaments.filter(t => !t.archived), [tournaments]);
   const archivedTournaments = useMemo(() => tournaments.filter(t => t.archived), [tournaments]);
@@ -167,12 +169,15 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
               <CardTitle className="text-slate-900">Tournaments</CardTitle>
               <CardDescription className="text-slate-600">Create and manage your league's tournaments.</CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button className="basketball-gradient hover:opacity-90 text-white shadow-md" data-testid="manager-add-tournament-button" onClick={() => setAddDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" /> Add Tournament
               </Button>
               <Button variant="outline" className="border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white shadow-sm gap-2" data-testid="manager-bulk-import-button" onClick={() => setBulkImportOpen(true)}>
                 <FileSpreadsheet className="h-4 w-4" /> Bulk Import Games
+              </Button>
+              <Button variant="outline" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white shadow-sm gap-2" data-testid="manager-league-import-button" onClick={() => setLeagueImportOpen(true)}>
+                <CalendarRange className="h-4 w-4" /> Import League Schedule
               </Button>
             </div>
           </div>
@@ -205,6 +210,7 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
       )}
 
       <BulkGameImportDialog open={bulkImportOpen} onOpenChange={setBulkImportOpen} />
+      <LeagueImportDialog open={leagueImportOpen} onOpenChange={setLeagueImportOpen} />
       <div className="mt-4">
         <ImportHistoryPanel importType="manager_games" />
       </div>
