@@ -1124,3 +1124,28 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 **Deploy command:** `yarn build && firebase deploy`
 **Live URL:** https://iwhistle-6f5d1.web.app
 
+
+
+### Phase 59 - Batch Tournament Payout PDF (Complete — Feb 2026)
+
+**Manager-only feature: Generate PDF report of all referee payouts for a selected tournament.**
+
+- New "Tournament Payouts" button on Payments page (manager role only, referee role excluded)
+- Dialog with tournament selector dropdown
+- Preview shows: total amount, referee count, paid/pending breakdown, payout + game count badges
+- Empty tournament shows "No payouts found" with disabled Generate button
+- PDF: iWhistle-branded landscape layout with:
+  - Header banner (Deep Blue + Orange accent)
+  - Tournament info (location, dates, courts, game count)
+  - Summary stat cards (payouts, total, paid/pending, referees)
+  - Full payout table (referee, game, date, venue, method, status, amount) with color-coded status
+  - Per-referee summary table (games, paid, pending, total)
+  - Footer with page numbers
+
+**New files:**
+- `src/lib/exportTournamentPayoutReport.ts` — PDF generation
+- `src/pages/Payments/TournamentPayoutDialog.tsx` — Dialog component
+
+**Modified:** `src/pages/Payments.tsx` (added button + dialog for managers)
+- Testing: 6/6 features PASS (iteration_45.json), 98/98 Vitest tests pass
+
