@@ -34,11 +34,12 @@ import { DirectDepositDialog } from '@/pages/Payments/DirectDepositDialog';
 import { PaymentSettingsDialog } from '@/pages/Payments/PaymentSettingsDialog';
 import { TaxDocumentsDialog } from '@/pages/Payments/TaxDocumentsDialog';
 import { PayPeriodReportDialog } from '@/pages/Payments/PayPeriodReportDialog';
+import { TournamentPayoutDialog } from '@/pages/Payments/TournamentPayoutDialog';
 import type { MappedPayment } from '@/lib/mappers';
 
 const Payments = () => {
   // Hooks at the top
-  const { payments, games, paymentActions } = useData();
+  const { payments, games, paymentActions, tournaments, referees } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
@@ -51,6 +52,7 @@ const Payments = () => {
   const [showPaymentSettings, setShowPaymentSettings] = useState(false);
   const [showTaxDocuments, setShowTaxDocuments]       = useState(false);
   const [showPayPeriodReport, setShowPayPeriodReport] = useState(false);
+  const [showTournamentPayout, setShowTournamentPayout] = useState(false);
 
   const filteredPayments = payments.filter(payment => {
     if (filter === 'all') return true;
@@ -359,6 +361,17 @@ const Payments = () => {
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Pay Period Report
+              </Button>
+            )}
+            {user?.role === 'manager' && (
+              <Button
+                variant="outline"
+                data-testid="payments-tournament-payout-button"
+                className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                onClick={() => setShowTournamentPayout(true)}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Tournament Payouts
               </Button>
             )}
             <Button 
@@ -706,6 +719,15 @@ const Payments = () => {
             payments={payments}
             games={games}
             refereeName={user.name || 'Referee'}
+          />
+          <TournamentPayoutDialog
+            open={showTournamentPayout}
+            onOpenChange={setShowTournamentPayout}
+            tournaments={tournaments}
+            payments={payments}
+            games={games}
+            referees={referees}
+            managerName={user.name || 'Manager'}
           />
         </>
       )}
