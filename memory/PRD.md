@@ -1149,3 +1149,40 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 **Modified:** `src/pages/Payments.tsx` (added button + dialog for managers)
 - Testing: 6/6 features PASS (iteration_45.json), 98/98 Vitest tests pass
 
+
+
+### Phase 60 - League Schedule Import (Complete — Feb 2026)
+
+**Manager-only feature: Import league schedule Excel files to create a season with games and referee assignments.**
+
+This addresses the real-world workflow where league managers (e.g., Surf City) provide Excel schedules in a grouped row format (dates in column A, game times in column B, referee names in columns C & D). The feature parses these non-standard schedules and imports them into the iWhistle system.
+
+**Multi-step wizard (4 steps):**
+1. **Upload** — Drag-and-drop or browse for .xlsx file
+2. **League Setup** — Configure league name, location, courts, division, pay per game
+3. **Map Referees** — Map Excel referee names to system referees (with auto-match)
+4. **Review Games** — View all parsed games grouped by date, fill in team names
+
+**Smart Excel Parser:**
+- Detects grouped row format: date rows with referee names, subsequent time-only rows
+- Handles Excel date serials, time fractions, and Date objects
+- Identifies "Tournament Dates" sections
+- Extracts league name from header row
+- Tested with ABB_ref_schedule_Spring_2026.xlsx: 10 game nights, 27 games, 6 referees
+
+**New files:**
+- `src/lib/leagueScheduleParser.ts` — Smart Excel parser for grouped row format
+- `src/pages/Manager/LeagueImportDialog.tsx` — Multi-step wizard UI component
+
+**Modified:**
+- `src/pages/Manager/TournamentsTab.tsx` — Added "Import League Schedule" button
+- `src/lib/firestoreService.ts` — Added `batchImportLeagueSchedule` function
+
+**Creates in Firestore:**
+- Tournament record (type: league, derived date range)
+- Game records for each time slot
+- Game assignment records for mapped referees
+- Import history record
+
+**Testing:** 9/9 features PASS (iteration_46.json)
+
