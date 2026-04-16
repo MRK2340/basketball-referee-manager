@@ -94,9 +94,9 @@ describe('Type safety: Record<string, unknown> (H6 fix)', () => {
     expect(mappersSrc).not.toContain('Record<string, any>');
   });
 
-  it('firestoreService.ts uses Record<string, unknown> not Record<string, any>', async () => {
+  it('firestoreService helpers use Record<string, unknown> not Record<string, any>', async () => {
     const fs = await import('fs');
-    const fsSrc = fs.readFileSync('/app/src/lib/firestoreService.ts', 'utf8');
+    const fsSrc = fs.readFileSync('/app/src/lib/firestore/helpers.ts', 'utf8');
     expect(fsSrc).toContain('Record<string, unknown>');
     expect(fsSrc).not.toContain('Record<string, any>');
   });

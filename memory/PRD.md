@@ -1258,7 +1258,13 @@ New "League Season" tab on Manager page with:
 - Removed dead `Calendar.tsx` (729 LOC) — app uses `Calendar/index.tsx` (134 LOC)
 - Extracted inline PDF receipt (90 LOC) from `Payments.tsx` → `src/lib/generateReceiptPdf.ts`
 - `Payments.tsx` reduced from 738 → 661 LOC
-- `firestoreService.ts`: added section documentation; physical split deferred (29 import consumers + test mock dependencies)
+- `firestoreService.ts` PHYSICALLY SPLIT (1,475 LOC → 5 focused modules):
+  - `firestore/helpers.ts` (104 LOC) — safeHandle, chunkArray, docsToArr, Doc type
+  - `firestore/data.ts` (147 LOC) — fetchAppData main data loader
+  - `firestore/crud.ts` (360 LOC) — all CRUD operations
+  - `firestore/imports.ts` (258 LOC) — batch imports, duplicates, history
+  - `firestore/advanced.ts` (366 LOC) — pagination, profiles, audit, GDPR, AI, brackets
+  - `firestoreService.ts` (59 LOC) — barrel re-export, zero consumer changes needed
 
 #### H6: `any` types eliminated — DONE
 - `mappers.ts`: `Record<string, any>` → `Record<string, unknown>` with safe accessor helpers (`str()`, `num()`, `arr()`, `bool()`)
