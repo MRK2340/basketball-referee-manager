@@ -1186,3 +1186,44 @@ This addresses the real-world workflow where league managers (e.g., Surf City) p
 
 **Testing:** 9/9 features PASS (iteration_46.json)
 
+
+
+### Phase 61 - Recurring Schedule Generator + CSV Import + League Season Views (Complete — Feb 2026)
+
+**Three features built in one batch:**
+
+#### 1. Recurring Schedule Generator (P0)
+Manager sets parameters and auto-generates a full league season:
+- **3-step wizard**: Configure → Assign Referees → Preview & Create
+- **Configure**: League name, location, division, pay/game, courts, day of week (any day), season date range, game times (add/remove)
+- **Assign Referees**: Select from pool with checkboxes, auto-rotation across nights
+- **Preview**: Shows all generated games grouped by date with referee assignments
+- **Multi-court support**: Multiple games per time slot (Court 1, Court 2, etc.)
+- **Season summary**: Live preview of game nights and total games count
+
+**New file:** `src/pages/Manager/RecurringScheduleDialog.tsx`
+
+#### 2. Additional League Schedule Formats (P1)
+- **CSV support**: League Import Dialog now accepts `.csv` files alongside Excel
+- **Flat table format**: Auto-detects standard columns (Date, Time, Ref 1, Ref 2, Home, Away, Venue, Fee)
+- **Auto-detection**: Parser determines whether file uses grouped-row or flat-table format
+- **Column aliases**: Flexible header matching (e.g., "Game Date", "Start Time", "Official 1")
+
+**Updated:** `src/lib/leagueScheduleParser.ts` (complete rewrite with format detection)
+
+#### 3. League-Specific Views (P2)
+New "League Season" tab on Manager page with:
+- **Stats dashboard**: Game Nights, Total Games, Completed, Upcoming, Refs Assigned, Total Pay
+- **Season Calendar**: Monthly calendar grid showing game indicators on relevant dates, month navigation
+- **Weekly View**: Detailed table with Time, Matchup, Venue, Referees, Status, Pay columns, week navigation
+- **Tournament selector**: Switch between different leagues/tournaments
+
+**New file:** `src/pages/Manager/LeagueSeasonTab.tsx`
+
+**Modified:**
+- `src/pages/Manager/TournamentsTab.tsx` — Added "Generate Recurring" button
+- `src/pages/Manager/index.tsx` — Added "League Season" tab
+- `src/pages/Manager/LeagueImportDialog.tsx` — Updated to accept CSV + show both format descriptions
+
+**Testing:** 17/17 features PASS (iteration_47.json)
+
