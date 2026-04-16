@@ -15,7 +15,7 @@ import {
   Upload, FileSpreadsheet, AlertCircle, CheckCircle2,
   Loader2, ArrowRight, ArrowLeft, X, Calendar as CalendarIcon, Users, DollarSign,
 } from 'lucide-react';
-import { parseLeagueScheduleFile, type LeagueGameNight } from '@/lib/leagueScheduleParser';
+import { parseLeagueScheduleFile, type LeagueGameNight, type FlatGameRow } from '@/lib/leagueScheduleParser';
 import { useAuth } from '@/contexts/AuthContext';
 import { useData } from '@/contexts/DataContext';
 import { addTournament as addTournamentRecord, batchImportLeagueSchedule } from '@/lib/firestoreService';
@@ -50,6 +50,8 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
   // Parsed data
   const [leagueName, setLeagueName] = useState('');
   const [gameNights, setGameNights] = useState<LeagueGameNight[]>([]);
+  const [flatGames, setFlatGames] = useState<FlatGameRow[]>([]);
+  const [parseFormat, setParseFormat] = useState<'grouped' | 'flat'>('grouped');
   const [refNames, setRefNames] = useState<string[]>([]);
 
   // League setup
@@ -79,6 +81,8 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
     setErrors([]);
     setLeagueName('');
     setGameNights([]);
+    setFlatGames([]);
+    setParseFormat('grouped');
     setRefNames([]);
     setLeagueLocation('');
     setLeagueCourts('1');
@@ -107,6 +111,8 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
     }
     setLeagueName(result.leagueName || f.name.replace(/\.[^.]+$/, ''));
     setGameNights(result.gameNights);
+    setFlatGames(result.flatGames);
+    setParseFormat(result.format);
     setRefNames(result.refereeNames);
 
     // Auto-match referee names by partial name match
@@ -144,21 +150,35 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
 
   const buildGameEdits = useCallback(() => {
     const edits: GameEdit[] = [];
-    for (const night of gameNights) {
-      for (const time of night.times) {
+    if (parseFormat === 'flat') {
+      for (const g of flatGames) {
         edits.push({
-          date: night.date,
-          time,
-          homeTeam: '',
-          awayTeam: '',
-          ref1MappedId: refMap[night.ref1] || '',
-          ref2MappedId: refMap[night.ref2] || '',
-          isTournament: night.isTournament,
+          date: g.date,
+          time: g.time,
+          homeTeam: g.homeTeam || '',
+          awayTeam: g.awayTeam || '',
+          ref1MappedId: refMap[g.ref1] || '',
+          ref2MappedId: refMap[g.ref2] || '',
+          isTournament: false,
         });
+      }
+    } else {
+      for (const night of gameNights) {
+        for (const time of night.times) {
+          edits.push({
+            date: night.date,
+            time,
+            homeTeam: '',
+            awayTeam: '',
+            ref1MappedId: refMap[night.ref1] || '',
+            ref2MappedId: refMap[night.ref2] || '',
+            isTournament: night.isTournament,
+          });
+        }
       }
     }
     setGameEdits(edits);
-  }, [gameNights, refMap]);
+  }, [gameNights, flatGames, parseFormat, refMap]);
 
   const handleProceedToEditGames = () => {
     buildGameEdits();
@@ -246,7 +266,10 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  const totalGames = gameNights.reduce((sum, n) => sum + n.times.length, 0);
+  const totalGames = parseFormat === 'flat' ? flatGames.length : gameNights.reduce((sum, n) => sum + n.times.length, 0);
+  const totalNights = parseFormat === 'flat'
+    ? new Set(flatGames.map(g => g.date)).size
+    : gameNights.length;
   const mappedRefCount = Object.values(refMap).filter(Boolean).length;
 
   return (
@@ -261,7 +284,7 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
             Import League Schedule
           </DialogTitle>
           <DialogDescription className="text-slate-500">
-            Upload a league schedule Excel file to create a season with games and referee assignments.
+            Upload a league schedule (Excel or CSV) to create a season with games and referee assignments.
           </DialogDescription>
         </DialogHeader>
 
@@ -300,11 +323,14 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
                   <Badge variant="outline" className="border-slate-300 text-slate-500 text-xs gap-1">
                     <FileSpreadsheet className="h-3 w-3" /> Excel (.xlsx)
                   </Badge>
+                  <Badge variant="outline" className="border-slate-300 text-slate-500 text-xs gap-1">
+                    <FileSpreadsheet className="h-3 w-3" /> CSV
+                  </Badge>
                 </div>
                 <input
                   id="league-import-file-input"
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept=".xlsx,.xls,.csv"
                   className="hidden"
                   onChange={onFileInput}
                   data-testid="league-import-file-input"
@@ -323,10 +349,12 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
               )}
 
               <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                <p className="text-sm text-blue-800 font-medium mb-1">Expected format:</p>
+                <p className="text-sm text-blue-800 font-medium mb-1">Supported formats:</p>
+                <p className="text-xs text-blue-600 mb-1">
+                  <strong>Grouped format:</strong> Dates in column A, times in column B, referee names in columns C & D. Multiple times per date.
+                </p>
                 <p className="text-xs text-blue-600">
-                  Excel file with dates in column A, game times in column B, and referee names in columns C & D.
-                  Multiple game times per date are supported (one per row).
+                  <strong>Flat table:</strong> Standard columns — Date, Time, Ref 1, Ref 2, Home Team, Away Team, Venue, Fee. One row per game.
                 </p>
               </div>
             </motion.div>
@@ -337,7 +365,8 @@ export const LeagueImportDialog = ({ open, onOpenChange }: Props) => {
             <motion.div key="league-setup" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
               <div className="flex items-center justify-between mb-4">
                 <Badge variant="outline" className="text-xs border-slate-300">
-                  {file?.name} — {totalGames} games across {gameNights.length} nights
+                  {file?.name} — {totalGames} games across {totalNights} {totalNights === 1 ? 'date' : 'dates'}
+                  {parseFormat === 'flat' && <span className="ml-1 text-slate-400">(flat table)</span>}
                 </Badge>
                 <Button variant="ghost" size="sm" onClick={reset} className="text-slate-500 h-8 text-xs">
                   <X className="h-3 w-3 mr-1" /> Change file

@@ -7,7 +7,7 @@ import { useData } from '@/contexts/DataContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck, UserCheck, Sparkles, GitBranch } from 'lucide-react';
+import { ClipboardList, Trophy, Users, FileText, BarChart2, Medal, CalendarCheck, UserCheck, Sparkles, GitBranch, CalendarRange } from 'lucide-react';
 import TournamentsTab from './TournamentsTab';
 import GameAssignmentsTab from './GameAssignmentsTab';
 import RefereeManagementTab from './RefereeManagementTab';
@@ -17,6 +17,7 @@ import LeaderboardTab from './LeaderboardTab';
 import AvailabilityCalendarTab from './AvailabilityCalendarTab';
 import RosterTab from './RosterTab';
 import { BracketEditor } from './BracketEditor';
+import LeagueSeasonTab from './LeagueSeasonTab';
 import { AIAssistantPanel } from '@/components/AIAssistantPanel';
 
 const Manager = () => {
@@ -84,6 +85,9 @@ const Manager = () => {
             </TabsTrigger>
             <TabsTrigger value="brackets" data-testid="manager-tab-brackets" className="flex-shrink-0 px-2.5 sm:px-3">
               <GitBranch className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">Brackets</span>
+            </TabsTrigger>
+            <TabsTrigger value="league-season" data-testid="manager-tab-league-season" className="flex-shrink-0 px-2.5 sm:px-3">
+              <CalendarRange className="h-4 w-4 sm:mr-1.5" /> <span className="hidden sm:inline">League Season</span>
             </TabsTrigger>
           </TabsList>
 
@@ -163,6 +167,10 @@ const Manager = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="league-season">
+            <LeagueSeasonTab tournaments={tournaments} games={games} referees={referees} />
           </TabsContent>
         </Tabs>
       </div>

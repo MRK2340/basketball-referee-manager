@@ -15,10 +15,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, FileSpreadsheet, Loader2, Archive, ArchiveRestore, CalendarRange } from 'lucide-react';
+import { Plus, Edit, Trash2, FileSpreadsheet, Loader2, Archive, ArchiveRestore, CalendarRange, CalendarClock } from 'lucide-react';
 import TournamentFormDialog from '@/pages/Manager/TournamentFormDialog';
 import { BulkGameImportDialog } from '@/pages/Manager/BulkGameImportDialog';
 import { LeagueImportDialog } from '@/pages/Manager/LeagueImportDialog';
+import { RecurringScheduleDialog } from '@/pages/Manager/RecurringScheduleDialog';
 import { ImportHistoryPanel } from '@/components/ImportHistoryPanel';
 
 const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTournament, archiveTournament, hasMoreTournaments, loadMoreTournaments, refreshing }) => {
@@ -31,6 +32,7 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
   const [archivingTournament, setArchivingTournament] = useState(null);
   const [bulkImportOpen, setBulkImportOpen] = useState(false);
   const [leagueImportOpen, setLeagueImportOpen] = useState(false);
+  const [recurringOpen, setRecurringOpen] = useState(false);
 
   const activeTournaments = useMemo(() => tournaments.filter(t => !t.archived), [tournaments]);
   const archivedTournaments = useMemo(() => tournaments.filter(t => t.archived), [tournaments]);
@@ -179,6 +181,9 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
               <Button variant="outline" className="border-green-600 text-green-700 hover:bg-green-600 hover:text-white shadow-sm gap-2" data-testid="manager-league-import-button" onClick={() => setLeagueImportOpen(true)}>
                 <CalendarRange className="h-4 w-4" /> Import League Schedule
               </Button>
+              <Button variant="outline" className="border-purple-600 text-purple-700 hover:bg-purple-600 hover:text-white shadow-sm gap-2" data-testid="manager-recurring-schedule-button" onClick={() => setRecurringOpen(true)}>
+                <CalendarClock className="h-4 w-4" /> Generate Recurring
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -211,6 +216,7 @@ const TournamentsTab = ({ tournaments, addTournament, updateTournament, deleteTo
 
       <BulkGameImportDialog open={bulkImportOpen} onOpenChange={setBulkImportOpen} />
       <LeagueImportDialog open={leagueImportOpen} onOpenChange={setLeagueImportOpen} />
+      <RecurringScheduleDialog open={recurringOpen} onOpenChange={setRecurringOpen} />
       <div className="mt-4">
         <ImportHistoryPanel importType="manager_games" />
       </div>
