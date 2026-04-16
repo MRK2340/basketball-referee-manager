@@ -1099,6 +1099,28 @@ Login History, Contact Support, Send Feedback, all Payment page buttons (Setting
 - Created `DEPLOY.md` with full deployment instructions
 - 98/98 Vitest tests passing
 
+
+
+### Phase 58 - Production Deployment LIVE (Complete — Feb 2026)
+
+**App deployed and live at: https://iwhistle-6f5d1.web.app/**
+
+**Deployment journey:**
+1. Emergent Platform deployment failed (architecture mismatch — app rooted at `/app/`, supervisor targets `/app/frontend/`)
+2. Firebase App Hosting (Cloud Run) failed — Vite dev server exceeded 512MB memory limit, then `firebasebundle` buildpack issues
+3. **Firebase Hosting (static CDN)** — successful. Correct deployment target for a pure SPA.
+
+**Fixes applied across sessions:**
+- Added `"build"` script to `/app/frontend/package.json` (was missing)
+- Regenerated `yarn.lock` to fix `--frozen-lockfile` failures
+- Removed stale `package-lock.json` from git
+- Repeatedly cleaned `.gitignore` (Emergent platform auto-commits kept re-injecting `.env` ignore blocks)
+- Created `serve.js` + `apphosting.yaml` for App Hosting attempts (not used in final deployment)
+- Created `DEPLOY.md` with deployment instructions
+
+**Deploy command:** `yarn build && firebase deploy --only hosting`
+**Live URL:** https://iwhistle-6f5d1.web.app
+
 **Deploy command:** `yarn build && firebase deploy`
 **Live URL:** https://iwhistle-6f5d1.web.app
 
