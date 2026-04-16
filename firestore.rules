@@ -147,7 +147,7 @@ service cloud.firestore {
 
     // ── Referee Ratings ───────────────────────────────────────────────────────
     match /referee_ratings/{ratingId} {
-      allow read: if isAuth() || true;
+      allow read: if isAuth();
       allow create: if isManager() &&
         request.resource.data.manager_id == request.auth.uid &&
         request.resource.data.stars is number &&
@@ -209,10 +209,13 @@ service cloud.firestore {
       allow read, write: if isAuth() && request.auth.uid == userId;
     }
 
-    // ── Live Game Sessions (assigned referee or any manager can write) ────────
+    // ── Live Game Sessions (only the game's manager can write) ─────────────
     match /live_game_sessions/{gameId} {
       allow read:  if isAuth();
-      allow write: if isAuth();
+      allow create: if isAuth()
+        && request.resource.data.manager_id == request.auth.uid;
+      allow update: if isAuth()
+        && resource.data.manager_id == request.auth.uid;
     }
 
     // ── Import History (users can CRUD their own import records) ─────────────

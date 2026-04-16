@@ -22,8 +22,8 @@ import { validate, validateRequired, validateOptional, validateDate, validateTim
 
 import { logger } from './logger';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Doc = Record<string, any>;
+/** Raw Firestore document type. Uses `unknown` for type safety — callers must narrow. */
+type Doc = Record<string, unknown>;
 
 /** Firestore error codes that are safe to retry (transient failures). */
 const RETRYABLE_CODES = new Set([

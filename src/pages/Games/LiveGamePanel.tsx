@@ -100,6 +100,7 @@ export const LiveGamePanel: React.FC<LiveGamePanelProps> = ({ open, onOpenChange
       // Save detailed live session data
       await setDoc(doc(db, 'live_game_sessions', game.id), {
         game_id: game.id,
+        manager_id: game.managerId,
         home_team: game.homeTeam,
         away_team: game.awayTeam,
         quarter_scores: quarters,

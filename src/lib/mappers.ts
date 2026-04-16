@@ -5,8 +5,14 @@
  */
 import { toISOString } from './timestampUtils';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Doc = Record<string, any>;
+/** Raw Firestore document — typed as Record<string, unknown> for safety. */
+type Doc = Record<string, unknown>;
+
+/** Safely retrieve a string field from a raw Firestore doc. */
+const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+const num = (v: unknown, fallback = 0): number => (typeof v === 'number' ? v : fallback);
+const arr = (v: unknown): string[] => (Array.isArray(v) ? v : []);
+const bool = (v: unknown): boolean => !!v;
 
 export interface MappedProfile {
   id: string; name: string; role: string;
@@ -17,17 +23,17 @@ export interface MappedProfile {
 }
 
 export const mapProfile = (p: Doc): MappedProfile => ({
-  id: p.id, name: p.name, role: p.role,
-  email: p.email, phone: p.phone || '',
-  avatarUrl: p.avatar_url || '',
-  bio: p.bio || '', location: p.location || '',
-  certifications: p.certifications || [],
-  gamesOfficiated: p.games_officiated || 0,
-  rating: p.rating || 0,
-  experience: p.experience || '',
-  leagueName: p.league_name || '',
-  activeTournaments: p.active_tournaments || 0,
-  createdAt: p.created_at || '',
+  id: str(p.id), name: str(p.name), role: str(p.role),
+  email: str(p.email), phone: str(p.phone),
+  avatarUrl: str(p.avatar_url),
+  bio: str(p.bio), location: str(p.location),
+  certifications: arr(p.certifications),
+  gamesOfficiated: num(p.games_officiated),
+  rating: num(p.rating),
+  experience: str(p.experience),
+  leagueName: str(p.league_name),
+  activeTournaments: num(p.active_tournaments),
+  createdAt: str(p.created_at),
 });
 
 export interface MappedConnection {
@@ -36,8 +42,8 @@ export interface MappedConnection {
 }
 
 export const mapConnection = (c: Doc): MappedConnection => ({
-  id: c.id, managerId: c.manager_id, refereeId: c.referee_id,
-  status: c.status, note: c.note || '', createdAt: c.created_at || '',
+  id: str(c.id), managerId: str(c.manager_id), refereeId: str(c.referee_id),
+  status: str(c.status), note: str(c.note), createdAt: str(c.created_at),
 });
 
 export interface MappedAssignment {
@@ -65,27 +71,29 @@ export const mapGame = (
   const gameAssignments = allAssignments
     .filter(a => a.game_id === gameId)
     .map(a => {
-      const ref = allUsers.find(u => u.id === a.referee_id) || {} as Partial<MappedProfile>;
+      const ref = allUsers.find(u => u.id === str(a.referee_id)) || {} as Partial<MappedProfile>;
       return {
-        id: a.id, status: a.status, declineReason: a.decline_reason,
-        refereeId: a.referee_id,
+        id: str(a.id), status: str(a.status), declineReason: a.decline_reason as string | null,
+        refereeId: str(a.referee_id),
         referee: { id: ref.id || '', name: ref.name || 'Unassigned Referee', avatarUrl: ref.avatarUrl || '', email: ref.email || '' },
       };
     });
 
+  const gameTime = str(gameData.game_time);
   return {
     id: gameId,
-    homeTeam: gameData.home_team, awayTeam: gameData.away_team,
-    date: gameData.game_date, time: gameData.game_time?.slice(0, 5) || gameData.game_time,
-    venue: gameData.venue, status: gameData.status,
-    payment: gameData.payment_amount,
-    division: gameData.division, level: gameData.level,
-    requiredCertifications: gameData.required_certifications || [],
-    homeScore: gameData.home_score ?? null, awayScore: gameData.away_score ?? null,
-    tournamentId: gameData.tournament_id,
-    tournamentName: tournament?.name || 'Independent Game',
-    managerId: gameData.manager_id || tournament?.manager_id || null,
-    tournament: tournament ? { id: tournament.id, name: tournament.name, managerId: tournament.manager_id } : null,
+    homeTeam: str(gameData.home_team), awayTeam: str(gameData.away_team),
+    date: str(gameData.game_date), time: gameTime.slice(0, 5) || gameTime,
+    venue: str(gameData.venue), status: str(gameData.status),
+    payment: num(gameData.payment_amount),
+    division: str(gameData.division), level: str(gameData.level),
+    requiredCertifications: arr(gameData.required_certifications),
+    homeScore: gameData.home_score != null ? num(gameData.home_score) : null,
+    awayScore: gameData.away_score != null ? num(gameData.away_score) : null,
+    tournamentId: str(gameData.tournament_id),
+    tournamentName: str(tournament?.name) || 'Independent Game',
+    managerId: str(gameData.manager_id) || str(tournament?.manager_id) || null,
+    tournament: tournament ? { id: str(tournament.id), name: str(tournament.name), managerId: str(tournament.manager_id) } : null,
     assignments: gameAssignments,
   };
 };
@@ -98,14 +106,14 @@ export interface MappedTournament {
 }
 
 export const mapTournament = (t: Doc, gamesArr: Doc[]): MappedTournament => ({
-  id: t.id, name: t.name,
-  startDate: t.start_date, endDate: t.end_date,
-  location: t.location, numberOfCourts: t.number_of_courts,
-  managerId: t.manager_id,
+  id: str(t.id), name: str(t.name),
+  startDate: str(t.start_date), endDate: str(t.end_date),
+  location: str(t.location), numberOfCourts: num(t.number_of_courts),
+  managerId: str(t.manager_id),
   games: (gamesArr || []).filter((g: Doc) => g.tournament_id === t.id).length,
   refereesNeeded: 0,
-  archived: t.archived || false,
-  archivedAt: t.archived_at || null,
+  archived: bool(t.archived),
+  archivedAt: t.archived_at ? str(t.archived_at) : null,
 });
 
 export interface MappedPayment {
@@ -114,8 +122,8 @@ export interface MappedPayment {
 }
 
 export const mapPayment = (p: Doc): MappedPayment => ({
-  id: p.id, gameId: p.game_id, amount: p.amount, status: p.status,
-  date: p.payment_date, method: p.payment_method, refereeId: p.referee_id,
+  id: str(p.id), gameId: str(p.game_id), amount: num(p.amount), status: str(p.status),
+  date: str(p.payment_date), method: str(p.payment_method), refereeId: str(p.referee_id),
 });
 
 export interface MappedMessage {
@@ -125,19 +133,19 @@ export interface MappedMessage {
 }
 
 export const mapMessage = (m: Doc, allUsers: MappedProfile[]): MappedMessage => {
-  const sender = allUsers.find(u => u.id === m.sender_id) || { name: 'System', avatarUrl: '' };
+  const sender = allUsers.find(u => u.id === str(m.sender_id)) || { name: 'System', avatarUrl: '' };
   return {
-    id: m.id, from: sender.name, fromAvatar: sender.avatarUrl || '',
-    subject: m.subject, content: m.content,
+    id: str(m.id), from: sender.name, fromAvatar: sender.avatarUrl || '',
+    subject: str(m.subject), content: str(m.content),
     timestamp: toISOString(m.created_at),
-    read: m.is_read, senderId: m.sender_id, recipientId: m.recipient_id,
+    read: bool(m.is_read), senderId: str(m.sender_id), recipientId: str(m.recipient_id),
   };
 };
 
 export interface MappedAvailability { id: string; startTime: string; endTime: string; }
 
 export const mapAvailability = (a: Doc): MappedAvailability => ({
-  id: a.id, startTime: a.start_time, endTime: a.end_time,
+  id: str(a.id), startTime: str(a.start_time), endTime: str(a.end_time),
 });
 
 export interface MappedGameReport {
@@ -152,19 +160,22 @@ export interface MappedGameReport {
 }
 
 export const mapGameReport = (r: Doc, gamesArr: Doc[], allUsers: MappedProfile[]): MappedGameReport => {
-  const game = gamesArr.find(g => g.id === r.game_id);
-  const referee = allUsers.find(u => u.id === r.referee_id);
+  const game = gamesArr.find(g => g.id === str(r.game_id));
+  const referee = allUsers.find(u => u.id === str(r.referee_id));
   return {
-    id: r.id, gameId: r.game_id,
-    gameTitle: game ? `${game.home_team} vs ${game.away_team}` : 'Game Report',
-    refereeId: r.referee_id, refereeName: referee?.name || 'Referee', managerId: r.manager_id,
-    homeScore: r.home_score, awayScore: r.away_score,
-    professionalismRating: r.professionalism_rating,
-    incidents: r.incidents, notes: r.notes,
-    technicalFouls: r.technical_fouls ?? null, personalFouls: r.personal_fouls ?? null,
-    ejections: r.ejections ?? null, mvpPlayer: r.mvp_player || null,
-    status: r.status, createdAt: r.created_at,
-    resolutionNote: r.resolution_note || null,
-    resolvedBy: r.resolved_by || null, resolvedAt: r.resolved_at || null,
+    id: str(r.id), gameId: str(r.game_id),
+    gameTitle: game ? `${str(game.home_team)} vs ${str(game.away_team)}` : 'Game Report',
+    refereeId: str(r.referee_id), refereeName: referee?.name || 'Referee', managerId: str(r.manager_id),
+    homeScore: num(r.home_score), awayScore: num(r.away_score),
+    professionalismRating: num(r.professionalism_rating),
+    incidents: str(r.incidents), notes: str(r.notes),
+    technicalFouls: r.technical_fouls != null ? num(r.technical_fouls) : null,
+    personalFouls: r.personal_fouls != null ? num(r.personal_fouls) : null,
+    ejections: r.ejections != null ? num(r.ejections) : null,
+    mvpPlayer: r.mvp_player ? str(r.mvp_player) : null,
+    status: str(r.status), createdAt: str(r.created_at),
+    resolutionNote: r.resolution_note ? str(r.resolution_note) : null,
+    resolvedBy: r.resolved_by ? str(r.resolved_by) : null,
+    resolvedAt: r.resolved_at ? str(r.resolved_at) : null,
   };
 };

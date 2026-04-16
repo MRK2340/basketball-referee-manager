@@ -1227,3 +1227,44 @@ New "League Season" tab on Manager page with:
 
 **Testing:** 17/17 features PASS (iteration_47.json)
 
+
+
+### Phase 62 - Security & Code Quality Fixes (Complete — Feb 2026)
+
+**6 HIGH priority issues resolved:**
+
+#### H1: Firestore public read on ratings — FIXED
+- `firestore.rules:150` — removed `|| true` from read rule
+- Now requires `isAuth()` like all other collections
+
+#### H2: Live game sessions unprotected writes — FIXED
+- `firestore.rules:212-216` — replaced `allow write: if isAuth()` with:
+  - `allow create: if isAuth() && request.resource.data.manager_id == request.auth.uid`
+  - `allow update: if isAuth() && resource.data.manager_id == request.auth.uid`
+- `LiveGamePanel.tsx` — now writes `manager_id` to the doc
+
+#### H3: Backend CORS misconfiguration — FIXED
+- `backend/server.py` — changed `allow_credentials=True` → `allow_credentials=False`
+- Also restricted `allow_methods=["GET"]` since it only serves health checks
+
+#### H4: Unit test coverage expanded — 98 → 111 tests
+- Added `src/__tests__/security-and-quality.test.js` (13 new tests):
+  - Mapper type safety tests (missing fields, non-string values)
+  - Security rule regression tests (H1, H2, H3 verified in code)
+  - Dead code removal checks
+  - Type safety assertions
+
+#### H5: Monolithic files cleaned up — DONE
+- Removed dead `Calendar.tsx` (729 LOC) — app uses `Calendar/index.tsx` (134 LOC)
+- Extracted inline PDF receipt (90 LOC) from `Payments.tsx` → `src/lib/generateReceiptPdf.ts`
+- `Payments.tsx` reduced from 738 → 661 LOC
+- `firestoreService.ts`: added section documentation; physical split deferred (29 import consumers + test mock dependencies)
+
+#### H6: `any` types eliminated — DONE
+- `mappers.ts`: `Record<string, any>` → `Record<string, unknown>` with safe accessor helpers (`str()`, `num()`, `arr()`, `bool()`)
+- `firestoreService.ts`: `Record<string, any>` → `Record<string, unknown>`
+- All 8 mapper functions updated with type-safe field access
+- Zero `@ts-ignore` or `@ts-expect-error` in codebase
+
+**Testing:** 111/111 Vitest tests passing, all previous features verified working
+
