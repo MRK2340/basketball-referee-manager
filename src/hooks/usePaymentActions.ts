@@ -6,13 +6,15 @@ import { guardAction } from '@/lib/rateLimit';
 export const usePaymentActions = (user: AppUser | null, fetchData: (isInitial?: boolean) => Promise<void>) => {
   const batchMarkPaymentsPaid = guardAction('batchPayments', async (paymentIds: string[]) => {
     if (!user) return;
-    try {
-      await batchMarkPaymentsPaidRecord(user, paymentIds);
-      toast({ title: 'Payments Updated', description: `${paymentIds.length} payment(s) marked as paid.` });
-      await fetchData(false);
-    } catch (e) {
-      toast({ title: 'Update failed', description: e.message, variant: 'destructive' });
+
+    const { error } = await batchMarkPaymentsPaidRecord(user, paymentIds);
+    if (error) {
+      toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
+      return;
     }
+
+    toast({ title: 'Payments Updated', description: `${paymentIds.length} payment(s) marked as paid.` });
+    await fetchData(false);
   });
 
   const rateReferee = async (gameId: string, refereeId: string, stars: number, feedback: string) => {
