@@ -9,12 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SkeletonStatCard, SkeletonGameCard } from '@/components/SkeletonCard';
 import { RefereeAIPanel } from '@/components/RefereeAIPanel';
-import { 
-  Calendar, 
-  Trophy, 
-  DollarSign, 
-  Clock, 
-  Star, 
+import {
+  Calendar,
+  Trophy,
+  DollarSign,
+  Clock,
+  Star,
   TrendingUp,
   Users,
   MapPin,
@@ -26,7 +26,7 @@ import {
   Activity
 } from 'lucide-react';
 import { Sparkles } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
 
 const ACTIVITY_ICONS = {
   assignment: { icon: Trophy, color: 'text-brand-orange', bg: 'bg-orange-100' },
@@ -36,19 +36,44 @@ const ACTIVITY_ICONS = {
   default:    { icon: Bell, color: 'text-slate-600', bg: 'bg-slate-100' },
 };
 
+const parseGameDate = (value: string) => {
+  if (!value) return null;
+
+  const parsed = parseISO(value);
+  if (isValid(parsed)) return parsed;
+
+  const fallback = new Date(`${value}T00:00:00`);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
   const { games, payments, notifications, loading } = useData();
   const navigate = useNavigate();
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
-  const upcomingGames = useMemo(() => games.filter(game => {
-    if (user.role === 'referee') {
-      return game.assignments.some(a => a.referee?.id === user.id && a.status === 'accepted') && new Date(game.date) >= new Date();
-    }
-    return new Date(game.date) >= new Date();
-  }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 3), [games, user]);
-  
+  const upcomingGames = useMemo(() => {
+    const now = new Date();
+
+    return games
+      .filter((game) => {
+        const gameDate = parseGameDate(game.date);
+        if (!gameDate || gameDate < now) return false;
+
+        if (user.role === 'referee') {
+          return game.assignments.some(a => a.referee?.id === user.id && a.status === 'accepted');
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        const aDate = parseGameDate(a.date);
+        const bDate = parseGameDate(b.date);
+        return (aDate?.getTime() ?? 0) - (bDate?.getTime() ?? 0);
+      })
+      .slice(0, 3);
+  }, [games, user]);
+
   const recentPayments = useMemo(() => payments.filter(payment => payment.status === 'paid').slice(0, 3), [payments]);
   const totalEarnings = useMemo(() => payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0), [payments]);
   const pendingPayments = useMemo(() => payments.filter(payment => payment.status === 'pending').length, [payments]);
@@ -57,7 +82,11 @@ const Dashboard = () => {
   const stats = [
     {
       title: 'Games This Month',
-      value: games.filter(g => { const d = new Date(g.date); return d.getMonth() === new Date().getMonth() && d.getFullYear() === new Date().getFullYear(); }).length,
+      value: games.filter(g => {
+        const d = parseGameDate(g.date);
+        const now = new Date();
+        return !!d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).length,
       icon: Trophy,
       color: 'text-brand-blue',
       bgColor: 'bg-brand-blue/10'
@@ -193,7 +222,7 @@ const Dashboard = () => {
                     <p className="text-slate-600">No upcoming games scheduled</p>
                   </div>
                 )}
-                <Button 
+                <Button
                   className="w-full basketball-gradient hover:opacity-90 text-white"
                   data-testid="dashboard-view-full-schedule-button"
                   onClick={() => handleQuickAction('view-schedule')}
@@ -244,8 +273,8 @@ const Dashboard = () => {
                     <p className="text-slate-600">No recent payments</p>
                   </div>
                 )}
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   data-testid="dashboard-view-all-payments-button"
                   className="w-full border-slate-300 text-slate-700 hover:bg-slate-100"
                   onClick={() => handleQuickAction('view-payments')}
@@ -267,8 +296,8 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   data-testid="dashboard-update-availability-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('update-availability')}
@@ -276,8 +305,8 @@ const Dashboard = () => {
                   <Calendar className="h-6 w-6 text-brand-blue" />
                   <span className="text-sm">Update Availability</span>
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   data-testid="dashboard-submit-report-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('submit-report')}
@@ -285,8 +314,8 @@ const Dashboard = () => {
                   <Trophy className="h-6 w-6 text-green-600" />
                   <span className="text-sm">Submit Game Report</span>
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   data-testid="dashboard-view-messages-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('view-messages')}
@@ -294,8 +323,8 @@ const Dashboard = () => {
                   <Mail className="h-6 w-6 text-purple-600" />
                   <span className="text-sm">Check Messages</span>
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   data-testid="dashboard-update-profile-button"
                   className="h-20 flex-col space-y-2 border-slate-300 hover:bg-slate-100 text-slate-800"
                   onClick={() => handleQuickAction('update-profile')}
