@@ -4,11 +4,11 @@ import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClipboardList, ThumbsUp } from 'lucide-react';
-import ScheduleHeader from '@/pages/Schedule/components/ScheduleHeader.jsx';
-import MyScheduleTab from '@/pages/Schedule/tabs/MyScheduleTab.jsx';
-import OpenGamesTab from '@/pages/Schedule/tabs/OpenGamesTab.jsx';
-import AddGameDialog from '@/pages/Schedule/components/AddGameDialog.jsx';
-import AssignCourtScheduleDialog from '@/pages/Schedule/components/AssignCourtScheduleDialog.jsx';
+import ScheduleHeader from '@/pages/Schedule/components/ScheduleHeader';
+import MyScheduleTab from '@/pages/Schedule/tabs/MyScheduleTab';
+import OpenGamesTab from '@/pages/Schedule/tabs/OpenGamesTab';
+import AddGameDialog from '@/pages/Schedule/components/AddGameDialog';
+import AssignCourtScheduleDialog from '@/pages/Schedule/components/AssignCourtScheduleDialog';
 
 const Schedule = () => {
   // Hooks at the top
