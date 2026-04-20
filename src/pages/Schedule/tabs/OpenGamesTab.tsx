@@ -121,7 +121,7 @@ const OpenGamesTab = ({ games }) => {
     return games.filter((game) => {
       const hasAssignments = game.assignments && game.assignments.length > 0;
       const isUnassigned = !hasAssignments;
-      const hasRequested = hasAssignments && game.assignments.some((a) => a.referee?.id === user?.id && a.status === 'requested');
+      const hasRequested = hasAssignments && game.assignments.some((a) => a.referee?.id === user?.id && a.status === 'pending');
       if (!isUnassigned && !hasRequested) return false;
 
       // Search
@@ -274,7 +274,7 @@ const OpenGamesTab = ({ games }) => {
           <>
             <p className="text-sm text-slate-500 font-medium">{sorted.length} game{sorted.length !== 1 ? 's' : ''} available</p>
             {sorted.map((game, index) => {
-              const isRequested = (game.assignments || []).some((a) => a.referee?.id === user?.id && a.status === 'requested');
+              const isRequested = (game.assignments || []).some((a) => a.referee?.id === user?.id && a.status === 'pending');
               const matchScore = sortBy === 'best-match' ? getMatchScore(game) : undefined;
               return (
                 <motion.div
