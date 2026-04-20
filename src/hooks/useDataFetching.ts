@@ -110,11 +110,14 @@ export const useDataFetching = (user: AppUser | null) => {
     const oldest = currentMessages[currentMessages.length - 1];
     if (!oldest?.timestamp) return;
 
+    const cursorDate = new Date(oldest.timestamp);
+    if (Number.isNaN(cursorDate.getTime())) return;
+
     setRefreshing(true);
     try {
       const allUsers = [...currentReferees, ...currentManagers,
         { id: currentUser.id, name: currentUser.name, avatarUrl: currentUser.avatarUrl } as MappedProfile];
-      const { data, error } = await fetchMoreMessages(currentUser, oldest.timestamp, allUsers);
+      const { data, error } = await fetchMoreMessages(currentUser, cursorDate as unknown as string, allUsers);
       if (error) throw new Error(error.message);
       const result = data as { items: MappedMessage[]; hasMore: boolean };
       setMessages(prev => [...prev, ...result.items]);
@@ -135,7 +138,23 @@ export const useDataFetching = (user: AppUser | null) => {
       const lastGame = games[games.length - 1];
       if (!lastGame) return;
       const cursor = lastGame.date || '';
-      const { data, error } = await fetchMoreGames(currentUser.id, cursor, [], [], []);
+      const assignmentsRaw: Record<string, unknown>[] = games.flatMap((g) =>
+        g.assignments.map((a) => ({
+          id: a.id,
+          game_id: g.id,
+          referee_id: a.refereeId,
+          status: a.status,
+          decline_reason: a.declineReason,
+        }))
+      );
+      const tournamentsRaw: Record<string, unknown>[] = tournaments.map((t) => ({
+        id: t.id,
+        name: t.name,
+        manager_id: t.managerId,
+      }));
+      const allUsers = [...referees, ...managerProfiles];
+
+      const { data, error } = await fetchMoreGames(currentUser.id, cursor, assignmentsRaw, allUsers, tournamentsRaw);
       if (error) throw new Error(error.message);
       const result = data as { items: MappedGame[]; hasMore: boolean };
       setGames(prev => [...prev, ...result.items]);
@@ -145,7 +164,7 @@ export const useDataFetching = (user: AppUser | null) => {
     } finally {
       setRefreshing(false);
     }
-  }, [hasMoreGames, games]);
+  }, [hasMoreGames, games, referees, managerProfiles, tournaments]);
 
   const loadMoreTournaments = useCallback(async () => {
     const currentUser = userRef.current;
@@ -156,7 +175,12 @@ export const useDataFetching = (user: AppUser | null) => {
       const lastTournament = tournaments[tournaments.length - 1];
       if (!lastTournament) return;
       const cursor = lastTournament.name || '';
-      const { data, error } = await fetchMoreTournaments(currentUser.id, cursor, []);
+      const gamesRaw: Record<string, unknown>[] = games.map((g) => ({
+        id: g.id,
+        tournament_id: g.tournamentId,
+      }));
+
+      const { data, error } = await fetchMoreTournaments(currentUser.id, cursor, gamesRaw);
       if (error) throw new Error(error.message);
       const result = data as { items: MappedTournament[]; hasMore: boolean };
       setTournaments(prev => [...prev, ...result.items]);
@@ -166,18 +190,20 @@ export const useDataFetching = (user: AppUser | null) => {
     } finally {
       setRefreshing(false);
     }
-  }, [hasMoreTournaments, tournaments]);
+  }, [hasMoreTournaments, tournaments, games]);
 
   const loadMoreNotifications = useCallback(async () => {
     const currentUser = userRef.current;
     if (!currentUser || !hasMoreNotifications) return;
 
+    const lastNotif = notifications[notifications.length - 1];
+    if (!lastNotif) return;
+    const cursorDate = new Date(lastNotif.created_at || '');
+    if (Number.isNaN(cursorDate.getTime())) return;
+
     setRefreshing(true);
     try {
-      const lastNotif = notifications[notifications.length - 1];
-      if (!lastNotif) return;
-      const cursor = lastNotif.created_at || '';
-      const { data, error } = await fetchMoreNotifications(currentUser.id, cursor);
+      const { data, error } = await fetchMoreNotifications(currentUser.id, cursorDate as unknown as string);
       if (error) throw new Error(error.message);
       const result = data as { items: AppNotification[]; hasMore: boolean };
       setNotifications(prev => [...prev, ...result.items]);
