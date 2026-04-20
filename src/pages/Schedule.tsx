@@ -19,7 +19,7 @@ const Schedule = () => {
   const openGames = games.filter((game) => {
     if (game.status === 'completed') return false;
     return game.assignments.length === 0 || game.assignments.some(
-      (assignment) => assignment.referee.id === user?.id && assignment.status === 'requested'
+      (assignment) => assignment.referee.id === user?.id && assignment.status === 'pending'
     );
   });
 
