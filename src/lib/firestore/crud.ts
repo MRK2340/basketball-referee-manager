@@ -16,7 +16,7 @@ import {
 // ── Tournaments ───────────────────────────────────────────────────────────────
 
 export const addTournament = async (user: ServiceUser, tournamentData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const err = validate(
     validateRequired(tournamentData.name, 'Tournament name', MAX_TOURNAMENT_NAME),
     validateRequired(tournamentData.location, 'Location', MAX_VENUE_NAME),
@@ -36,7 +36,7 @@ export const addTournament = async (user: ServiceUser, tournamentData: Doc) => s
 });
 
 export const updateTournamentRecord = async (user: ServiceUser, tournamentId: string, tournamentData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'tournaments', tournamentId), {
     name: tournamentData.name,
     start_date: tournamentData.startDate,
@@ -47,12 +47,12 @@ export const updateTournamentRecord = async (user: ServiceUser, tournamentId: st
 });
 
 export const deleteTournamentRecord = async (user: ServiceUser, tournamentId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   await deleteDoc(doc(db, 'tournaments', tournamentId));
 });
 
 export const archiveTournamentRecord = async (user: ServiceUser, tournamentId: string, archived: boolean) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'tournaments', tournamentId), {
     archived,
     archived_at: archived ? new Date().toISOString() : null,
@@ -62,7 +62,7 @@ export const archiveTournamentRecord = async (user: ServiceUser, tournamentId: s
 // ── Games ─────────────────────────────────────────────────────────────────────
 
 export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const err = validate(
     validateRequired(gameData.home_team, 'Home team', MAX_TEAM_NAME),
     validateRequired(gameData.away_team, 'Away team', MAX_TEAM_NAME),
@@ -80,7 +80,7 @@ export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHan
 });
 
 export const markGameCompleted = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'games', gameId), { status: 'completed' });
   const assignmentsSnap = await getDocs(query(collection(db, 'game_assignments'), where('game_id', '==', gameId)));
   const gameDoc = await getDoc(doc(db, 'games', gameId));
@@ -103,7 +103,7 @@ export const markGameCompleted = async (user: ServiceUser, gameId: string) => sa
 // ── Assignments ───────────────────────────────────────────────────────────────
 
 export const assignReferee = async (user: ServiceUser, gameId: string, refereeId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const existing = await getDocs(query(
     collection(db, 'game_assignments'),
     where('game_id', '==', gameId),
@@ -124,7 +124,7 @@ export const assignReferee = async (user: ServiceUser, gameId: string, refereeId
 });
 
 export const unassignReferee = async (user: ServiceUser, assignmentId: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   await deleteDoc(doc(db, 'game_assignments', assignmentId));
 });
 
@@ -133,7 +133,7 @@ export const updateAssignment = async (user: ServiceUser, assignmentId: string, 
 });
 
 export const assignCourtSchedule = async (user: ServiceUser, assignments: {gameId: string; refereeId: string}[]) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const batch = writeBatch(db);
   assignments.forEach(({ gameId, refereeId }) => {
     const ref = doc(collection(db, 'game_assignments'));
@@ -143,7 +143,7 @@ export const assignCourtSchedule = async (user: ServiceUser, assignments: {gameI
 });
 
 export const requestAssignment = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('Only referees can request assignments.');
+  if (!user || user.role !== 'referee') throw new Error('Only referees can request assignments.');
   const existing = await getDocs(query(
     collection(db, 'game_assignments'),
     where('game_id', '==', gameId),
@@ -190,7 +190,7 @@ export const markMessageRead = async (user: ServiceUser, messageId: string) => s
 // ── Availability ──────────────────────────────────────────────────────────────
 
 export const addAvailabilityRecord = async (user: ServiceUser, startDate: string, endDate: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('permission-denied');
+  if (!user || user.role !== 'referee') throw new Error('permission-denied');
   await addDoc(collection(db, 'referee_availability'), { referee_id: user.id, start_time: startDate, end_time: endDate });
 });
 
@@ -200,7 +200,7 @@ export const addAvailability = addAvailabilityRecord;
 // ── Game Reports ──────────────────────────────────────────────────────────────
 
 export const submitGameReportRecord = async (user: ServiceUser, reportData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('permission-denied');
+  if (!user || user.role !== 'referee') throw new Error('permission-denied');
   const existing = await getDocs(query(
     collection(db, 'game_reports'),
     where('game_id', '==', reportData.gameId),
@@ -243,7 +243,7 @@ export const markAllNotificationsReadRecord = async (user: ServiceUser) => safeH
 // ── Payments ──────────────────────────────────────────────────────────────────
 
 export const batchMarkPaymentsPaidRecord = async (user: ServiceUser, paymentIds: string[]) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const batch = writeBatch(db);
   paymentIds.forEach(id => batch.update(doc(db, 'payments', id), { status: 'paid', payment_date: new Date().toISOString().slice(0, 10) }));
   await batch.commit();
@@ -252,7 +252,7 @@ export const batchMarkPaymentsPaidRecord = async (user: ServiceUser, paymentIds:
 // ── Batch Unassign ────────────────────────────────────────────────────────────
 
 export const batchUnassignRefereesRecord = async (user: ServiceUser, gameIds: string[]) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const chunks = chunkArray(gameIds, 30);
   const snaps = await Promise.all(
     chunks.map(chunk =>
@@ -267,7 +267,7 @@ export const batchUnassignRefereesRecord = async (user: ServiceUser, gameIds: st
 // ── Referee Ratings ───────────────────────────────────────────────────────────
 
 export const rateRefereeRecord = async (user: ServiceUser, gameId: string, refereeId: string, stars: number, feedback: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const s = Number(stars);
   if (!Number.isFinite(s) || s < 1 || s > 5) throw new Error('Rating must be between 1 and 5.');
   const existing = await getDocs(query(
@@ -294,7 +294,7 @@ export const saveNotificationPreferencesRecord = async (user: ServiceUser, prefs
 // ── Report Resolution ─────────────────────────────────────────────────────────
 
 export const addReportResolutionRecord = async (user: ServiceUser, reportId: string, note: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'game_reports', reportId), {
     resolution_note: note, resolved_by: user.id,
     resolved_at: new Date().toISOString(), status: 'resolved',
@@ -304,7 +304,7 @@ export const addReportResolutionRecord = async (user: ServiceUser, reportId: str
 // ── Manager Connections ───────────────────────────────────────────────────────
 
 export const requestManagerConnectionRecord = async (user: ServiceUser, managerId: string, note: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('permission-denied');
+  if (!user || user.role !== 'referee') throw new Error('permission-denied');
   const existing = await getDocs(query(
     collection(db, 'manager_connections'),
     where('referee_id', '==', user.id),
@@ -318,12 +318,12 @@ export const requestManagerConnectionRecord = async (user: ServiceUser, managerI
 });
 
 export const respondToConnectionRecord = async (user: ServiceUser, connectionId: string, newStatus: string) => safeHandle(async () => {
-  if (user?.role !== 'manager') throw new Error('permission-denied');
+  if (!user || user.role !== 'manager') throw new Error('permission-denied');
   await updateDoc(doc(db, 'manager_connections', connectionId), { status: newStatus });
 });
 
 export const withdrawConnectionRecord = async (user: ServiceUser, managerId: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('permission-denied');
+  if (!user || user.role !== 'referee') throw new Error('permission-denied');
   const snap = await getDocs(query(
     collection(db, 'manager_connections'),
     where('referee_id', '==', user.id),
@@ -336,7 +336,7 @@ export const withdrawConnectionRecord = async (user: ServiceUser, managerId: str
 // ── Independent Games ─────────────────────────────────────────────────────────
 
 export const addIndependentGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('permission-denied');
+  if (!user || user.role !== 'referee') throw new Error('permission-denied');
   await addDoc(collection(db, 'independent_games'), {
     referee_id: user.id, date: gameData.date, time: gameData.time || '',
     location: gameData.location || '', organization: gameData.organization || '',
@@ -346,7 +346,7 @@ export const addIndependentGameRecord = async (user: ServiceUser, gameData: Doc)
 });
 
 export const updateIndependentGameRecord = async (user: ServiceUser, gameId: string, gameData: Doc) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('permission-denied');
+  if (!user || user.role !== 'referee') throw new Error('permission-denied');
   await updateDoc(doc(db, 'independent_games', gameId), {
     date: gameData.date, time: gameData.time || '', location: gameData.location || '',
     organization: gameData.organization || '', game_type: gameData.game_type || 'other',
@@ -355,6 +355,6 @@ export const updateIndependentGameRecord = async (user: ServiceUser, gameId: str
 });
 
 export const deleteIndependentGameRecord = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
-  if (user?.role !== 'referee') throw new Error('permission-denied');
+  if (!user || user.role !== 'referee') throw new Error('permission-denied');
   await deleteDoc(doc(db, 'independent_games', gameId));
 });
