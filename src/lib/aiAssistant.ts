@@ -210,6 +210,8 @@ const getModel = (): GenerativeModel => {
 
 // ── Chat Function ────────────────────────────────────────────────────────────
 
+const MAX_USER_MESSAGE_LENGTH = 1000;
+
 export const sendAssistantMessage = async (
   userMessage: string,
   chatHistory: ChatMessage[],
@@ -219,6 +221,10 @@ export const sendAssistantMessage = async (
     referees: MappedProfile[];
   },
 ): Promise<AIResponse> => {
+  const trimmed = userMessage.trim();
+  if (!trimmed) throw new Error('invalid-argument: Message cannot be empty');
+  if (trimmed.length > MAX_USER_MESSAGE_LENGTH) throw new Error(`invalid-argument: Message exceeds ${MAX_USER_MESSAGE_LENGTH} characters`);
+
   const gemini = getModel();
   const systemPrompt = buildSystemPrompt(context.tournaments, context.games, context.referees);
 
@@ -232,7 +238,7 @@ export const sendAssistantMessage = async (
         role: (m.role === 'user' ? 'user' : 'model') as 'user' | 'model',
         parts: [{ text: m.text }],
       })),
-    { role: 'user' as const, parts: [{ text: userMessage }] },
+    { role: 'user' as const, parts: [{ text: trimmed }] },
   ];
 
   const result = await traceAsync('ai_assistant_response', () => gemini.generateContent({ contents }));

@@ -160,7 +160,13 @@ async function scanDirectoryForUiImports(directoryPath) {
   });
 
   for (const entry of entries) {
-    const fullEntryPath = path.join(directoryPath, entry.name);
+    const resolvedBase = path.resolve(directoryPath);
+    const resolvedTarget = path.resolve(directoryPath, entry.name);
+    const relativePath = path.relative(resolvedBase, resolvedTarget);
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+      continue;
+    }
+    const fullEntryPath = resolvedTarget;
     const isDirectory = entry.isDirectory();
 
     if (isDirectory) {

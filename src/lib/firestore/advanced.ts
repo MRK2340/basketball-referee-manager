@@ -133,6 +133,12 @@ export const exportUserData = async (user: ServiceUser) => safeHandle(async () =
 });
 
 export const deleteUserData = async (user: ServiceUser) => safeHandle(async () => {
+  await addDoc(collection(db, '_audit_log'), {
+    user_id: user.id,
+    action: 'gdpr_erasure',
+    deleted_at: serverTimestamp(),
+  });
+
   const collections = [
     { name: 'messages', field: 'participants', op: 'array-contains' as const },
     { name: 'game_assignments', field: 'referee_id', op: '==' as const },
