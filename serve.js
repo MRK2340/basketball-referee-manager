@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { join, extname } from 'node:path';
+import { join, extname, resolve, relative } from 'node:path';
 import { existsSync } from 'node:fs';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -27,9 +27,12 @@ const MIME = {
 
 const server = createServer(async (req, res) => {
   const url = req.url.split('?')[0];
-  let filePath = join(DIST, url);
-
-  if (!existsSync(filePath) || !extname(filePath)) {
+  const base = resolve(DIST);
+  let filePath = resolve(base, url);
+  const rel = relative(base, filePath);
+  if (rel.startsWith('..') || resolve(rel) === rel) {
+    filePath = join(DIST, 'index.html');
+  } else if (!existsSync(filePath) || !extname(filePath)) {
     filePath = join(DIST, 'index.html');
   }
 
