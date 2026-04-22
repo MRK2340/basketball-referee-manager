@@ -23,7 +23,10 @@ npm-debug.log*
 .eslintcache
 .vite/
 
-# Credential and secret files (not .env — it holds PUBLIC Firebase config needed for build)
+# Environment and credential files
+.env
+.env.*
+*.env
 credentials.json
 *.pem
 *.key
@@ -34,39 +37,3 @@ memory/test_credentials.md
 
 # Prevent npm lockfile conflicts (project uses yarn)
 package-lock.json
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-.env
-.env.*
-*.env
-credentials.json
-*.pem
-*.key
-.credentials
