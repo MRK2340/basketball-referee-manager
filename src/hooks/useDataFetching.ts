@@ -117,7 +117,7 @@ export const useDataFetching = (user: AppUser | null) => {
     try {
       const allUsers = [...currentReferees, ...currentManagers,
         { id: currentUser.id, name: currentUser.name, avatarUrl: currentUser.avatarUrl } as MappedProfile];
-      const { data, error } = await fetchMoreMessages(currentUser, cursorDate as unknown as string, allUsers);
+      const { data, error } = await fetchMoreMessages(currentUser, cursorDate, allUsers);
       if (error) throw new Error(error.message);
       const result = data as { items: MappedMessage[]; hasMore: boolean };
       setMessages(prev => [...prev, ...result.items]);
@@ -203,7 +203,7 @@ export const useDataFetching = (user: AppUser | null) => {
 
     setRefreshing(true);
     try {
-      const { data, error } = await fetchMoreNotifications(currentUser.id, cursorDate as unknown as string);
+      const { data, error } = await fetchMoreNotifications(currentUser.id, cursorDate);
       if (error) throw new Error(error.message);
       const result = data as { items: AppNotification[]; hasMore: boolean };
       setNotifications(prev => [...prev, ...result.items]);

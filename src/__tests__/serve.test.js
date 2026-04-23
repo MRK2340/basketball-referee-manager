@@ -3,7 +3,7 @@
  * Unit tests for the static file server (serve.js) with focus on path traversal vulnerability mitigation
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { join, resolve, relative } from 'node:path';
 import { existsSync } from 'node:fs';
@@ -63,7 +63,7 @@ function createTestServer(distPath) {
 // Helper to make HTTP request
 function makeRequest(port, path) {
   return new Promise((resolve, reject) => {
-    const req = require('node:http').request(
+    const req = httpRequest(
       {
         hostname: 'localhost',
         port,

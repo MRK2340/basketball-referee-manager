@@ -20,7 +20,7 @@ import type { BracketData, BracketRound, BracketFormat } from '../bracketUtils';
 const PAGE_SIZE = 50;
 
 export const fetchMoreMessages = async (
-  user: ServiceUser, afterTimestamp: string, allUsers: MappedProfile[],
+  user: ServiceUser, afterTimestamp: string | Date, allUsers: MappedProfile[],
 ) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'messages'), where('participants', 'array-contains', user.id),
@@ -57,7 +57,7 @@ export const fetchMoreTournaments = async (
 });
 
 export const fetchMoreNotifications = async (
-  userId: string, afterTimestamp: string,
+  userId: string, afterTimestamp: string | Date,
 ) => safeHandle(async () => {
   const snap = await getDocs(query(
     collection(db, 'notifications'), where('recipient_id', '==', userId),
