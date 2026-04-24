@@ -6,6 +6,12 @@ import { existsSync } from 'node:fs';
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const DIST = join(process.cwd(), 'dist');
 
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+};
+
 const MIME = {
   '.html': 'text/html',
   '.js': 'application/javascript',
@@ -39,11 +45,11 @@ const server = createServer(async (req, res) => {
   try {
     const data = await readFile(filePath);
     const ext = extname(filePath);
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', ...SECURITY_HEADERS });
     res.end(data);
   } catch {
     const html = await readFile(join(DIST, 'index.html'));
-    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.writeHead(200, { 'Content-Type': 'text/html', ...SECURITY_HEADERS });
     res.end(html);
   }
 });

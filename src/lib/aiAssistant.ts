@@ -140,6 +140,9 @@ const functionDeclarations = [
 
 // ── Context Builder ──────────────────────────────────────────────────────────
 
+const p = (val: unknown, max = 80): string =>
+  String(val ?? '').replace(/[\r\n\t]/g, ' ').trim().slice(0, max);
+
 const buildSystemPrompt = (
   tournaments: MappedTournament[],
   games: MappedGame[],
@@ -149,20 +152,20 @@ const buildSystemPrompt = (
   const dayOfWeek = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 
   const tournamentList = tournaments.map(t =>
-    `  - "${t.name}" (ID: ${t.id}, ${t.startDate} to ${t.endDate}, at ${t.location}, ${t.numberOfCourts} courts, ${t.games} games)`
+    `  - "${p(t.name)}" (ID: ${t.id}, ${t.startDate} to ${t.endDate}, at ${p(t.location)}, ${t.numberOfCourts} courts, ${t.games} games)`
   ).join('\n') || '  (none)';
 
   const upcomingGames = games
     .filter(g => g.status === 'scheduled')
     .slice(0, 15)
     .map(g =>
-      `  - ${g.homeTeam} vs ${g.awayTeam} on ${g.date} at ${g.time} @ ${g.venue} (ID: ${g.id}, tournament: "${g.tournamentName}", $${g.payment}${g.assignments.length > 0 ? `, refs: ${g.assignments.map(a => a.referee.name).join(', ')}` : ', NO refs assigned'})`
+      `  - ${p(g.homeTeam)} vs ${p(g.awayTeam)} on ${g.date} at ${g.time} @ ${p(g.venue)} (ID: ${g.id}, tournament: "${p(g.tournamentName)}", $${g.payment}${g.assignments.length > 0 ? `, refs: ${g.assignments.map(a => p(a.referee.name)).join(', ')}` : ', NO refs assigned'})`
     ).join('\n') || '  (none)';
 
   const refereeList = referees
     .slice(0, 20)
     .map(r =>
-      `  - ${r.name} (ID: ${r.id}, rating: ${r.rating}, experience: ${r.experience || 'N/A'})`
+      `  - ${p(r.name)} (ID: ${r.id}, rating: ${r.rating}, experience: ${p(r.experience || 'N/A', 120)})`
     ).join('\n') || '  (none)';
 
   return `You are the iWhistle AI Manager Assistant for an AAU youth basketball league.

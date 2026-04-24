@@ -99,6 +99,9 @@ const refereeFunctionDeclarations = [
 
 import type { MappedAvailability, MappedPayment, IndependentGame } from '@/lib/types';
 
+const p = (val: unknown, max = 80): string =>
+  String(val ?? '').replace(/[\r\n\t]/g, ' ').trim().slice(0, max);
+
 const buildRefereeSystemPrompt = (
   games: MappedGame[],
   availability: MappedAvailability[],
@@ -114,7 +117,7 @@ const buildRefereeSystemPrompt = (
   const myGames = games
     .filter(g => g.assignments.some(a => a.referee?.id === userId))
     .slice(0, 15)
-    .map(g => `  - ${g.homeTeam} vs ${g.awayTeam} on ${g.date} at ${g.time} @ ${g.venue} (${g.status}, $${g.payment}, tournament: "${g.tournamentName}")`)
+    .map(g => `  - ${p(g.homeTeam)} vs ${p(g.awayTeam)} on ${g.date} at ${g.time} @ ${p(g.venue)} (${g.status}, $${g.payment}, tournament: "${p(g.tournamentName)}")`)
     .join('\n') || '  (no assigned games)';
 
   const availDates = availability
@@ -135,10 +138,10 @@ const buildRefereeSystemPrompt = (
 
   const managers = managerProfiles
     .slice(0, 10)
-    .map(m => `  - ${m.name} (ID: ${m.id})`)
+    .map(m => `  - ${p(m.name)} (ID: ${m.id})`)
     .join('\n') || '  (none)';
 
-  return `You are the iWhistle AI Referee Assistant for ${userName}.
+  return `You are the iWhistle AI Referee Assistant for ${p(userName)}.
 Today is ${dayOfWeek}, ${today}.
 
 You help referees check their schedule, manage availability, track earnings, and communicate with managers.
