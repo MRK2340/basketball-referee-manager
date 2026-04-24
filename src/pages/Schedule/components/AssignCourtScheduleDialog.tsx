@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format, addMinutes } from 'date-fns';
+import { format } from 'date-fns';
 import { useData } from '@/contexts/DataContext';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -12,15 +12,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { parseLocalDate, timeToMinutes } from '@/lib/dateUtils';
 
 const AssignCourtScheduleDialog = ({ open, setOpen }) => {
-  const { tournaments, referees, assignmentActions } = useData();
+  const { tournaments, referees, games, assignmentActions } = useData();
   const [tournamentId, setTournamentId] = useState('');
   const [selectedDate, setSelectedDate] = useState(null);
-  const [courtNumber, setCourtNumber] = useState('');
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('17:00');
-  const [gameDuration, setGameDuration] = useState('60');
   const [selectedReferees, setSelectedReferees] = useState([]);
 
   const selectedTournament = tournaments.find(t => t.id === tournamentId);
@@ -31,49 +30,50 @@ const AssignCourtScheduleDialog = ({ open, setOpen }) => {
     );
   };
 
-  const generateSchedule = () => {
-    if (!tournamentId || !selectedDate || !courtNumber || selectedReferees.length < 3) {
-        toast({ title: 'Missing Information', description: 'Please select a tournament, date, court, and at least 3 referees.', variant: 'destructive' });
+  const generateSchedule = async () => {
+    if (!tournamentId || !selectedDate || selectedReferees.length < 3) {
+        toast({ title: 'Missing Information', description: 'Please select a tournament, date, and at least 3 referees.', variant: 'destructive' });
         return;
     }
 
-    const assignments = [];
-    const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    let currentTime = new Date(`${dateStr}T${startTime}`);
-    const endDateTime = new Date(`${dateStr}T${endTime}`);
-    const duration = parseInt(gameDuration, 10);
-    const numReferees = selectedReferees.length;
-    let gameIndex = 0;
-
-    while (currentTime < endDateTime) {
-        const slotStartTime = format(currentTime, 'HH:mm:ss');
-        const slotEndTime = format(addMinutes(currentTime, duration), 'HH:mm:ss');
-        
-        const ref1Index = gameIndex % numReferees;
-        const ref2Index = (gameIndex + 1) % numReferees;
-        
-        assignments.push({
-            tournament_id: tournamentId,
-            referee_id: selectedReferees[ref1Index],
-            court_number: parseInt(courtNumber, 10),
-            assignment_date: dateStr,
-            start_time: slotStartTime,
-            end_time: slotEndTime,
-        });
-        assignments.push({
-            tournament_id: tournamentId,
-            referee_id: selectedReferees[ref2Index],
-            court_number: parseInt(courtNumber, 10),
-            assignment_date: dateStr,
-            start_time: slotStartTime,
-            end_time: slotEndTime,
-        });
-
-        currentTime = addMinutes(currentTime, duration);
-        gameIndex++;
+    const startMinutes = timeToMinutes(startTime);
+    const endMinutes = timeToMinutes(endTime);
+    if (startMinutes == null || endMinutes == null || endMinutes <= startMinutes) {
+      toast({ title: 'Invalid Time Window', description: 'Please choose a valid start and end time.', variant: 'destructive' });
+      return;
     }
-    
-    assignmentActions.assignRefereesToCourt(assignments);
+
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const gamesToAssign = games
+      .filter((game) => {
+        if (game.tournamentId !== tournamentId || game.date !== dateStr || game.status === 'completed') return false;
+        if ((game.assignments || []).length > 0) return false;
+
+        const gameMinutes = timeToMinutes(game.time);
+        return gameMinutes != null && gameMinutes >= startMinutes && gameMinutes < endMinutes;
+      })
+      .sort((a, b) => (timeToMinutes(a.time) ?? 0) - (timeToMinutes(b.time) ?? 0));
+
+    if (gamesToAssign.length === 0) {
+      toast({
+        title: 'No Eligible Games',
+        description: 'No unassigned games were found for this tournament, date, and time window.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const assignments = gamesToAssign.flatMap((game, index) => {
+      const ref1Index = index % selectedReferees.length;
+      const ref2Index = (index + 1) % selectedReferees.length;
+
+      return [
+        { gameId: game.id, refereeId: selectedReferees[ref1Index] },
+        { gameId: game.id, refereeId: selectedReferees[ref2Index] },
+      ];
+    });
+
+    await assignmentActions.assignRefereesToCourt(assignments);
     setOpen(false);
   };
   
@@ -82,7 +82,7 @@ const AssignCourtScheduleDialog = ({ open, setOpen }) => {
       <DialogContent className="sm:max-w-lg bg-white border-slate-200 text-slate-900" data-testid="assign-court-schedule-dialog">
         <DialogHeader>
           <DialogTitle>Assign Court Schedule</DialogTitle>
-          <DialogDescription className="text-slate-600">Assign referees to a court for a time period with a "two on, one off" rotation.</DialogDescription>
+          <DialogDescription className="text-slate-600">Assign selected referees to unassigned tournament games in a date/time window with a rotating crew pattern.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -106,22 +106,17 @@ const AssignCourtScheduleDialog = ({ open, setOpen }) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-white border-slate-200">
-                <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} initialFocus className="text-slate-900" fromDate={selectedTournament ? new Date(selectedTournament.startDate) : undefined} toDate={selectedTournament ? new Date(selectedTournament.endDate) : undefined} />
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  initialFocus
+                  className="text-slate-900"
+                  fromDate={selectedTournament ? parseLocalDate(selectedTournament.startDate) ?? undefined : undefined}
+                  toDate={selectedTournament ? parseLocalDate(selectedTournament.endDate) ?? undefined : undefined}
+                />
               </PopoverContent>
             </Popover>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right text-slate-700">Court #</Label>
-            <Select onValueChange={setCourtNumber} value={courtNumber} disabled={!selectedTournament}>
-              <SelectTrigger className="col-span-3 bg-white border-slate-300" data-testid="assign-court-number-trigger">
-                <SelectValue placeholder="Select a court" />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-slate-200 text-slate-900">
-                {selectedTournament && Array.from({ length: selectedTournament.numberOfCourts }, (_, i) => i + 1).map(num =>
-                  <SelectItem key={num} value={String(num)}>Court {num}</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -132,10 +127,6 @@ const AssignCourtScheduleDialog = ({ open, setOpen }) => {
               <Label htmlFor="end-time" className="text-slate-700">End Time</Label>
               <Input id="end-time" data-testid="assign-court-end-time-input" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className="bg-white border-slate-300" />
             </div>
-          </div>
-          <div>
-            <Label htmlFor="game-duration" className="text-slate-700">Game Duration (minutes)</Label>
-            <Input id="game-duration" data-testid="assign-court-game-duration-input" type="number" value={gameDuration} onChange={e => setGameDuration(e.target.value)} className="bg-white border-slate-300" />
           </div>
           <div>
             <Label className="text-slate-700">Select Referees (at least 3)</Label>
@@ -151,7 +142,7 @@ const AssignCourtScheduleDialog = ({ open, setOpen }) => {
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" data-testid="assign-court-generate-button" onClick={generateSchedule} disabled={selectedReferees.length < 3} className="basketball-gradient hover:opacity-90">Generate & Save Schedule</Button>
+          <Button type="button" data-testid="assign-court-generate-button" onClick={generateSchedule} disabled={selectedReferees.length < 3} className="basketball-gradient hover:opacity-90">Generate & Save Assignments</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
