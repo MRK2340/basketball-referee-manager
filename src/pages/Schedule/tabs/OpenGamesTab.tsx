@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Calendar as CalendarIcon, Clock, MapPin, DollarSign, ThumbsUp, SlidersHorizontal, Sparkles, X } from 'lucide-react';
-import { format, isAfter, isBefore, addDays } from 'date-fns';
+import { format, isAfter, addDays } from 'date-fns';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { parseGameDateTime, parseLocalDate } from '@/lib/dateUtils';
 import NoGamesFound from '../components/NoGamesFound';
 
 const SORT_OPTIONS = [
@@ -28,8 +29,8 @@ const DATE_RANGE_OPTIONS = [
 ];
 
 const OpenGameCard = ({ game, onRequestGame, isRequested, matchScore }) => {
-  let formattedDate = game.date;
-  try { formattedDate = format(new Date(game.date), 'PPP'); } catch { /* ignore */ }
+  const parsedDate = parseLocalDate(game.date);
+  const formattedDate = parsedDate ? format(parsedDate, 'PPP') : game.date;
 
   return (
     <Card className="glass-effect border-slate-200 hover:border-brand-orange hover:shadow-md transition-all duration-300 shadow-xs" data-testid={`open-game-card-${game.id}`}>
@@ -118,6 +119,9 @@ const OpenGamesTab = ({ games }) => {
 
   const filtered = useMemo(() => {
     const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayKey = format(todayStart, 'yyyy-MM-dd');
+
     return games.filter((game) => {
       const hasAssignments = game.assignments && game.assignments.length > 0;
       const isUnassigned = !hasAssignments;
@@ -138,9 +142,10 @@ const OpenGamesTab = ({ games }) => {
 
       // Date range
       if (dateRangeFilter !== 'all') {
-        const gameDate = new Date(game.date);
-        if (dateRangeFilter === 'today' && !format(gameDate, 'yyyy-MM-dd').includes(format(now, 'yyyy-MM-dd'))) return false;
-        if (dateRangeFilter === 'this-week' && isAfter(gameDate, addDays(now, 7))) return false;
+        const gameDate = parseLocalDate(game.date);
+        if (!gameDate) return false;
+        if (dateRangeFilter === 'today' && format(gameDate, 'yyyy-MM-dd') !== todayKey) return false;
+        if (dateRangeFilter === 'this-week' && (gameDate < todayStart || isAfter(gameDate, addDays(todayStart, 7)))) return false;
         if (dateRangeFilter === 'this-month' && (gameDate.getMonth() !== now.getMonth() || gameDate.getFullYear() !== now.getFullYear())) return false;
       }
 
@@ -156,8 +161,8 @@ const OpenGamesTab = ({ games }) => {
       return required.filter((c) => userCerts.includes(c)).length;
     };
     return [...filtered].sort((a, b) => {
-      if (sortBy === 'date-asc') return new Date(a.date) - new Date(b.date);
-      if (sortBy === 'date-desc') return new Date(b.date) - new Date(a.date);
+      if (sortBy === 'date-asc') return (parseGameDateTime(a.date, a.time)?.getTime() ?? 0) - (parseGameDateTime(b.date, b.time)?.getTime() ?? 0);
+      if (sortBy === 'date-desc') return (parseGameDateTime(b.date, b.time)?.getTime() ?? 0) - (parseGameDateTime(a.date, a.time)?.getTime() ?? 0);
       if (sortBy === 'pay-desc') return (Number(b.payment) || 0) - (Number(a.payment) || 0);
       if (sortBy === 'pay-asc') return (Number(a.payment) || 0) - (Number(b.payment) || 0);
       if (sortBy === 'best-match') return matchScore(b) - matchScore(a);
