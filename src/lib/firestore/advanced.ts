@@ -15,8 +15,6 @@ import {
 } from '../mappers';
 import type { BracketData, BracketRound, BracketFormat } from '../bracketUtils';
 
-// ── Pagination ────────────────────────────────────────────────────────────────
-
 const PAGE_SIZE = 50;
 
 export const fetchMoreMessages = async (
@@ -64,10 +62,11 @@ export const fetchMoreNotifications = async (
     orderBy('created_at', 'desc'), startAfter(afterTimestamp), limit(PAGE_SIZE),
   ));
   const docs = docsToArr(snap);
-  return { items: docs, hasMore: docs.length === PAGE_SIZE };
+  return {
+    items: docs.map(n => ({ ...n, created_at: toISOString(n.created_at) })),
+    hasMore: docs.length === PAGE_SIZE,
+  };
 });
-
-// ── Public Profile ────────────────────────────────────────────────────────────
 
 export const fetchPublicRefereeProfile = async (refereeId: string) => safeHandle(async () => {
   const userSnap = await getDoc(doc(db, 'users', refereeId));
@@ -92,8 +91,6 @@ export const fetchPublicRefereeProfile = async (refereeId: string) => safeHandle
   };
 });
 
-// ── Audit Logging ─────────────────────────────────────────────────────────────
-
 export const writeAuditLog = async (
   userId: string, action: string, target: string, details: string = '',
 ) => {
@@ -103,8 +100,6 @@ export const writeAuditLog = async (
     });
   } catch { /* best-effort */ }
 };
-
-// ── GDPR Data Export ──────────────────────────────────────────────────────────
 
 export const exportUserData = async (user: ServiceUser) => safeHandle(async () => {
   const [
@@ -161,8 +156,6 @@ export const deleteUserData = async (user: ServiceUser) => safeHandle(async () =
   await deleteDoc(doc(db, 'users', user.id));
 });
 
-// ── AI Chat History ───────────────────────────────────────────────────────────
-
 export const saveAIChatHistory = async (userId: string, messages: Doc[]): Promise<SafeResult> => safeHandle(async () => {
   await setDoc(doc(db, '_ai_chat_history', userId), {
     user_id: userId, messages: messages.slice(-50), updated_at: new Date().toISOString(),
@@ -178,8 +171,6 @@ export const loadAIChatHistory = async (userId: string): Promise<SafeResult<Doc[
 export const clearAIChatHistory = async (userId: string): Promise<SafeResult> => safeHandle(async () => {
   await deleteDoc(doc(db, '_ai_chat_history', userId));
 });
-
-// ── Auto-Assign Referees ──────────────────────────────────────────────────────
 
 interface AutoAssignSuggestion {
   gameId: string; gameLabel: string; refereeId: string; refereeName: string; reason: string;
@@ -277,8 +268,6 @@ export const generateAutoAssignSuggestions = async (
   return suggestions;
 });
 
-// ── Tournament Brackets ───────────────────────────────────────────────────────
-
 export const saveBracket = async (bracket: BracketData, managerId: string): Promise<SafeResult<string>> => safeHandle(async () => {
   if (!managerId) throw new Error('permission-denied');
   const data: Doc = {
@@ -311,8 +300,6 @@ export const deleteBracket = async (bracketId: string): Promise<SafeResult> => s
   await deleteDoc(doc(db, 'tournament_brackets', bracketId));
 });
 
-// ── Login History ──────────────────────────────────────────────────────────
-
 export interface LoginEvent {
   id: string; action: string; target: string; details: string; timestamp: string;
 }
@@ -328,8 +315,6 @@ export const fetchLoginHistory = async (userId: string): Promise<SafeResult<Logi
   });
 });
 
-// ── Feedback ───────────────────────────────────────────────────────────────
-
 export const saveFeedback = async (
   userId: string, category: string, message: string,
 ): Promise<SafeResult> => safeHandle(async () => {
@@ -337,8 +322,6 @@ export const saveFeedback = async (
     user_id: userId, category, message: message.slice(0, 2000), created_at: serverTimestamp(),
   });
 });
-
-// ── Payment Info ───────────────────────────────────────────────────────────
 
 export interface PaymentInfo {
   preferredMethod: string; bankName: string; routingLast4: string;
