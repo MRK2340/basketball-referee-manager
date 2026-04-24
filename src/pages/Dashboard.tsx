@@ -7,7 +7,7 @@ import { useData } from '@/contexts/DataContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SkeletonStatCard, SkeletonGameCard } from '@/components/SkeletonCard';
+import { SkeletonStatCard } from '@/components/SkeletonCard';
 import { RefereeAIPanel } from '@/components/RefereeAIPanel';
 import {
   Calendar,
@@ -16,17 +16,16 @@ import {
   Clock,
   Star,
   TrendingUp,
-  Users,
   MapPin,
   Mail,
   Bell,
-  CheckCircle,
   AlertCircle,
   MessageCircle,
   Activity
 } from 'lucide-react';
 import { Sparkles } from 'lucide-react';
-import { formatDistanceToNow, isValid, parseISO } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
+import { parseGameDateTime, parseLocalDate } from '@/lib/dateUtils';
 
 const ACTIVITY_ICONS = {
   assignment: { icon: Trophy, color: 'text-brand-orange', bg: 'bg-orange-100' },
@@ -34,16 +33,6 @@ const ACTIVITY_ICONS = {
   payment:    { icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
   conflict:   { icon: AlertCircle, color: 'text-red-600', bg: 'bg-red-100' },
   default:    { icon: Bell, color: 'text-slate-600', bg: 'bg-slate-100' },
-};
-
-const parseGameDate = (value: string) => {
-  if (!value) return null;
-
-  const parsed = parseISO(value);
-  if (isValid(parsed)) return parsed;
-
-  const fallback = new Date(`${value}T00:00:00`);
-  return Number.isNaN(fallback.getTime()) ? null : fallback;
 };
 
 const Dashboard = () => {
@@ -54,11 +43,15 @@ const Dashboard = () => {
 
   const upcomingGames = useMemo(() => {
     const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     return games
       .filter((game) => {
-        const gameDate = parseGameDate(game.date);
-        if (!gameDate || gameDate < now) return false;
+        const gameDateTime = parseGameDateTime(game.date, game.time);
+        if (!gameDateTime) return false;
+
+        const comparisonDate = game.time ? now : todayStart;
+        if (gameDateTime < comparisonDate) return false;
 
         if (user.role === 'referee') {
           return game.assignments.some(a => a.referee?.id === user.id && a.status === 'accepted');
@@ -67,8 +60,8 @@ const Dashboard = () => {
         return true;
       })
       .sort((a, b) => {
-        const aDate = parseGameDate(a.date);
-        const bDate = parseGameDate(b.date);
+        const aDate = parseGameDateTime(a.date, a.time);
+        const bDate = parseGameDateTime(b.date, b.time);
         return (aDate?.getTime() ?? 0) - (bDate?.getTime() ?? 0);
       })
       .slice(0, 3);
@@ -83,7 +76,7 @@ const Dashboard = () => {
     {
       title: 'Games This Month',
       value: games.filter(g => {
-        const d = parseGameDate(g.date);
+        const d = parseLocalDate(g.date);
         const now = new Date();
         return !!d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       }).length,
