@@ -354,7 +354,10 @@ const Payments = () => {
                   <Button
                     key={filterOption.key}
                     data-testid={`payments-filter-${filterOption.key}-button`}
-                    variant={(filter === filterOption.key ? 'default' : 'outline-solid') as unknown as React.ComponentProps<typeof Button>['variant']}
+                    // @ts-expect-error -- 'outline-solid' is not a declared Button variant (latent
+                    // bug, likely a Tailwind-rename artifact); preserved as-is in this types-only
+                    // PR. This pragma errors the moment the value is fixed to 'outline'.
+                    variant={filter === filterOption.key ? 'default' : 'outline-solid'}
                     size="sm"
                     onClick={() => setFilter(filterOption.key)}
                     className={filter === filterOption.key 
