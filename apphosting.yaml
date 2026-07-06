@@ -37,8 +37,13 @@ env:
     availability:
       - BUILD
 
-  # Optional build-time config. These are deployment-specific or sensitive —
-  # store them in Cloud Secret Manager and uncomment:
+  # Optional build-time config. IMPORTANT: every VITE_* value is embedded in
+  # the compiled client bundle and is publicly discoverable — Secret Manager
+  # only keeps these out of the repo and build logs, NOT out of the shipped
+  # app. Never route a value through VITE_* if it must stay confidential.
+  # The demo passwords gate shared throwaway demo accounts and the VAPID key
+  # and Sentry DSN are public-by-design; treat them accordingly.
+  # To enable, create the secrets and uncomment:
   #   firebase apphosting:secrets:set vite-firebase-vapid-key
   #   firebase apphosting:secrets:set vite-demo-manager-password
   #   firebase apphosting:secrets:set vite-demo-referee-password
