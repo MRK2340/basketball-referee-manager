@@ -36,10 +36,7 @@ const ScheduleFilter = ({ searchTerm, setSearchTerm, filter, setFilter }) => {
               {filterOptions.map((filterOption) => (
                 <Button
                   key={filterOption.key}
-                  // @ts-expect-error -- 'outline-solid' is not a declared Button variant (latent
-                  // bug, likely a Tailwind-rename artifact); preserved as-is in this types-only
-                  // PR. This pragma errors the moment the value is fixed to 'outline'.
-                  variant={filter === filterOption.key ? 'default' : 'outline-solid'}
+                  variant={filter === filterOption.key ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setFilter(filterOption.key)}
                   className={`shrink-0 ${filter === filterOption.key 

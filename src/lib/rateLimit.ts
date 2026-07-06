@@ -13,12 +13,12 @@ const pending = new Map<string, boolean>();
 export const guardAction = <T extends (...args: unknown[]) => Promise<unknown>>(
   key: string,
   fn: T,
-): ((...args: Parameters<T>) => Promise<ReturnType<T> | undefined>) => {
-  return async (...args: Parameters<T>) => {
+): ((...args: Parameters<T>) => Promise<Awaited<ReturnType<T>> | undefined>) => {
+  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>> | undefined> => {
     if (pending.get(key)) return undefined;
     pending.set(key, true);
     try {
-      return (await fn(...args)) as ReturnType<T>;
+      return (await fn(...args)) as Awaited<ReturnType<T>>;
     } finally {
       pending.set(key, false);
     }

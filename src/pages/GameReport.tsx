@@ -70,9 +70,7 @@ const GameReport = () => {
       mvp_player: mvpPlayer,
     };
 
-    // DataContextValue types all reportActions as returning Promise<void>, but
-    // useReportActions.submitGameReport actually resolves to a boolean.
-    const success = (await reportActions.submitGameReport(reportData)) as unknown as boolean;
+    const success = await reportActions.submitGameReport(reportData);
     if (success) {
       navigate('/dashboard');
     }

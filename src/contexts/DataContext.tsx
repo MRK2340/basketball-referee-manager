@@ -91,15 +91,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     tournamentActions,
     gameActions,
     // DataContextValue types every action bag as Record<string, (...args) => Promise<void>>.
-    // The four casts below are needed because some handlers infer Promise<Promise<void>>
-    // (guardAction-wrapped async fns; promises flatten at runtime) or Promise<boolean>
-    // (submitGameReport), which don't structurally match Promise<void>.
-    assignmentActions: assignmentActions as unknown as DataContextValue['assignmentActions'],
-    messageActions: messageActions as unknown as DataContextValue['messageActions'],
+    assignmentActions,
+    messageActions,
     availabilityActions,
-    reportActions: reportActions as unknown as DataContextValue['reportActions'],
+    reportActions,
     notificationActions,
-    paymentActions: paymentActions as unknown as DataContextValue['paymentActions'],
+    paymentActions,
     connectionActions,
     settingsActions,
     independentGameActions,

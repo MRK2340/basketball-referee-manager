@@ -144,17 +144,17 @@ export interface DataContextValue {
   loadMoreTournaments: () => Promise<void>;
   loadMoreNotifications: () => Promise<void>;
   fetchData: (isInitial?: boolean) => Promise<void>;
-  tournamentActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  gameActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  assignmentActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  messageActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  availabilityActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  reportActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  notificationActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  paymentActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  connectionActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  settingsActions: Record<string, (...args: unknown[]) => Promise<void>>;
-  independentGameActions: Record<string, (...args: unknown[]) => Promise<void>>;
+  tournamentActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  gameActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  assignmentActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  messageActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  availabilityActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  reportActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  notificationActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  paymentActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  connectionActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  settingsActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
+  independentGameActions: Record<string, (...args: unknown[]) => Promise<unknown>>;
 }
 
 /** Props for icon-based components (LucideIcon type) */
