@@ -77,29 +77,30 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
-      # secrets context is not allowed in job-level `if` — surface it as env
-      # so steps can skip cleanly until the secret exists. Accepts either the
-      # plain name or the project-suffixed one `firebase init hosting:github`
-      # creates automatically; the plain name wins when both exist.
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1 }}
+      # secrets context is not allowed in job-level `if` — gate with a boolean
+      # so steps skip cleanly until the secret exists. Accepts either the plain
+      # name or the project-suffixed one `firebase init hosting:github` creates
+      # automatically; the plain name wins when both exist. Only the deploy step
+      # receives the actual JSON — job-scope env would expose it to every step.
+      HAS_DEPLOY_CREDENTIALS: ${{ (secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1) != '' }}
     steps:
       - name: Checkout
-        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/checkout@v4
 
       - name: Download build artifact
-        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
       - name: Deploy to Firebase Hosting preview channel
-        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ env.FIREBASE_SERVICE_ACCOUNT }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1 }}
           projectId: iwhistle-6f5d1
           expires: 7d
 
@@ -110,25 +111,26 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # Skip deploy steps cleanly until the service account secret exists —
-      # either name works (see deploy-preview above)
-      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1 }}
+      # either name works, and only the deploy step sees the JSON
+      # (see deploy-preview above)
+      HAS_DEPLOY_CREDENTIALS: ${{ (secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1) != '' }}
     steps:
       - name: Checkout
-        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/checkout@v4
 
       - name: Download build artifact
-        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
       - name: Deploy to Firebase Hosting live channel
-        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ env.FIREBASE_SERVICE_ACCOUNT }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1 }}
           projectId: iwhistle-6f5d1
           channelId: live

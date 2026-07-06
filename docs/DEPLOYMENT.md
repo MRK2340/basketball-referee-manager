@@ -25,8 +25,8 @@ Deploying hosting before these would break the public referee-profile page,
 so functions + rules go out first:
 
 ```bash
-cd functions && npm install && cd ..
-firebase deploy --only functions,firestore:rules,firestore:indexes
+cd functions && npm ci && cd ..
+firebase deploy --only functions,firestore:rules,firestore:indexes,storage
 ```
 
 - First functions deploy may prompt to enable APIs (Cloud Build, Artifact
@@ -96,5 +96,6 @@ GitHub → repo **Settings → Branches → Add branch ruleset** (or classic
 ## Routine deploys after setup
 
 Nothing manual — merge to `main` and CI deploys hosting. Only re-run
-Step 1's `firebase deploy --only functions,firestore:rules,firestore:indexes`
-when `functions/`, `firestore.rules`, or `firestore.indexes.json` change.
+Step 1's `firebase deploy --only functions,firestore:rules,firestore:indexes,storage`
+when `functions/`, `firestore.rules`, `firestore.indexes.json`, or
+`storage.rules` change.
