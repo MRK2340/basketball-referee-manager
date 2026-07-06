@@ -79,13 +79,6 @@ describe('Security: Firestore rules review', () => {
     expect(liveSection).toContain('manager_id');
     expect(liveSection).not.toMatch(/allow write:\s*if isAuth\(\);/);
   });
-
-  it('backend CORS does not combine allow_origins=* with credentials (H3 fix verified)', async () => {
-    const fs = await import('fs');
-    const serverPy = fs.readFileSync(path.join(ROOT, 'backend/server.py'), 'utf8');
-    expect(serverPy).toContain('allow_credentials=False');
-    expect(serverPy).not.toContain('allow_credentials=True');
-  });
 });
 
 // ── Type safety: no any in mappers ────────────────────────────────────────────

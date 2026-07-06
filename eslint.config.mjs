@@ -52,7 +52,7 @@ export default [
 			'import/no-cycle': 'off',
 		},
 	},
-	{ files: ['tools/**/*.js', 'tailwind.config.js', 'serve.js'], languageOptions: { globals: { ...globals.node } } },
+	{ files: ['serve.js'], languageOptions: { globals: { ...globals.node } } },
 	// Vitest suites run under Node and may read repo files via fs/process.
 	{ files: ['src/__tests__/**/*.{js,jsx}'], languageOptions: { globals: { ...globals.node } } },
 
