@@ -235,7 +235,10 @@ export const undoImport = async (user: ServiceUser, importId: string): Promise<S
 
   const gameIds: string[] = (data.game_ids as string[]) || [];
   if (gameIds.length > 0) {
-    const collectionName = data.import_type === 'manager_games' ? 'games' : 'independent_games';
+    // manager_games AND league_schedule imports both write to 'games';
+    // only referee schedule imports create independent_games
+    const collectionName = (data.import_type === 'manager_games' || data.import_type === 'league_schedule')
+      ? 'games' : 'independent_games';
     const chunks = chunkArray(gameIds, 400);
     for (const chunk of chunks) {
       const batch = writeBatch(db);

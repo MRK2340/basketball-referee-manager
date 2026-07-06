@@ -86,7 +86,7 @@ const Dashboard = () => {
     },
     {
       title: 'Total Earnings',
-      value: `${totalEarnings.toFixed(2)}`,
+      value: `$${totalEarnings.toFixed(2)}`,
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100'

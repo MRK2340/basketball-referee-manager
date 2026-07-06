@@ -81,14 +81,19 @@ export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHan
 
 export const markGameCompleted = async (user: ServiceUser, gameId: string) => safeHandle(async () => {
   if (!user || user.role !== 'manager') throw new Error('permission-denied');
-  await updateDoc(doc(db, 'games', gameId), { status: 'completed' });
-  const assignmentsSnap = await getDocs(query(collection(db, 'game_assignments'), where('game_id', '==', gameId)));
   const gameDoc = await getDoc(doc(db, 'games', gameId));
   const gameData = gameDoc.data();
+  const alreadyCompleted = gameData?.status === 'completed';
+  await updateDoc(doc(db, 'games', gameId), { status: 'completed' });
+  // Payments are generated once — re-completing must not duplicate them
+  if (alreadyCompleted) return;
+  const assignmentsSnap = await getDocs(query(collection(db, 'game_assignments'), where('game_id', '==', gameId)));
   const batch = writeBatch(db);
   assignmentsSnap.docs.forEach(aDoc => {
     const a = aDoc.data();
-    if (a.status !== 'declined') {
+    // Only confirmed assignments earn a payment — 'pending' self-requests the
+    // manager never approved don't, and declined ones don't either
+    if (a.status === 'assigned' || a.status === 'accepted') {
       const payRef = doc(collection(db, 'payments'));
       batch.set(payRef, {
         game_id: gameId, referee_id: a.referee_id, manager_id: user.id,

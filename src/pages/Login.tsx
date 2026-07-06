@@ -26,12 +26,15 @@ import {
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, resetPassword, createDemoAccounts } = useAuth();
+  const { login, verifyMFA, resetPassword, createDemoAccounts } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [mfaDialogOpen, setMfaDialogOpen] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+  const [isVerifyingMfa, setIsVerifyingMfa] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,13 +47,41 @@ const Login = () => {
       });
       navigate(user.role === 'manager' ? '/manager' : '/dashboard');
     } catch (error) {
+      if (error.message === 'MFA_REQUIRED') {
+        // 2FA-enrolled account — ask for the authenticator code
+        setMfaCode('');
+        setMfaDialogOpen(true);
+      } else {
+        toast({
+          title: "Login Failed 😢",
+          description: error.message || "Something went wrong during login. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+    setIsLoading(false);
+  };
+
+  const handleMfaSubmit = async (e) => {
+    e.preventDefault();
+    if (!mfaCode.trim()) return;
+    setIsVerifyingMfa(true);
+    try {
+      const user = await verifyMFA(mfaCode.trim());
+      setMfaDialogOpen(false);
       toast({
-        title: "Login Failed 😢",
-        description: error.message || "Something went wrong during login. Please try again.",
+        title: "Success! 🎉",
+        description: "You've successfully logged in!",
+      });
+      navigate(user.role === 'manager' ? '/manager' : '/dashboard');
+    } catch (error) {
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Invalid code. Please try again.",
         variant: "destructive",
       });
     }
-    setIsLoading(false);
+    setIsVerifyingMfa(false);
   };
 
   const handleForgotPassword = async () => {
@@ -217,6 +248,39 @@ const Login = () => {
             </Link>
           </div>
         </motion.div>
+
+        <Dialog open={mfaDialogOpen} onOpenChange={setMfaDialogOpen}>
+          <DialogContent className="bg-white border-slate-200 text-slate-900 sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-xl text-center pb-2 text-slate-900">Two-Factor Authentication</DialogTitle>
+              <DialogDescription className="text-center text-slate-600">
+                Enter the 6-digit code from your authenticator app to finish signing in.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleMfaSubmit} className="space-y-4 pt-2" data-testid="login-mfa-form">
+              <Input
+                data-testid="login-mfa-code-input"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder="123456"
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                autoFocus
+                className="bg-white border-slate-300 text-slate-900 text-center text-2xl tracking-[0.5em] placeholder:text-slate-400 placeholder:tracking-normal focus:border-blue-500 focus:ring-blue-500"
+              />
+              <Button
+                type="submit"
+                data-testid="login-mfa-submit-button"
+                className="w-full text-white py-2 rounded-md transition-all shadow-md font-bold"
+                style={{backgroundColor: '#0080C8'}}
+                disabled={isVerifyingMfa || mfaCode.length < 6}
+              >
+                {isVerifyingMfa ? "Verifying..." : "Verify Code"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );

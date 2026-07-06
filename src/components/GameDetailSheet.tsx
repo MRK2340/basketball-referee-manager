@@ -62,7 +62,7 @@ const GameDetailSheet = ({ open, setOpen, game, gameReport }: { open: boolean; s
 
         <div className="py-6 space-y-6">
           {/* Final Score */}
-          {game.status === 'completed' && game.homeScore !== undefined && (
+          {game.status === 'completed' && game.homeScore != null && (
             <div className="p-4 bg-linear-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200 text-center">
               <p className="text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Final Score</p>
               <div className="flex items-center justify-center gap-4">

@@ -9,6 +9,8 @@ const overlapMinutes = (s1, e1, s2, e2) => {
 
 export const getScheduleConflicts = (targetGame, allGames, allAssignments, targetRefereeId) => {
   const gStart = new Date(`${targetGame.date}T${targetGame.time}`);
+  // A game without a valid date/time can't be conflict-checked
+  if (isNaN(gStart.getTime())) return [];
   const bufferHours = GAME_LEVEL_HOURS[targetGame.level?.toLowerCase()] ?? 1.5;
   const gEnd = new Date(gStart.getTime() + bufferHours * 3600000);
 
@@ -18,6 +20,7 @@ export const getScheduleConflicts = (targetGame, allGames, allAssignments, targe
     .filter(Boolean)
     .filter(g => {
       const s = new Date(`${g.date}T${g.time}`);
+      if (isNaN(s.getTime())) return false;
       const hrs = GAME_LEVEL_HOURS[g.level?.toLowerCase()] ?? 1.5;
       const e   = new Date(s.getTime() + hrs * 3600000);
       return overlapMinutes(gStart, gEnd, s, e) > 0;
@@ -29,6 +32,8 @@ export const checkAvailabilitySlots = (referee, targetGame) => {
   if (!slots.length) return null;
 
   const gStart = new Date(`${targetGame.date}T${targetGame.time}`);
+  // Without a valid game datetime availability is unknown, not 'unavailable'
+  if (isNaN(gStart.getTime())) return null;
   const bufferHours = GAME_LEVEL_HOURS[targetGame.level?.toLowerCase()] ?? 1.5;
   const gEnd = new Date(gStart.getTime() + bufferHours * 3600000);
 

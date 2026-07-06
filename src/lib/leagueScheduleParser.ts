@@ -57,10 +57,11 @@ const normalizeExcelTime = (val: unknown): string => {
   if (val == null) return '';
 
   if (typeof val === 'string') {
-    // "19:00" or "7:00 PM"
-    const m24 = val.match(/^(\d{1,2}):(\d{2})/);
-    if (m24) return `${m24[1].padStart(2, '0')}:${m24[2]}`;
+    // "7:00 PM" must be checked before the 24-hour form — an unanchored
+    // 24-hour match would swallow the "7:00" prefix and drop the PM
     const ampm = val.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$/);
+    const m24 = ampm ? null : val.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    if (m24) return `${m24[1].padStart(2, '0')}:${m24[2]}`;
     if (ampm) {
       let h = parseInt(ampm[1], 10);
       const min = ampm[2];
@@ -110,7 +111,14 @@ const normalizeExcelDate = (val: unknown): string => {
     const m = val.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
     if (m) return `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
     const d = new Date(val);
-    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+    if (!isNaN(d.getTime())) {
+      // Read local calendar components — toISOString() would shift the date
+      // by a day for users east of UTC
+      const y = d.getFullYear();
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${mo}-${day}`;
+    }
   }
 
   return '';

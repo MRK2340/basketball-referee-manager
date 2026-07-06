@@ -66,7 +66,7 @@ export const generateReceiptPdf = async (data: ReceiptData): Promise<void> => {
 
   // Details
   const rows: [string, string][] = [
-    ['Date', data.date ? format(new Date(data.date), 'MMMM d, yyyy') : '—'],
+    ['Date', data.date ? format(parseISO(data.date), 'MMMM d, yyyy') : '—'],
     ['Game', data.gameLabel],
     ['Tournament', data.tournamentName],
     ['Method', data.method || '—'],

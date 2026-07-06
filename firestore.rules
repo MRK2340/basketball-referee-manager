@@ -30,6 +30,8 @@ service cloud.firestore {
       allow create: if isAuth() && request.auth.uid == userId;
       allow update: if isAuth() && request.auth.uid == userId
         && !('role' in request.resource.data.diff(resource.data).affectedKeys());
+      // Account deletion (GDPR erasure) — owner only
+      allow delete: if isAuth() && request.auth.uid == userId;
     }
 
     // ── Meta (seed guard) ─────────────────────────────────────────────────────
@@ -72,14 +74,31 @@ service cloud.firestore {
           && request.resource.data.status == 'pending')
       );
       allow update: if isAuth() && (
-        // Managers can update any assignment field
-        isManager()
+        // Managers can update assignments they own, or assignments on their own
+        // games (referee-requested assignments are created with manager_id null)
+        (isManager() && (
+          resource.data.manager_id == request.auth.uid
+          || get(/databases/$(database)/documents/games/$(resource.data.game_id)).data.manager_id == request.auth.uid
+        ))
         ||
-        // Referees can only update status + decline_reason on their own assignments
+        // Referees can only accept a game they were assigned, or decline —
+        // and may only touch status + decline_reason on their own assignments
         (request.auth.uid == resource.data.referee_id
-          && changedFields().hasOnly(['status', 'decline_reason']))
+          && changedFields().hasOnly(['status', 'decline_reason'])
+          && (
+            (request.resource.data.status == 'accepted' && resource.data.status == 'assigned')
+            || request.resource.data.status == 'declined'
+          ))
       );
-      allow delete: if isManager();
+      allow delete: if isAuth() && (
+        // Manager: own assignments or assignments on own games
+        (isManager() && (
+          resource.data.manager_id == request.auth.uid
+          || get(/databases/$(database)/documents/games/$(resource.data.game_id)).data.manager_id == request.auth.uid
+        ))
+        // Referee: own assignments (account-deletion cleanup)
+        || request.auth.uid == resource.data.referee_id
+      );
     }
 
     // ── Payments ──────────────────────────────────────────────────────────────
@@ -103,7 +122,12 @@ service cloud.firestore {
       allow create: if isAuth()
         && request.resource.data.sender_id == request.auth.uid
         && request.auth.uid in request.resource.data.participants;
+      // Participants may only mark messages read — not rewrite content
       allow update: if isAuth() &&
+        request.auth.uid in resource.data.participants &&
+        changedFields().hasOnly(['is_read']);
+      // Account-deletion cleanup — participants may delete their conversations
+      allow delete: if isAuth() &&
         request.auth.uid in resource.data.participants;
     }
 
@@ -114,6 +138,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['recipient_id', 'type', 'title'])
         && (isManager() || request.resource.data.type == 'message');
       allow update: if isAuth() && request.auth.uid == resource.data.recipient_id;
+      // Account-deletion cleanup — recipients may delete their notifications
+      allow delete: if isAuth() && request.auth.uid == resource.data.recipient_id;
     }
 
     // ── Referee Availability ──────────────────────────────────────────────────
@@ -143,6 +169,8 @@ service cloud.firestore {
         (isManager() && request.auth.uid == resource.data.manager_id
           && changedFields().hasOnly(['resolution_note', 'resolved_by', 'resolved_at', 'status']))
       );
+      // Account-deletion cleanup — the reporting referee may delete own reports
+      allow delete: if isAuth() && request.auth.uid == resource.data.referee_id;
     }
 
     // ── Referee Ratings ───────────────────────────────────────────────────────
@@ -157,6 +185,8 @@ service cloud.firestore {
         request.resource.data.stars is number &&
         request.resource.data.stars >= 1 &&
         request.resource.data.stars <= 5;
+      // Account-deletion cleanup — the rated referee may erase ratings about them
+      allow delete: if isAuth() && request.auth.uid == resource.data.referee_id;
     }
 
     // ── Manager Connections ───────────────────────────────────────────────────
@@ -212,8 +242,10 @@ service cloud.firestore {
     // ── Live Game Sessions (only the game's manager can write) ─────────────
     match /live_game_sessions/{gameId} {
       allow read:  if isAuth();
-      allow create: if isAuth()
-        && request.resource.data.manager_id == request.auth.uid;
+      // Doc id == game id: only the manager who owns that game may open a session
+      allow create: if isManager()
+        && request.resource.data.manager_id == request.auth.uid
+        && get(/databases/$(database)/documents/games/$(gameId)).data.manager_id == request.auth.uid;
       allow update: if isAuth()
         && resource.data.manager_id == request.auth.uid;
     }

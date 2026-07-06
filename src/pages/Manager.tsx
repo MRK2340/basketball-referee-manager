@@ -1,1 +1,1 @@
-export { default } from './Manager/index.jsx';
+export { default } from './Manager/index';

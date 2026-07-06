@@ -62,7 +62,7 @@ export const useAssignmentActions = (user: AppUser | null, fetchData: (isInitial
     if (!user || user.role !== 'referee') return;
     const { error } = await requestAssignment(user, gameId);
     if (error) {
-      if ((error as { code?: string }).code === '23505') {
+      if (error.message?.includes('already have a pending request')) {
         toast({ title: "Already Requested", description: "You have already requested to officiate this game.", variant: "default" });
       } else {
         toast({ title: "Request Failed", description: error.message, variant: "destructive" });

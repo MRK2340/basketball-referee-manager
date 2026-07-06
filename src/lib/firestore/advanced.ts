@@ -29,29 +29,52 @@ export const fetchMoreMessages = async (
 });
 
 export const fetchMoreGames = async (
-  managerId: string, afterDatetime: string,
+  managerId: string, cursor: { date: string; id: string },
   assignmentsRaw: Doc[], allUsers: MappedProfile[], tournamentsRaw: Doc[],
 ) => safeHandle(async () => {
+  // Cursor includes the doc id so games sharing a game_date are not skipped
   const snap = await getDocs(query(
     collection(db, 'games'), where('manager_id', '==', managerId),
-    orderBy('game_date', 'desc'), startAfter(afterDatetime), limit(PAGE_SIZE),
+    orderBy('game_date', 'desc'), startAfter(cursor.date, cursor.id), limit(PAGE_SIZE),
   ));
   const docs = docsToArr(snap);
+
+  // The caller only holds assignments for already-loaded games — fetch the
+  // assignments belonging to this new page so referees render on them
+  let pageAssignments: Doc[] = [];
+  const newGameIds = docs.map(d => d.id as string);
+  if (newGameIds.length > 0) {
+    const chunks = chunkArray(newGameIds, 30);
+    const snaps = await Promise.all(chunks.map(chunk =>
+      getDocs(query(collection(db, 'game_assignments'), where('game_id', 'in', chunk)))
+    ));
+    pageAssignments = snaps.flatMap(docsToArr);
+  }
+  const allAssignments = [...assignmentsRaw, ...pageAssignments];
+
+  const last = docs[docs.length - 1];
   return {
-    items: docs.map(g => mapGame(g.id as string, g, assignmentsRaw, allUsers, tournamentsRaw)),
+    items: docs.map(g => mapGame(g.id as string, g, allAssignments, allUsers, tournamentsRaw)),
     hasMore: docs.length === PAGE_SIZE,
+    cursor: last ? { date: last.game_date as string, id: last.id as string } : cursor,
   };
 });
 
 export const fetchMoreTournaments = async (
-  managerId: string, afterName: string, gamesRaw: Doc[],
+  managerId: string, cursor: { name: string; id: string }, gamesRaw: Doc[],
 ) => safeHandle(async () => {
+  // Cursor includes the doc id so tournaments sharing a name are not skipped
   const snap = await getDocs(query(
     collection(db, 'tournaments'), where('manager_id', '==', managerId),
-    orderBy('name'), startAfter(afterName), limit(PAGE_SIZE),
+    orderBy('name'), startAfter(cursor.name, cursor.id), limit(PAGE_SIZE),
   ));
   const docs = docsToArr(snap);
-  return { items: docs.map(t => mapTournament(t, gamesRaw)), hasMore: docs.length === PAGE_SIZE };
+  const last = docs[docs.length - 1];
+  return {
+    items: docs.map(t => mapTournament(t, gamesRaw)),
+    hasMore: docs.length === PAGE_SIZE,
+    cursor: last ? { name: last.name as string, id: last.id as string } : cursor,
+  };
 });
 
 export const fetchMoreNotifications = async (
@@ -214,7 +237,7 @@ export const generateAutoAssignSuggestions = async (
   const availMap = new Map<string, Set<string>>();
   allAvailability.forEach(a => {
     const dates = availMap.get(a.referee_id as string) || new Set();
-    if (a.start_time) dates.add(new Date(a.start_time as string).toISOString().slice(0, 10));
+    if (a.start_time) dates.add(String(a.start_time).slice(0, 10));
     availMap.set(a.referee_id as string, dates);
   });
 

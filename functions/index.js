@@ -135,7 +135,7 @@ exports.sendPushNotification = onDocumentCreated(
         },
         webpush: {
           notification: {
-            icon: 'https://iwhistle-6f5d1.web.app/favicon.ico',
+            icon: 'https://iwhistle-6f5d1.web.app/favicon.svg',
             requireInteraction: false,
           },
           fcmOptions: {
@@ -276,8 +276,8 @@ exports.processGameReminders = onSchedule(
             },
             webpush: {
               notification: {
-                icon: 'https://iwhistle-6f5d1.web.app/favicon.ico',
-                badge: 'https://iwhistle-6f5d1.web.app/favicon.ico',
+                icon: 'https://iwhistle-6f5d1.web.app/favicon.svg',
+                badge: 'https://iwhistle-6f5d1.web.app/favicon.svg',
                 requireInteraction: true,
               },
               fcmOptions: { link: '/schedule' },
