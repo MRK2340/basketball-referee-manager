@@ -317,8 +317,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         await signOut(auth);
       } catch (e) {
-        // Non-fatal: state stays logged-out and a later auth event restores
-        // the session (same as pre-guard behavior) — but record it
+        // Non-fatal by design: UI state is already logged-out, and the edge
+        // self-heals — signing in from /login works against the lingering
+        // session, and a page reload simply logs the user into their own
+        // just-created account. Failing the registration here would be false
+        // (the account exists). Record it and move on.
         logger.warn('[Auth] Post-registration signOut failed:', e);
       }
 
@@ -326,6 +329,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: 'Account created!', description: 'A verification email has been sent. You can now sign in.' });
       return { success: true };
     } catch (error) {
+      // If createUser succeeded but a later step failed (e.g. the profile
+      // write), a live session would linger while the listener was
+      // suppressed — end it best-effort so UI state and auth state agree.
+      try { await signOut(auth); } catch { /* best-effort */ }
       const mapped = mapFirebaseError(error);
       toast({ title: 'Registration failed', description: mapped.message, variant: 'destructive' });
       return { success: false, error: mapped.message };

@@ -14,11 +14,11 @@
  *     "register, then sign in" flow is real.
  */
 import { describe, it, expect } from 'vitest';
-import fs from 'fs';
-import path from 'path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-const src = fs.readFileSync(
-  path.join(process.cwd(), 'src/contexts/AuthContext.tsx'),
+const src = readFileSync(
+  join(process.cwd(), 'src/contexts/AuthContext.tsx'),
   'utf8'
 );
 
