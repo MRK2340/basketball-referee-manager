@@ -26,7 +26,7 @@ import {
 import { checkAndSeedDemoData } from '@/lib/seedFirestore';
 import { Analytics } from '@/lib/analytics';
 import { logger } from '@/lib/logger';
-import { writeAuditLog } from '@/lib/firestoreService';
+import { writeAuditLog, type Doc } from '@/lib/firestoreService';
 import type { AppUser } from '@/lib/types';
 
 interface RegisterData {
@@ -120,6 +120,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
   const userRef = useRef<AppUser | null>(null);
+  // Monotonic id per auth event — lets slow async handlers detect they've
+  // been superseded by a newer sign-in/sign-out event
+  const authEventGen = useRef(0);
+  // True while register() is between createUser and its final signOut —
+  // the auth listener must not react to that transient session
+  const registrationInFlight = useRef(false);
 
   /** Only update state if the user data actually changed (prevents unnecessary re-renders).
    * Uses JSON serialization to catch ANY field change — not just a hardcoded subset. */
@@ -167,7 +173,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Sequencing guard: this handler awaits (profile fetch with a 1.5s
+      // retry), so a slow sign-in event can finish AFTER a later sign-out
+      // event and re-install a user with no Firebase session. Each event
+      // takes a generation; stale events discard their result.
+      const gen = ++authEventGen.current;
+      const isStale = () => gen !== authEventGen.current;
+
       if (firebaseUser) {
+        // During registration the profile doc doesn't exist yet — register()
+        // drives state itself and signs out when done, so skip this event.
+        if (registrationInFlight.current) return;
+
         // Retry profile fetch once before giving up — handles transient network hiccups
         let profile = null;
         let lastErr = null;
@@ -180,7 +197,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             lastErr = err;
             if (attempt < 2) await new Promise(r => setTimeout(r, 1500));
           }
+          if (isStale()) return;
         }
+        if (isStale()) return;
 
         if (lastErr) {
           logger.error('Auth state profile fetch error (both attempts failed):', lastErr);
@@ -209,7 +228,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       setLoading(false);
     });
-    return unsubscribe;
+    return () => {
+      // Invalidate any in-flight handler so it can't set state after unmount
+      authEventGen.current++;
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<AppUser> => {
@@ -257,8 +280,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return userData;
   };
 
-  const register = async (userData: Doc) => {
+  const register = async (userData: RegisterData) => {
     setLoading(true);
+    registrationInFlight.current = true;
     try {
       const { user: fbUser } = await createUserWithEmailAndPassword(
         auth,
@@ -286,14 +310,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Send email verification
       try { await sendEmailVerification(fbUser); } catch { /* best-effort */ }
 
+      // createUserWithEmailAndPassword leaves a live session, but the app's
+      // flow is "register, then sign in" (Register.tsx navigates to /login).
+      // End the session explicitly so that flow is real, not a race between
+      // the auth listener and the profile write above.
+      try {
+        await signOut(auth);
+      } catch (e) {
+        // Non-fatal by design: UI state is already logged-out, and the edge
+        // self-heals — signing in from /login works against the lingering
+        // session, and a page reload simply logs the user into their own
+        // just-created account. Failing the registration here would be false
+        // (the account exists). Record it and move on.
+        logger.warn('[Auth] Post-registration signOut failed:', e);
+      }
+
       Analytics.signUp(userData.role || 'referee');
       toast({ title: 'Account created!', description: 'A verification email has been sent. You can now sign in.' });
       return { success: true };
     } catch (error) {
+      // If createUser succeeded but a later step failed (e.g. the profile
+      // write), a live session would linger while the listener was
+      // suppressed — end it best-effort so UI state and auth state agree.
+      try { await signOut(auth); } catch { /* best-effort */ }
       const mapped = mapFirebaseError(error);
       toast({ title: 'Registration failed', description: mapped.message, variant: 'destructive' });
       return { success: false, error: mapped.message };
     } finally {
+      registrationInFlight.current = false;
       setLoading(false);
     }
   };
@@ -324,7 +368,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProfile = async (updates: Doc) => {
+  const updateProfile = async (updates: ProfileUpdates) => {
     if (!user) return;
     setLoading(true);
     try {
