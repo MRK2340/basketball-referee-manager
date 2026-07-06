@@ -280,7 +280,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return userData;
   };
 
-  const register = async (userData: Doc) => {
+  const register = async (userData: RegisterData) => {
     setLoading(true);
     registrationInFlight.current = true;
     try {
@@ -314,7 +314,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // flow is "register, then sign in" (Register.tsx navigates to /login).
       // End the session explicitly so that flow is real, not a race between
       // the auth listener and the profile write above.
-      try { await signOut(auth); } catch { /* listener guard covers us */ }
+      try {
+        await signOut(auth);
+      } catch (e) {
+        // Non-fatal: state stays logged-out and a later auth event restores
+        // the session (same as pre-guard behavior) — but record it
+        logger.warn('[Auth] Post-registration signOut failed:', e);
+      }
 
       Analytics.signUp(userData.role || 'referee');
       toast({ title: 'Account created!', description: 'A verification email has been sent. You can now sign in.' });
@@ -355,7 +361,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateProfile = async (updates: Doc) => {
+  const updateProfile = async (updates: ProfileUpdates) => {
     if (!user) return;
     setLoading(true);
     try {

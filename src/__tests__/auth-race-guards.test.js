@@ -38,7 +38,8 @@ describe('Auth listener sequencing (stale sign-in vs. sign-out race)', () => {
   });
 
   it('invalidates in-flight handlers on unsubscribe', () => {
-    expect(src).toContain('authEventGen.current++;\n      unsubscribe();');
+    // Regex instead of an exact substring so reformatting can't break this
+    expect(src).toMatch(/authEventGen\.current\+\+;\s*unsubscribe\(\);/);
   });
 });
 
