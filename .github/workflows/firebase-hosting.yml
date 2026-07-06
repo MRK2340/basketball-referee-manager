@@ -77,9 +77,12 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
-      # secrets context is not allowed in job-level `if` — surface it as env
-      # so steps can skip cleanly until FIREBASE_SERVICE_ACCOUNT exists
-      HAS_DEPLOY_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+      # secrets context is not allowed in job-level `if` — gate with a boolean
+      # so steps skip cleanly until the secret exists. Accepts either the plain
+      # name or the project-suffixed one `firebase init hosting:github` creates
+      # automatically; the plain name wins when both exist. Only the deploy step
+      # receives the actual JSON — job-scope env would expose it to every step.
+      HAS_DEPLOY_CREDENTIALS: ${{ (secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1) != '' }}
     steps:
       - name: Checkout
         if: env.HAS_DEPLOY_CREDENTIALS == 'true'
@@ -97,7 +100,7 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1 }}
           projectId: iwhistle-6f5d1
           expires: 7d
 
@@ -107,8 +110,10 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     env:
-      # Skip deploy steps cleanly until the service account secret exists
-      HAS_DEPLOY_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+      # Skip deploy steps cleanly until the service account secret exists —
+      # either name works, and only the deploy step sees the JSON
+      # (see deploy-preview above)
+      HAS_DEPLOY_CREDENTIALS: ${{ (secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1) != '' }}
     steps:
       - name: Checkout
         if: env.HAS_DEPLOY_CREDENTIALS == 'true'
@@ -126,6 +131,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_IWHISTLE_6F5D1 }}
           projectId: iwhistle-6f5d1
           channelId: live
