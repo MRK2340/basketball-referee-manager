@@ -94,7 +94,9 @@ export const AIAssistantPanel = ({ open, onClose }: Props) => {
       (async () => {
         const { data } = await loadAIChatHistory(user.id);
         if (data && data.length > 0) {
-          setMessages(data as ChatMessage[]);
+          // Chat history is persisted as generic Firestore docs (Record<string, unknown>[])
+          // but was written from ChatMessage[] below, so the shape round-trips.
+          setMessages(data as unknown as ChatMessage[]);
         }
         setHistoryLoaded(true);
       })();
@@ -105,7 +107,8 @@ export const AIAssistantPanel = ({ open, onClose }: Props) => {
   useEffect(() => {
     if (!user || !historyLoaded || messages.length <= 1) return;
     const timer = setTimeout(() => {
-      saveAIChatHistory(user.id, messages as Record<string, unknown>[]);
+      // ChatMessage has no index signature; the persistence layer takes generic docs.
+      saveAIChatHistory(user.id, messages as unknown as Record<string, unknown>[]);
     }, 1000);
     return () => clearTimeout(timer);
   }, [messages, user, historyLoaded]);

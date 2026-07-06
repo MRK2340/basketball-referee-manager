@@ -4,8 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
+import type { MappedGame, MappedProfile } from '@/lib/mappers';
 
-const AssignRefereeDialog = ({ open, setOpen, game, referees, onAssign }) => {
+interface AssignRefereeDialogProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  game: MappedGame | null;
+  referees: MappedProfile[];
+  /** Accepted by some call sites for context; not used by this dialog. */
+  games?: MappedGame[];
+  onAssign: (gameId: string, refereeId: string) => void | Promise<unknown>;
+}
+
+const AssignRefereeDialog = ({ open, setOpen, game, referees, onAssign }: AssignRefereeDialogProps) => {
   const [selectedRefereeId, setSelectedRefereeId] = useState('');
 
   const handleAssign = () => {

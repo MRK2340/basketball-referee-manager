@@ -8,7 +8,7 @@ import {
   fetchMoreNotifications,
 } from '@/lib/firestoreService';
 import { traceAsync } from '@/lib/performanceTraces';
-import type { AppUser, AppNotification, RefereeRating, IndependentGame, RefereeWithAvailability, NotificationPreferences } from '@/lib/types';
+import type { AppData, AppUser, AppNotification, RefereeRating, IndependentGame, RefereeWithAvailability, NotificationPreferences } from '@/lib/types';
 import type {
   MappedProfile, MappedGame, MappedTournament, MappedPayment,
   MappedMessage, MappedAvailability, MappedGameReport, MappedConnection,
@@ -67,7 +67,8 @@ export const useDataFetching = (user: AppUser | null) => {
     else setRefreshing(true);
 
     try {
-      const data = await traceAsync('fetch_app_data', () => fetchAppData(currentUser));
+      // fetchAppData is typed as a loose Firestore Doc; AppData is its documented shape.
+      const data = await traceAsync('fetch_app_data', () => fetchAppData(currentUser)) as unknown as AppData & { gamesCursor?: unknown; tournamentsCursor?: unknown };
       setGames(data.games || []);
       setTournaments(data.tournaments || []);
       setPayments(data.payments || []);

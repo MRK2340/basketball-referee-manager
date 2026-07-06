@@ -18,10 +18,10 @@ import {
 export const addTournament = async (user: ServiceUser, tournamentData: Doc) => safeHandle(async () => {
   if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const err = validate(
-    validateRequired(tournamentData.name, 'Tournament name', MAX_TOURNAMENT_NAME),
-    validateRequired(tournamentData.location, 'Location', MAX_VENUE_NAME),
-    validateDate(tournamentData.startDate, 'Start date'),
-    validateDate(tournamentData.endDate, 'End date'),
+    validateRequired(tournamentData.name as string, 'Tournament name', MAX_TOURNAMENT_NAME),
+    validateRequired(tournamentData.location as string, 'Location', MAX_VENUE_NAME),
+    validateDate(tournamentData.startDate as string, 'Start date'),
+    validateDate(tournamentData.endDate as string, 'End date'),
     validateNumber(Number(tournamentData.numberOfCourts), 'Courts', 1, MAX_COURTS),
   );
   if (err) throw new Error(`invalid-argument: ${err}`);
@@ -64,11 +64,11 @@ export const archiveTournamentRecord = async (user: ServiceUser, tournamentId: s
 export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
   if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const err = validate(
-    validateRequired(gameData.home_team, 'Home team', MAX_TEAM_NAME),
-    validateRequired(gameData.away_team, 'Away team', MAX_TEAM_NAME),
-    validateDate(gameData.game_date, 'Game date'),
-    validateOptional(gameData.venue, 'Venue', MAX_VENUE_NAME),
-    validateTime(gameData.game_time),
+    validateRequired(gameData.home_team as string, 'Home team', MAX_TEAM_NAME),
+    validateRequired(gameData.away_team as string, 'Away team', MAX_TEAM_NAME),
+    validateDate(gameData.game_date as string, 'Game date'),
+    validateOptional(gameData.venue as string | undefined, 'Venue', MAX_VENUE_NAME),
+    validateTime(gameData.game_time as string),
     gameData.payment_amount != null ? validateNumber(Number(gameData.payment_amount), 'Payment', 0, MAX_FEE) : null,
   );
   if (err) throw new Error(`invalid-argument: ${err}`);
@@ -169,7 +169,7 @@ export const sendMessageRecord = async (user: ServiceUser, messageData: Doc) => 
     throw new Error('invalid-argument: Recipient ID is required.');
   }
   if (recipientId === user.id) throw new Error('invalid-argument: Cannot send a message to yourself.');
-  const contentErr = validateOptional(messageData.content, 'Message content', MAX_MESSAGE_LENGTH);
+  const contentErr = validateOptional(messageData.content as string | undefined, 'Message content', MAX_MESSAGE_LENGTH);
   if (contentErr) throw new Error(`invalid-argument: ${contentErr}`);
   const recipientSnap = await getDoc(doc(db, 'users', recipientId));
   if (!recipientSnap.exists()) throw new Error('not-found: Recipient not found.');

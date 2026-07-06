@@ -106,7 +106,7 @@ const OpenGamesTab = ({ games }) => {
 
   // Unique divisions
   const divisions = useMemo(() => {
-    const divSet = new Set(games.map((g) => g.division).filter(Boolean));
+    const divSet = new Set<string>(games.map((g) => g.division).filter(Boolean));
     return ['all', ...Array.from(divSet)];
   }, [games]);
 

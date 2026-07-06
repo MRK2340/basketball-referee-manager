@@ -58,7 +58,7 @@ export const useAssignmentActions = (user: AppUser | null, fetchData: (isInitial
     }
   };
 
-  const requestGameAssignment = guardAction('requestAssignment', async (gameId) => {
+  const requestGameAssignment = guardAction('requestAssignment', async (gameId: string) => {
     if (!user || user.role !== 'referee') return;
     const { error } = await requestAssignment(user, gameId);
     if (error) {

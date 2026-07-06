@@ -15,8 +15,17 @@ const StandingsTab = ({ tournaments, games }) => {
     [games, selectedTournamentId]
   );
 
+  interface TeamStanding {
+    team: string;
+    wins: number;
+    losses: number;
+    pf: number;
+    pa: number;
+    games: number;
+  }
+
   const standings = useMemo(() => {
-    const teamMap = {};
+    const teamMap: Record<string, TeamStanding> = {};
     completedGames.forEach((game) => {
       const home = game.homeTeam;
       const away = game.awayTeam;

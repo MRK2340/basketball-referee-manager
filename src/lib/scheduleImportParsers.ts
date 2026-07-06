@@ -198,7 +198,8 @@ const extractPDFText = async (buffer: ArrayBuffer): Promise<string> => {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
     const text = content.items
-      .map((item: { str?: string }) => item.str || '')
+      // items are TextItem | TextMarkedContent; only TextItem carries `str`
+      .map((item) => (item as { str?: string }).str || '')
       .join(' ');
     pages.push(text);
   }

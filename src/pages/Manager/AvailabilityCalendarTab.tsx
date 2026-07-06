@@ -239,7 +239,7 @@ const AvailabilityCalendarTab = ({ referees, games }) => {
   const today     = useMemo(() => new Date(), []);
 
   const allCerts = useMemo(() => {
-    const certSet = new Set();
+    const certSet = new Set<string>();
     referees.forEach((r) => (r.certifications || []).forEach((c) => certSet.add(c)));
     return ['all', ...Array.from(certSet)];
   }, [referees]);

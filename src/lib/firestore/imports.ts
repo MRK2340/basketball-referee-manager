@@ -258,4 +258,5 @@ export const undoImport = async (user: ServiceUser, importId: string): Promise<S
   }
 
   await deleteDoc(doc(db, '_import_history', importId));
+  return true as const;
 });

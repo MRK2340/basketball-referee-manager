@@ -71,7 +71,7 @@ export const useRealtimeMessages = (
 
     const handleSnapshot = (snapshot: QuerySnapshot, useFallbackSort = false) => {
       let allMessages = snapshot.docs
-        .map(d => mapRawMessage(d.id, d.data(), usersMapRef.current, user.id));
+        .map(d => mapRawMessage(d.id, d.data() as RawMessageDoc, usersMapRef.current, user.id));
       if (useFallbackSort) {
         allMessages = allMessages.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
       }

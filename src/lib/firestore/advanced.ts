@@ -189,6 +189,7 @@ export const saveAIChatHistory = async (userId: string, messages: Doc[]): Promis
   await setDoc(doc(db, '_ai_chat_history', userId), {
     user_id: userId, messages: messages.slice(-50), updated_at: new Date().toISOString(),
   });
+  return true as const;
 });
 
 export const loadAIChatHistory = async (userId: string): Promise<SafeResult<Doc[]>> => safeHandle(async () => {
@@ -199,6 +200,7 @@ export const loadAIChatHistory = async (userId: string): Promise<SafeResult<Doc[
 
 export const clearAIChatHistory = async (userId: string): Promise<SafeResult> => safeHandle(async () => {
   await deleteDoc(doc(db, '_ai_chat_history', userId));
+  return true as const;
 });
 
 interface AutoAssignSuggestion {
@@ -327,6 +329,7 @@ export const loadBracket = async (tournamentId: string): Promise<SafeResult<Brac
 
 export const deleteBracket = async (bracketId: string): Promise<SafeResult> => safeHandle(async () => {
   await deleteDoc(doc(db, 'tournament_brackets', bracketId));
+  return true as const;
 });
 
 export interface LoginEvent {
@@ -350,6 +353,7 @@ export const saveFeedback = async (
   await addDoc(collection(db, '_feedback'), {
     user_id: userId, category, message: message.slice(0, 2000), created_at: serverTimestamp(),
   });
+  return true as const;
 });
 
 export interface PaymentInfo {
@@ -381,4 +385,5 @@ export const savePaymentInfo = async (
     zelle_phone: info.zellePhone || '', paypal_email: info.paypalEmail || '',
     updated_at: serverTimestamp(),
   }, { merge: true });
+  return true as const;
 });

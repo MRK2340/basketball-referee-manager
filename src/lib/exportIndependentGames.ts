@@ -56,13 +56,14 @@ export const exportToCSV = (games, year, refereeName = 'Referee') => {
 export const exportToPDF = (games, year, refereeName = 'Referee') => {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
 
-  const BLUE = [0, 128, 200];      // #0080C8
-  const DEEP_BLUE = [0, 61, 122];  // #003D7A
-  const ORANGE = [255, 140, 0];    // #FF8C00
-  const WHITE = [255, 255, 255];
-  const LIGHT_GREY = [245, 247, 250];
-  const TEXT_DARK = [30, 41, 59];
-  const TEXT_MID = [100, 116, 139];
+  type RGB = [number, number, number];
+  const BLUE: RGB = [0, 128, 200];      // #0080C8
+  const DEEP_BLUE: RGB = [0, 61, 122];  // #003D7A
+  const ORANGE: RGB = [255, 140, 0];    // #FF8C00
+  const WHITE: RGB = [255, 255, 255];
+  const LIGHT_GREY: RGB = [245, 247, 250];
+  const TEXT_DARK: RGB = [30, 41, 59];
+  const TEXT_MID: RGB = [100, 116, 139];
 
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 16;
@@ -100,7 +101,7 @@ export const exportToPDF = (games, year, refereeName = 'Referee') => {
 
   // ── Summary stats row ──
   const totalFee = games.reduce((sum, g) => sum + (Number(g.fee) || 0), 0);
-  const byType = games.reduce((acc, g) => { acc[g.game_type] = (acc[g.game_type] || 0) + 1; return acc; }, {});
+  const byType: Record<string, number> = games.reduce((acc, g) => { acc[g.game_type] = (acc[g.game_type] || 0) + 1; return acc; }, {});
   const topType = Object.entries(byType).sort((a, b) => b[1] - a[1])[0];
 
   const statsY = 48;
@@ -212,7 +213,9 @@ export const exportToPDF = (games, year, refereeName = 'Referee') => {
   });
 
   // ── Footer ──
-  const finalY = doc.lastAutoTable.finalY || doc.internal.pageSize.getHeight() - 20;
+  // jspdf-autotable sets lastAutoTable on the jsPDF instance at runtime but does
+  // not augment the jsPDF type.
+  const finalY = (doc as jsPDF & { lastAutoTable: { finalY?: number } }).lastAutoTable.finalY || doc.internal.pageSize.getHeight() - 20;
   const footerY = Math.min(finalY + 12, doc.internal.pageSize.getHeight() - 14);
 
   doc.setFillColor(...LIGHT_GREY);
