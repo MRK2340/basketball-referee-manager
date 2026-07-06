@@ -1,0 +1,26 @@
+name: Hash probe (temporary)
+
+# One-off utility: computes checksums of the SheetJS CDN tarball so the
+# yarn.lock entry can carry a verifiable hash. The authoring environment
+# cannot reach cdn.sheetjs.com; GitHub runners can. Deleted after use.
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  hash:
+    name: Hash xlsx tarball
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download and hash
+        run: |
+          curl -fsSL -o xlsx.tgz https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz
+          echo "BYTES=$(stat -c%s xlsx.tgz)"
+          echo "SHA1=$(sha1sum xlsx.tgz | cut -d' ' -f1)"
+          echo "SHA512_B64=$(openssl dgst -sha512 -binary xlsx.tgz | openssl base64 -A)"
+          tar -xzf xlsx.tgz package/package.json
+          echo "PKG_VERSION=$(node -p "require('./package/package.json').version")"
+          echo "PKG_DEPS=$(node -p "JSON.stringify(require('./package/package.json').dependencies || null)")"
