@@ -1,7 +1,10 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-const Avatar = React.forwardRef(({ className, ...props }, ref) => (
+const Avatar = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<'div'>
+>(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
@@ -13,7 +16,10 @@ const Avatar = React.forwardRef(({ className, ...props }, ref) => (
 ));
 Avatar.displayName = "Avatar";
 
-const AvatarImage = React.forwardRef(({ className, ...props }, ref) => (
+const AvatarImage = React.forwardRef<
+  HTMLImageElement,
+  React.ComponentPropsWithoutRef<'img'>
+>(({ className, ...props }, ref) => (
   <img
     ref={ref}
     className={cn("aspect-square h-full w-full", className)}
@@ -22,7 +28,10 @@ const AvatarImage = React.forwardRef(({ className, ...props }, ref) => (
 ));
 AvatarImage.displayName = "AvatarImage";
 
-const AvatarFallback = React.forwardRef(({ className, ...props }, ref) => (
+const AvatarFallback = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<'div'>
+>(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
