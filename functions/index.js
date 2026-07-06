@@ -10,6 +10,7 @@
  */
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
@@ -149,6 +150,54 @@ exports.sendPushNotification = onDocumentCreated(
         await db.collection('_fcm_tokens').doc(recipientId).update({ token: null });
       }
     }
+  }
+);
+
+// ── Public Referee Profile ──────────────────────────────────────────────────
+
+/**
+ * Serves the public referee profile as a server-side projection of SAFE
+ * fields only. The /referee/:id page is intentionally public (shareable
+ * links, no login), but Firestore rules are all-or-nothing per document —
+ * a public read rule on /users would expose email/phone to any anonymous
+ * SDK client. This callable keeps user docs auth-only while the page works
+ * for logged-out visitors.
+ */
+exports.getPublicRefereeProfile = onCall(
+  { region: 'us-central1' },
+  async (request) => {
+    const refereeId = request.data?.refereeId;
+    if (typeof refereeId !== 'string' || refereeId.length === 0 || refereeId.length > 128) {
+      throw new HttpsError('invalid-argument', 'A referee id is required.');
+    }
+
+    const userSnap = await db.collection('users').doc(refereeId).get();
+    if (!userSnap.exists) throw new HttpsError('not-found', 'Referee not found.');
+    const data = userSnap.data();
+    if (data.role !== 'referee') throw new HttpsError('not-found', 'Profile not available.');
+
+    const ratingsSnap = await db.collection('referee_ratings')
+      .where('referee_id', '==', refereeId).get();
+    const ratings = ratingsSnap.docs.map(d => d.data());
+    const avgRating = ratings.length > 0
+      ? ratings.reduce((sum, r) => sum + (Number(r.stars) || 0), 0) / ratings.length
+      : (Number(data.rating) || 0);
+
+    // Projection: public-safe fields ONLY — never email, phone, or
+    // notification/payment details.
+    return {
+      id: refereeId,
+      name: data.name || '',
+      avatarUrl: data.avatar_url || '',
+      bio: data.bio || '',
+      location: data.location || '',
+      certifications: data.certifications || [],
+      gamesOfficiated: data.games_officiated || 0,
+      rating: Math.round(avgRating * 10) / 10,
+      totalRatings: ratings.length,
+      experience: data.experience || '',
+      createdAt: data.created_at || '',
+    };
   }
 );
 

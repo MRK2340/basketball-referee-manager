@@ -26,7 +26,10 @@ service cloud.firestore {
 
     // ── Users ─────────────────────────────────────────────────────────────────
     match /users/{userId} {
-      allow read: if isAuth() || resource.data.role == 'referee';
+      // Auth-only: public referee profiles are served by the
+      // getPublicRefereeProfile Cloud Function, which projects safe fields —
+      // a public read rule here would expose email/phone to anonymous SDKs.
+      allow read: if isAuth();
       allow create: if isAuth() && request.auth.uid == userId;
       allow update: if isAuth() && request.auth.uid == userId
         && !('role' in request.resource.data.diff(resource.data).affectedKeys());
