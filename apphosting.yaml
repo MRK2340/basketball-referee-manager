@@ -8,3 +8,62 @@ runConfig:
 env:
   - variable: NODE_ENV
     value: production
+
+  # Firebase web config — required at build time (src/lib/firebase.ts fails
+  # fast if any of these six are missing). These values are public by design:
+  # they ship in the client bundle and in public/firebase-messaging-sw.js.
+  - variable: VITE_FIREBASE_API_KEY
+    value: AIzaSyAjk1notFHFwsxEE34IuUWp20FujMe_6zk
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_AUTH_DOMAIN
+    value: iwhistle-6f5d1.firebaseapp.com
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_PROJECT_ID
+    value: iwhistle-6f5d1
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_STORAGE_BUCKET
+    value: iwhistle-6f5d1.firebasestorage.app
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_MESSAGING_SENDER_ID
+    value: "629950123933"
+    availability:
+      - BUILD
+  - variable: VITE_FIREBASE_APP_ID
+    value: 1:629950123933:web:588ba00892d917617c6974
+    availability:
+      - BUILD
+
+  # Optional build-time config. IMPORTANT: every VITE_* value is embedded in
+  # the compiled client bundle and is publicly discoverable — Secret Manager
+  # only keeps these out of the repo and build logs, NOT out of the shipped
+  # app. Never route a value through VITE_* if it must stay confidential.
+  # The demo passwords gate shared throwaway demo accounts and the VAPID key
+  # and Sentry DSN are public-by-design; treat them accordingly.
+  # To enable, create the secrets and uncomment:
+  #   firebase apphosting:secrets:set vite-firebase-vapid-key
+  #   firebase apphosting:secrets:set vite-demo-manager-password
+  #   firebase apphosting:secrets:set vite-demo-referee-password
+  #   firebase apphosting:secrets:set vite-sentry-dsn
+  # (Leaving them unset only disables the corresponding feature: web push,
+  # demo logins, Sentry reporting.)
+  #
+  # - variable: VITE_FIREBASE_VAPID_KEY
+  #   secret: vite-firebase-vapid-key
+  #   availability:
+  #     - BUILD
+  # - variable: VITE_DEMO_MANAGER_PASSWORD
+  #   secret: vite-demo-manager-password
+  #   availability:
+  #     - BUILD
+  # - variable: VITE_DEMO_REFEREE_PASSWORD
+  #   secret: vite-demo-referee-password
+  #   availability:
+  #     - BUILD
+  # - variable: VITE_SENTRY_DSN
+  #   secret: vite-sentry-dsn
+  #   availability:
+  #     - BUILD
