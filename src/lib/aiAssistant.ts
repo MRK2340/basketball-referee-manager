@@ -250,7 +250,7 @@ export const sendAssistantMessage = async (
   }
 
   const actions: AIAction[] = [];
-  let textParts: string[] = [];
+  const textParts: string[] = [];
 
   for (const part of candidate.content.parts) {
     if ('text' in part && part.text) {
