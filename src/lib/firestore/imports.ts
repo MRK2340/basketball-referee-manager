@@ -258,4 +258,6 @@ export const undoImport = async (user: ServiceUser, importId: string): Promise<S
   }
 
   await deleteDoc(doc(db, '_import_history', importId));
-});
+  // Types-only cast: safeHandle infers SafeResult<void> from a void callback,
+  // but at runtime coerces a void result to `data: true`, matching SafeResult.
+}) as unknown as Promise<SafeResult>;

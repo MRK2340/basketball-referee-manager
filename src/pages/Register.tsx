@@ -23,14 +23,21 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  type RegisterErrors = {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    password?: string | null;
+    confirmPassword?: string | null;
+  };
+  const [errors, setErrors] = useState<RegisterErrors>({});
 
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: RegisterErrors = {};
     if (formData.name.trim().length < 2) {
       newErrors.name = "Name must be at least 2 characters.";
     }

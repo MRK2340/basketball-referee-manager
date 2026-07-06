@@ -49,7 +49,9 @@ export const useRealtimeNotifications = (
 
     const handleSnapshot = (snapshot: QuerySnapshot, useFallbackSort = false) => {
       let allNotifs: AppNotification[] = snapshot.docs.map(d => {
-        const data = d.data();
+        // Raw doc matches AppNotification minus id (created_at arrives as a
+        // Firestore Timestamp and is normalized to an ISO string below).
+        const data = d.data() as Omit<AppNotification, 'id'>;
         return { id: d.id, ...data, created_at: toISOString(data.created_at) };
       });
       if (useFallbackSort) {

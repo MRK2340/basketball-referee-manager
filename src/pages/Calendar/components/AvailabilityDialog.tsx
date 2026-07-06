@@ -10,9 +10,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar as DayPickerCalendar } from '@/components/ui/calendar';
 import { toast } from '@/components/ui/use-toast';
+import type { DateRange } from 'react-day-picker';
 
 const AvailabilityDialog = ({ isOpen, onOpenChange, addAvailability }) => {
-  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
 
   const handleSave = () => {
     if (dateRange?.from) {

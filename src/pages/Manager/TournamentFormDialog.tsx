@@ -9,12 +9,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { toast } from '@/components/ui/use-toast';
+import type { DateRange } from 'react-day-picker';
+import type { MappedTournament } from '@/lib/mappers';
 
-const TournamentFormDialog = ({ open, setOpen, tournament, onSubmit }) => {
+interface TournamentFormDialogProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  tournament?: MappedTournament | null;
+  onSubmit: (data: {
+    name: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    numberOfCourts: number;
+  }) => void | Promise<unknown>;
+}
+
+const TournamentFormDialog = ({ open, setOpen, tournament, onSubmit }: TournamentFormDialogProps) => {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [numberOfCourts, setNumberOfCourts] = useState('');
-  const [date, setDate] = useState({ from: undefined, to: undefined });
+  const [date, setDate] = useState<DateRange>({ from: undefined, to: undefined });
 
   const isEditMode = !!tournament;
 

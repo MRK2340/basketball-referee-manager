@@ -185,11 +185,14 @@ export const deleteUserData = async (user: ServiceUser) => safeHandle(async () =
   await deleteDoc(doc(db, 'users', user.id));
 });
 
+// Note: the `as unknown as Promise<SafeResult>` casts below are types-only.
+// safeHandle infers SafeResult<void> from a void callback, but at runtime it
+// coerces a void result to `data: true` (`result ?? true`), matching SafeResult.
 export const saveAIChatHistory = async (userId: string, messages: Doc[]): Promise<SafeResult> => safeHandle(async () => {
   await setDoc(doc(db, '_ai_chat_history', userId), {
     user_id: userId, messages: messages.slice(-50), updated_at: new Date().toISOString(),
   });
-});
+}) as unknown as Promise<SafeResult>;
 
 export const loadAIChatHistory = async (userId: string): Promise<SafeResult<Doc[]>> => safeHandle(async () => {
   const snap = await getDoc(doc(db, '_ai_chat_history', userId));
@@ -199,7 +202,7 @@ export const loadAIChatHistory = async (userId: string): Promise<SafeResult<Doc[
 
 export const clearAIChatHistory = async (userId: string): Promise<SafeResult> => safeHandle(async () => {
   await deleteDoc(doc(db, '_ai_chat_history', userId));
-});
+}) as unknown as Promise<SafeResult>;
 
 interface AutoAssignSuggestion {
   gameId: string; gameLabel: string; refereeId: string; refereeName: string; reason: string;
@@ -327,7 +330,7 @@ export const loadBracket = async (tournamentId: string): Promise<SafeResult<Brac
 
 export const deleteBracket = async (bracketId: string): Promise<SafeResult> => safeHandle(async () => {
   await deleteDoc(doc(db, 'tournament_brackets', bracketId));
-});
+}) as unknown as Promise<SafeResult>;
 
 export interface LoginEvent {
   id: string; action: string; target: string; details: string; timestamp: string;
@@ -350,7 +353,7 @@ export const saveFeedback = async (
   await addDoc(collection(db, '_feedback'), {
     user_id: userId, category, message: message.slice(0, 2000), created_at: serverTimestamp(),
   });
-});
+}) as unknown as Promise<SafeResult>;
 
 export interface PaymentInfo {
   preferredMethod: string; bankName: string; routingLast4: string;
@@ -381,4 +384,4 @@ export const savePaymentInfo = async (
     zelle_phone: info.zellePhone || '', paypal_email: info.paypalEmail || '',
     updated_at: serverTimestamp(),
   }, { merge: true });
-});
+}) as unknown as Promise<SafeResult>;

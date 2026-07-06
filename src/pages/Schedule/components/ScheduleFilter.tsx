@@ -36,7 +36,7 @@ const ScheduleFilter = ({ searchTerm, setSearchTerm, filter, setFilter }) => {
               {filterOptions.map((filterOption) => (
                 <Button
                   key={filterOption.key}
-                  variant={filter === filterOption.key ? 'default' : 'outline-solid'}
+                  variant={(filter === filterOption.key ? 'default' : 'outline-solid') as unknown as React.ComponentProps<typeof Button>['variant']}
                   size="sm"
                   onClick={() => setFilter(filterOption.key)}
                   className={`shrink-0 ${filter === filterOption.key 

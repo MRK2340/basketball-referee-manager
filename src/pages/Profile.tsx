@@ -282,7 +282,7 @@ const Profile = () => {
                           value={formData.name}
                           onChange={handleChange}
                           className="pl-10 bg-white border-slate-300 text-slate-900"
-                          maxLength="100"
+                          maxLength={'100' as unknown as number}
                         />
                       </div>
                     ) : (
@@ -313,7 +313,7 @@ const Profile = () => {
                           value={formData.phone}
                           onChange={handleChange}
                           className="pl-10 bg-white border-slate-300 text-slate-900"
-                          maxLength="20"
+                          maxLength={'20' as unknown as number}
                         />
                       </div>
                     ) : (
@@ -337,7 +337,7 @@ const Profile = () => {
                           onChange={handleChange}
                           placeholder="e.g., 5 years"
                           className="pl-10 bg-white border-slate-300 text-slate-900"
-                          maxLength="50"
+                          maxLength={'50' as unknown as number}
                         />
                       </div>
                     ) : (

@@ -4,7 +4,7 @@
  * Uses Gemini 2.5 Pro with function calling to convert natural language into actions.
  */
 import app from './firebase';
-import { getAI, getGenerativeModel, VertexAIBackend, type GenerativeModel } from 'firebase/ai';
+import { getAI, getGenerativeModel, VertexAIBackend, type GenerativeModel, type FunctionDeclaration } from 'firebase/ai';
 import { traceAsync } from './performanceTraces';
 import type { MappedGame, MappedTournament, MappedProfile } from './mappers';
 
@@ -202,7 +202,9 @@ const getModel = (): GenerativeModel => {
     const ai = getAI(app, { backend: new VertexAIBackend() });
     model = getGenerativeModel(ai, {
       model: 'gemini-2.5-pro',
-      tools: [{ functionDeclarations }],
+      // The SDK types declarations via its Schema classes / SchemaType enum, but
+      // accepts equivalent plain JSON-schema objects at runtime.
+      tools: [{ functionDeclarations: functionDeclarations as unknown as FunctionDeclaration[] }],
     });
   }
   return model;

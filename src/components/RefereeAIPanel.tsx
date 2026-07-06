@@ -64,7 +64,9 @@ export const RefereeAIPanel = ({ open, onClose }: Props) => {
     if (open && user && !historyLoaded) {
       (async () => {
         const { data } = await loadAIChatHistory(user.id + '_referee');
-        if (data && data.length > 0) setMessages(data as ChatMessage[]);
+        // Chat history is persisted as generic Firestore docs (Record<string, unknown>[])
+        // but was written from ChatMessage[] below, so the shape round-trips.
+        if (data && data.length > 0) setMessages(data as unknown as ChatMessage[]);
         setHistoryLoaded(true);
       })();
     }
@@ -72,7 +74,8 @@ export const RefereeAIPanel = ({ open, onClose }: Props) => {
 
   useEffect(() => {
     if (!user || !historyLoaded || messages.length <= 1) return;
-    const t = setTimeout(() => saveAIChatHistory(user.id + '_referee', messages as Record<string, unknown>[]), 1000);
+    // ChatMessage has no index signature; the persistence layer takes generic docs.
+    const t = setTimeout(() => saveAIChatHistory(user.id + '_referee', messages as unknown as Record<string, unknown>[]), 1000);
     return () => clearTimeout(t);
   }, [messages, user, historyLoaded]);
 

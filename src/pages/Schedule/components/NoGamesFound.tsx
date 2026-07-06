@@ -4,7 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar as CalendarIcon, Plus, Search } from 'lucide-react';
 
-const NoGamesFound = ({ userRole, hasFilter, onScheduleGame }) => {
+interface NoGamesFoundProps {
+  userRole?: string;
+  hasFilter?: boolean;
+  onScheduleGame?: () => void;
+}
+
+const NoGamesFound = ({ userRole, hasFilter, onScheduleGame }: NoGamesFoundProps) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}

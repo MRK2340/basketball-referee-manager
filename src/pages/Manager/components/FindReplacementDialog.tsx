@@ -78,7 +78,7 @@ const FindReplacementDialog = ({ open, setOpen, game, referees, games, onAssign 
                 </TableRow>
               )) : (
                 <TableRow>
-                  <TableCell colSpan="3" className="text-center text-slate-400 py-8">
+                  <TableCell colSpan={'3' as unknown as number} className="text-center text-slate-400 py-8">
                     No available referees found for this game slot.
                   </TableCell>
                 </TableRow>

@@ -354,7 +354,7 @@ const Payments = () => {
                   <Button
                     key={filterOption.key}
                     data-testid={`payments-filter-${filterOption.key}-button`}
-                    variant={filter === filterOption.key ? 'default' : 'outline-solid'}
+                    variant={(filter === filterOption.key ? 'default' : 'outline-solid') as unknown as React.ComponentProps<typeof Button>['variant']}
                     size="sm"
                     onClick={() => setFilter(filterOption.key)}
                     className={filter === filterOption.key 

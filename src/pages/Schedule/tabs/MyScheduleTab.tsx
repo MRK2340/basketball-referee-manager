@@ -56,7 +56,7 @@ const MyScheduleTab = ({ games, referees, independentGames = [] }) => {
           game.venue.toLowerCase().includes(searchLower)
         );
       })
-      .sort((a, b) => new Date(a.date) - new Date(b.date) || a.time.localeCompare(b.time));
+      .sort((a, b) => (new Date(a.date) as unknown as number) - (new Date(b.date) as unknown as number) || a.time.localeCompare(b.time));
   }, [games, filter, searchTerm]);
 
   const handleAssignClick = (game) => {

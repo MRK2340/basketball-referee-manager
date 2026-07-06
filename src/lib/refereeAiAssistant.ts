@@ -4,7 +4,7 @@
  * Uses Gemini 2.5 Pro with function calling for referee-specific actions.
  */
 import app from './firebase';
-import { getAI, getGenerativeModel, VertexAIBackend, type GenerativeModel } from 'firebase/ai';
+import { getAI, getGenerativeModel, VertexAIBackend, type GenerativeModel, type FunctionDeclaration } from 'firebase/ai';
 import { traceAsync } from './performanceTraces';
 import type { MappedGame, MappedProfile } from './mappers';
 import type { AIAction, AIResponse, ChatMessage } from './aiAssistant';
@@ -97,7 +97,8 @@ const refereeFunctionDeclarations = [
 
 // ── Context Builder ──────────────────────────────────────────────────────────
 
-import type { MappedAvailability, MappedPayment, IndependentGame } from '@/lib/types';
+import type { IndependentGame } from '@/lib/types';
+import type { MappedAvailability, MappedPayment } from '@/lib/mappers';
 
 const buildRefereeSystemPrompt = (
   games: MappedGame[],
@@ -176,7 +177,9 @@ const getRefereeModel = (): GenerativeModel => {
     const ai = getAI(app, { backend: new VertexAIBackend() });
     refereeModel = getGenerativeModel(ai, {
       model: 'gemini-2.5-pro',
-      tools: [{ functionDeclarations: refereeFunctionDeclarations }],
+      // The SDK types declarations via its Schema classes / SchemaType enum, but
+      // accepts equivalent plain JSON-schema objects at runtime.
+      tools: [{ functionDeclarations: refereeFunctionDeclarations as unknown as FunctionDeclaration[] }],
     });
   }
   return refereeModel;
