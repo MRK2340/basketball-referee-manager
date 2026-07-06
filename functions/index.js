@@ -12,7 +12,7 @@ const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
-const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue, AggregateField } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 
 initializeApp();
@@ -176,11 +176,18 @@ exports.getPublicRefereeProfile = onCall(
     const data = userSnap.data();
     if (data.role !== 'referee') throw new HttpsError('not-found', 'Profile not available.');
 
-    const ratingsSnap = await db.collection('referee_ratings')
-      .where('referee_id', '==', refereeId).get();
-    const ratings = ratingsSnap.docs.map(d => d.data());
-    const avgRating = ratings.length > 0
-      ? ratings.reduce((sum, r) => sum + (Number(r.stars) || 0), 0) / ratings.length
+    // Aggregation query: this endpoint is anonymous-reachable, so it must
+    // not scan every rating doc per request (unbounded read amplification)
+    const agg = await db.collection('referee_ratings')
+      .where('referee_id', '==', refereeId)
+      .aggregate({
+        ratingCount: AggregateField.count(),
+        ratingAvg: AggregateField.average('stars'),
+      })
+      .get();
+    const { ratingCount, ratingAvg } = agg.data();
+    const avgRating = ratingCount > 0 && ratingAvg != null
+      ? ratingAvg
       : (Number(data.rating) || 0);
 
     // Projection: public-safe fields ONLY — never email, phone, or
@@ -194,7 +201,7 @@ exports.getPublicRefereeProfile = onCall(
       certifications: data.certifications || [],
       gamesOfficiated: data.games_officiated || 0,
       rating: Math.round(avgRating * 10) / 10,
-      totalRatings: ratings.length,
+      totalRatings: ratingCount,
       experience: data.experience || '',
       createdAt: data.created_at || '',
     };

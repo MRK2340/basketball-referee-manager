@@ -10,6 +10,20 @@ import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 import type { AppUser } from '@/lib/types';
 
+/** JSON with recursively sorted object keys — Firestore does not guarantee
+ * key order across snapshots, and an order-only difference must not read as
+ * a content change. */
+const stableStringify = (value: unknown): string => {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  if (value !== null && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`);
+    return `{${entries.join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'undefined';
+};
+
 export interface SyncState {
   /** Number of pending (un-acked) local writes */
   pendingWrites: number;
@@ -84,7 +98,7 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
           snapshot.docChanges().forEach(change => {
             if (change.type === 'modified') {
               const prevContent = docContentsRef.current.get(`a:${change.doc.id}`);
-              const newContent = JSON.stringify(change.doc.data());
+              const newContent = stableStringify(change.doc.data());
               if (prevContent !== undefined && newContent !== prevContent) {
                 serverChanged = true;
               }
@@ -102,9 +116,13 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
         }
 
         // Track content for conflict detection (includes optimistic writes,
-        // so this session's own changes never read as foreign)
+        // so this session's own changes never read as foreign); prune docs
+        // that left the query so the cache stays bounded
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'removed') docContentsRef.current.delete(`a:${change.doc.id}`);
+        });
         snapshot.docs.forEach(d => {
-          docContentsRef.current.set(`a:${d.id}`, JSON.stringify(d.data()));
+          docContentsRef.current.set(`a:${d.id}`, stableStringify(d.data()));
         });
 
         prevPendingRef.current = hasPending;
@@ -120,7 +138,7 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
             snapshot.docChanges().forEach(change => {
               if (change.type === 'modified') {
                 const prev = docContentsRef.current.get(`t:${change.doc.id}`);
-                const curr = JSON.stringify(change.doc.data());
+                const curr = stableStringify(change.doc.data());
                 // Content comparison: this session's own edit acks match the
                 // optimistic cache and stay silent
                 if (prev !== undefined && curr !== prev) {
@@ -133,8 +151,11 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
               }
             });
           }
+          snapshot.docChanges().forEach(change => {
+            if (change.type === 'removed') docContentsRef.current.delete(`t:${change.doc.id}`);
+          });
           snapshot.docs.forEach(d => {
-            docContentsRef.current.set(`t:${d.id}`, JSON.stringify(d.data()));
+            docContentsRef.current.set(`t:${d.id}`, stableStringify(d.data()));
           });
         })
       );

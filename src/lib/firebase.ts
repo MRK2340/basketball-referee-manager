@@ -40,7 +40,8 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app, 'refereemanager');
 export const storage = getStorage(app);
-export const functions = getFunctions(app);
+// Region pinned to match the deployed callables (functions/index.js)
+export const functions = getFunctions(app, 'us-central1');
 export const analytics = getAnalytics(app);
 
 // ── App Check — protects Firestore/Storage/Functions from abuse ─────────────
