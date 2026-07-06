@@ -1,0 +1,7 @@
+{
+  "//": "CI typecheck gate. Strict mode is the eventual goal but ~740 strict errors remain (mostly noImplicitAny on legacy pages); this config gates at the current bar — zero non-strict errors — so no-undef-class bugs can't ship. Tighten by deleting overrides as the strict burndown progresses.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": false
+  }
+}

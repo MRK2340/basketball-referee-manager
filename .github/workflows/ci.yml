@@ -49,6 +49,9 @@ jobs:
       - name: Lint
         run: yarn lint
 
+      - name: Typecheck
+        run: npx tsc --noEmit -p tsconfig.typecheck.json
+
       - name: Test
         run: yarn test
 
