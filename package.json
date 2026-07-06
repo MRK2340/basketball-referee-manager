@@ -51,7 +51,7 @@
     "recharts": "^3.8.1",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
@@ -62,7 +62,6 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^8.57.1",
-    "eslint-config-react-app": "^7.0.1",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-react": "^7.37.3",
@@ -77,6 +76,6 @@
     "vitest": "^4.1.4"
   },
   "resolutions": {
-    "protobufjs": "8.0.1"
+    "protobufjs": "8.7.0"
   }
 }
