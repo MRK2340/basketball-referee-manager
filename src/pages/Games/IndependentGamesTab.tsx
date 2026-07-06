@@ -53,7 +53,7 @@ export const IndependentGamesTab = () => {
     (independentGames || []).forEach(g => {
       if (g.date) years.add(g.date.slice(0, 4));
     });
-    return [...years].sort((a, b) => (b as unknown as number) - (a as unknown as number));
+    return [...years].sort((a, b) => Number(b) - Number(a));
   }, [independentGames, currentYear]);
 
   const gamesForExportYear = useMemo(() => {
