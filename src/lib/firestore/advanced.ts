@@ -32,10 +32,13 @@ export const fetchMoreGames = async (
   managerId: string, cursor: { date: string; id: string },
   assignmentsRaw: Doc[], allUsers: MappedProfile[], tournamentsRaw: Doc[],
 ) => safeHandle(async () => {
-  // Cursor includes the doc id so games sharing a game_date are not skipped
+  // Cursor includes the doc id so games sharing a game_date are not skipped.
+  // The explicit documentId() tiebreaker matches the initial page's implicit
+  // __name__ ordering (desc, following the last orderBy direction).
   const snap = await getDocs(query(
     collection(db, 'games'), where('manager_id', '==', managerId),
-    orderBy('game_date', 'desc'), startAfter(cursor.date, cursor.id), limit(PAGE_SIZE),
+    orderBy('game_date', 'desc'), orderBy(documentId(), 'desc'),
+    startAfter(cursor.date, cursor.id), limit(PAGE_SIZE),
   ));
   const docs = docsToArr(snap);
 
@@ -63,10 +66,13 @@ export const fetchMoreGames = async (
 export const fetchMoreTournaments = async (
   managerId: string, cursor: { name: string; id: string }, gamesRaw: Doc[],
 ) => safeHandle(async () => {
-  // Cursor includes the doc id so tournaments sharing a name are not skipped
+  // Cursor includes the doc id so tournaments sharing a name are not skipped.
+  // The explicit documentId() tiebreaker matches the initial page's implicit
+  // __name__ ascending ordering.
   const snap = await getDocs(query(
     collection(db, 'tournaments'), where('manager_id', '==', managerId),
-    orderBy('name'), startAfter(cursor.name, cursor.id), limit(PAGE_SIZE),
+    orderBy('name'), orderBy(documentId()),
+    startAfter(cursor.name, cursor.id), limit(PAGE_SIZE),
   ));
   const docs = docsToArr(snap);
   const last = docs[docs.length - 1];
