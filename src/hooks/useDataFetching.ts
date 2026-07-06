@@ -43,14 +43,22 @@ export const useDataFetching = (user: AppUser | null) => {
   const userRef = useRef(user);
   userRef.current = user;
 
+  // Firestore pagination cursors — last doc of the previous page in query
+  // order (the displayed lists are re-sorted client-side, so list tails are
+  // not valid cursors)
+  const gamesCursorRef = useRef<{ date: string; id: string } | null>(null);
+  const tournamentsCursorRef = useRef<{ name: string; id: string } | null>(null);
+
   const fetchData = useCallback(async (isInitialLoad = true) => {
     const currentUser = userRef.current;
     if (!currentUser) {
       setGames([]); setPayments([]); setMessages([]); setNotifications([]);
       setTournaments([]); setReferees([]); setAvailability([]); setGameReports([]);
+      setRefereeRatings([]);
       setConnections([]); setManagerProfiles([]); setIndependentGames([]);
       setHasMoreMessages(false); setHasMoreGames(false);
       setHasMoreTournaments(false); setHasMoreNotifications(false);
+      gamesCursorRef.current = null; tournamentsCursorRef.current = null;
       setLoading(false);
       return;
     }
@@ -80,13 +88,17 @@ export const useDataFetching = (user: AppUser | null) => {
       setHasMoreGames(!!data.hasMoreGames);
       setHasMoreTournaments(!!data.hasMoreTournaments);
       setHasMoreNotifications(!!data.hasMoreNotifications);
+      gamesCursorRef.current = (data.gamesCursor as { date: string; id: string } | null) || null;
+      tournamentsCursorRef.current = (data.tournamentsCursor as { name: string; id: string } | null) || null;
     } catch (error: unknown) {
       if (isInitialLoad) {
         setGames([]); setPayments([]); setMessages([]); setNotifications([]);
         setTournaments([]); setReferees([]); setAvailability([]); setGameReports([]);
+        setRefereeRatings([]);
         setConnections([]); setManagerProfiles([]); setIndependentGames([]);
         setHasMoreMessages(false); setHasMoreGames(false);
         setHasMoreTournaments(false); setHasMoreNotifications(false);
+        gamesCursorRef.current = null; tournamentsCursorRef.current = null;
       }
       toast({
         title: "Error fetching data",
@@ -135,9 +147,8 @@ export const useDataFetching = (user: AppUser | null) => {
 
     setRefreshing(true);
     try {
-      const lastGame = games[games.length - 1];
-      if (!lastGame) return;
-      const cursor = lastGame.date || '';
+      const cursor = gamesCursorRef.current;
+      if (!cursor) return;
       const assignmentsRaw: Record<string, unknown>[] = games.flatMap((g) =>
         g.assignments.map((a) => ({
           id: a.id,
@@ -156,9 +167,10 @@ export const useDataFetching = (user: AppUser | null) => {
 
       const { data, error } = await fetchMoreGames(currentUser.id, cursor, assignmentsRaw, allUsers, tournamentsRaw);
       if (error) throw new Error(error.message);
-      const result = data as { items: MappedGame[]; hasMore: boolean };
+      const result = data as { items: MappedGame[]; hasMore: boolean; cursor: { date: string; id: string } };
       setGames(prev => [...prev, ...result.items]);
       setHasMoreGames(result.hasMore);
+      gamesCursorRef.current = result.cursor;
     } catch (err: unknown) {
       toast({ title: 'Failed to load more games', description: (err as Error).message, variant: 'destructive' });
     } finally {
@@ -172,9 +184,8 @@ export const useDataFetching = (user: AppUser | null) => {
 
     setRefreshing(true);
     try {
-      const lastTournament = tournaments[tournaments.length - 1];
-      if (!lastTournament) return;
-      const cursor = lastTournament.name || '';
+      const cursor = tournamentsCursorRef.current;
+      if (!cursor) return;
       const gamesRaw: Record<string, unknown>[] = games.map((g) => ({
         id: g.id,
         tournament_id: g.tournamentId,
@@ -182,9 +193,10 @@ export const useDataFetching = (user: AppUser | null) => {
 
       const { data, error } = await fetchMoreTournaments(currentUser.id, cursor, gamesRaw);
       if (error) throw new Error(error.message);
-      const result = data as { items: MappedTournament[]; hasMore: boolean };
+      const result = data as { items: MappedTournament[]; hasMore: boolean; cursor: { name: string; id: string } };
       setTournaments(prev => [...prev, ...result.items]);
       setHasMoreTournaments(result.hasMore);
+      tournamentsCursorRef.current = result.cursor;
     } catch (err: unknown) {
       toast({ title: 'Failed to load more tournaments', description: (err as Error).message, variant: 'destructive' });
     } finally {

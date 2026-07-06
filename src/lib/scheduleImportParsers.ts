@@ -93,10 +93,14 @@ export const normalizeDate = (raw: string): string => {
     return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
   }
 
-  // Try native Date parsing as fallback
+  // Try native Date parsing as fallback — read local calendar components,
+  // since toISOString() shifts the date for users east of UTC
   const d = new Date(trimmed);
   if (!isNaN(d.getTime())) {
-    return d.toISOString().slice(0, 10);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
   return '';
 };
@@ -107,8 +111,9 @@ export const normalizeTime = (raw: string): string => {
   const trimmed = raw.trim();
 
   // Already HH:MM or HH:MM:SS
-  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(trimmed)) {
-    return trimmed.slice(0, 5).padStart(5, '0');
+  const hm = trimmed.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (hm) {
+    return `${hm[1].padStart(2, '0')}:${hm[2]}`;
   }
 
   // 12-hour format: "9:00 AM", "12:30 PM"
@@ -206,9 +211,14 @@ const parsePDFTextToRows = (text: string): Record<string, string>[] => {
   // Split on date patterns (MM/DD/YYYY or YYYY-MM-DD)
   const datePattern = /(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})/g;
   const segments = text.split(datePattern).filter(Boolean);
+  const isDateSegment = (s: string) => /^(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})$/.test(s);
 
-  for (let i = 0; i < segments.length - 1; i += 2) {
+  // Pair each date segment with the text that follows it. PDFs usually have
+  // header/preamble text before the first date, so index parity is unreliable.
+  for (let i = 0; i < segments.length - 1; i += 1) {
     const dateStr = segments[i];
+    if (!isDateSegment(dateStr)) continue;
+    if (isDateSegment(segments[i + 1])) continue; // date with no content
     const rest = (segments[i + 1] || '').trim();
 
     // Try to extract time

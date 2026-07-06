@@ -120,7 +120,7 @@ const buildRefereeSystemPrompt = (
   const availDates = availability
     .slice(0, 20)
     .map(a => {
-      const start = a.start_time ? new Date(a.start_time).toISOString().slice(0, 10) : 'unknown';
+      const start = a.startTime ? String(a.startTime).slice(0, 10) : 'unknown';
       return `  - ${start}`;
     })
     .join('\n') || '  (no availability logged)';

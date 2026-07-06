@@ -138,7 +138,7 @@ const AssignedGamesContent = ({ games, onFeatureClick, onViewReport }: { games: 
                   </div>
                   <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Completed</Badge>
                 </div>
-                {game.homeScore !== undefined && (
+                {game.homeScore != null && (
                   <div className="text-slate-900 text-sm font-semibold mb-2">
                     {game.homeScore} - {game.awayScore}
                   </div>

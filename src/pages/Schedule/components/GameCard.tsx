@@ -129,7 +129,7 @@ const GameCard = ({ game, user, onViewDetails, onAssignClick, onUnassignReferee,
                 </div>
               </div>
 
-              {game.status === 'completed' && game.homeScore !== undefined && (
+              {game.status === 'completed' && game.homeScore != null && (
                 <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
                   <p className="text-slate-900 font-semibold">
                     Final Score: {game.homeTeam} {game.homeScore} - {game.awayScore} {game.awayTeam}

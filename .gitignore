@@ -37,3 +37,7 @@ memory/test_credentials.md
 
 # Prevent npm lockfile conflicts (project uses yarn)
 package-lock.json
+
+# Python bytecode
+__pycache__/
+*.pyc

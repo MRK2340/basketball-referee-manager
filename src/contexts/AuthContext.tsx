@@ -312,11 +312,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     setLoading(true);
-    Analytics.logout();
-    await signOut(auth);
-    setUser(null);
-    toast({ title: 'Logged out', description: 'See you next time!' });
-    setLoading(false);
+    try {
+      await signOut(auth);
+      Analytics.logout();
+      setUser(null);
+      toast({ title: 'Logged out', description: 'See you next time!' });
+    } catch (error: unknown) {
+      toast({ title: 'Logout failed', description: (error as Error).message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateProfile = async (updates: Doc) => {

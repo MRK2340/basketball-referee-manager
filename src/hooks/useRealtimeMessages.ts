@@ -76,7 +76,13 @@ export const useRealtimeMessages = (
         allMessages = allMessages.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
       }
 
-      setMessages(allMessages);
+      // Replace the newest page but keep older items loaded via pagination —
+      // a full replace would clobber pages fetched with "load more"
+      setMessages(prev => {
+        const snapshotIds = new Set(allMessages.map(m => m.id));
+        const olderPages = prev.filter(m => !snapshotIds.has(m.id));
+        return [...allMessages, ...olderPages];
+      });
 
       if (!isInitialized.current) {
         allMessages.forEach(m => knownIds.current.add(m.id));

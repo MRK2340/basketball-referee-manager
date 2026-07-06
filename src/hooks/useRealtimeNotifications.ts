@@ -56,7 +56,13 @@ export const useRealtimeNotifications = (
         allNotifs = allNotifs.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
       }
 
-      setNotifications(allNotifs);
+      // Replace the newest page but keep older items loaded via pagination —
+      // a full replace would clobber pages fetched with "load more"
+      setNotifications(prev => {
+        const snapshotIds = new Set(allNotifs.map(n => n.id));
+        const olderPages = prev.filter(n => !snapshotIds.has(n.id));
+        return [...allNotifs, ...olderPages];
+      });
 
       if (!isInitialized.current) {
         allNotifs.forEach(n => knownIds.current.add(n.id));

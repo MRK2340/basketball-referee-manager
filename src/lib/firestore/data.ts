@@ -126,7 +126,9 @@ export const fetchAppData = async (user: ServiceUser) => {
     messages: messagesRaw
       .sort((a, b) => toISOString(b.created_at).localeCompare(toISOString(a.created_at)))
       .map(m => mapMessage(m, allUsers)),
-    notifications: notificationsRaw.sort((a, b) => toISOString(b.created_at).localeCompare(toISOString(a.created_at))),
+    notifications: notificationsRaw
+      .sort((a, b) => toISOString(b.created_at).localeCompare(toISOString(a.created_at)))
+      .map(n => ({ ...n, created_at: toISOString(n.created_at) })),
     tournaments: tournamentsRaw.map(t => mapTournament(t, gamesRaw)),
     referees: allReferees.map(r => ({
       ...r,
@@ -134,7 +136,9 @@ export const fetchAppData = async (user: ServiceUser) => {
     })),
     availability: availabilityRaw.map(mapAvailability),
     gameReports: gameReportsRaw.map(r => mapGameReport(r, gamesRaw, allUsers)),
-    refereeRatings: ratingsRaw.sort((a, b) => ((b.created_at || '') as string).localeCompare((a.created_at || '') as string)),
+    refereeRatings: ratingsRaw
+      .sort((a, b) => toISOString(b.created_at).localeCompare(toISOString(a.created_at)))
+      .map(r => ({ ...r, created_at: toISOString(r.created_at) })),
     notificationPreferences,
     connections: connectionsRaw.map(mapConnection),
     managerProfiles: managerProfilesRaw,
@@ -143,5 +147,13 @@ export const fetchAppData = async (user: ServiceUser) => {
     hasMoreTournaments: isManager && tournamentsRaw.length === INITIAL_PAGE,
     hasMoreMessages: messagesRaw.length === INITIAL_PAGE,
     hasMoreNotifications: notificationsRaw.length === INITIAL_PAGE,
+    // Pagination cursors: last doc in *query* order (the UI re-sorts games
+    // client-side, so the last displayed item is not a valid cursor)
+    gamesCursor: isManager && gamesRaw.length > 0
+      ? { date: gamesRaw[gamesRaw.length - 1].game_date as string, id: gamesRaw[gamesRaw.length - 1].id as string }
+      : null,
+    tournamentsCursor: isManager && tournamentsRaw.length > 0
+      ? { name: tournamentsRaw[tournamentsRaw.length - 1].name as string, id: tournamentsRaw[tournamentsRaw.length - 1].id as string }
+      : null,
   };
 };

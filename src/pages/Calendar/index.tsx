@@ -55,11 +55,11 @@ const Calendar = () => {
 
   const getGamesForDate = useCallback((date) => {
     if (!games || !date) return [];
-    const dateString = date.toISOString().split('T')[0];
-    return games.filter(game => {
-      const gameDate = new Date(game.date).toISOString().split('T')[0];
-      return gameDate === dateString;
-    });
+    // Compare local calendar dates — toISOString() shifts the day for
+    // users east of UTC and game.date is already a YYYY-MM-DD string
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateString = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    return games.filter(game => String(game.date || '').slice(0, 10) === dateString);
   }, [games]);
 
   const isDateAvailable = useCallback((date) => {

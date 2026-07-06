@@ -32,7 +32,8 @@ function createTestServer(distPath) {
   return createServer(async (req, res) => {
     const url = req.url.split('?')[0];
     const base = resolve(distPath);
-    let filePath = resolve(base, url);
+    // Mirrors serve.js: anchor slash-prefixed URL paths under dist
+    let filePath = resolve(base, '.' + url);
     const rel = relative(base, filePath);
     
     // Path traversal protection - this is the security fix being tested
@@ -119,6 +120,20 @@ describe('serve.js - Path Traversal Security', () => {
       expect(response.statusCode).toBe(200);
       expect(response.data).toContain('Index');
       expect(response.headers['content-type']).toBe('text/html');
+    });
+
+    it('should serve a real file at the top level with its own content', async () => {
+      const response = await makeRequest(TEST_PORT, '/test.txt');
+      expect(response.statusCode).toBe(200);
+      expect(response.data).toBe('test content');
+      expect(response.headers['content-type']).toBe('text/plain');
+    });
+
+    it('should serve a real asset in a subdirectory (not index.html)', async () => {
+      const response = await makeRequest(TEST_PORT, '/assets/style.css');
+      expect(response.statusCode).toBe(200);
+      expect(response.data).toContain('color: red');
+      expect(response.headers['content-type']).toBe('text/css');
     });
 
     it('should fallback to index.html for non-existent paths', async () => {

@@ -15,7 +15,7 @@ interface ReceiptData {
 
 export const generateReceiptPdf = async (data: ReceiptData): Promise<void> => {
   const jsPDF = (await import('jspdf')).default;
-  const { format } = await import('date-fns');
+  const { format, parseISO } = await import('date-fns');
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a5' });
 
@@ -66,7 +66,7 @@ export const generateReceiptPdf = async (data: ReceiptData): Promise<void> => {
 
   // Details
   const rows: [string, string][] = [
-    ['Date', data.date ? format(new Date(data.date), 'MMMM d, yyyy') : '—'],
+    ['Date', data.date ? format(parseISO(data.date), 'MMMM d, yyyy') : '—'],
     ['Game', data.gameLabel],
     ['Tournament', data.tournamentName],
     ['Method', data.method || '—'],

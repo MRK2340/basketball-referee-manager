@@ -28,7 +28,9 @@ const MIME = {
 const server = createServer(async (req, res) => {
   const url = req.url.split('?')[0];
   const base = resolve(DIST);
-  let filePath = resolve(base, url);
+  // URL paths start with '/', which resolve() would treat as an absolute
+  // filesystem path — anchor them under dist instead.
+  let filePath = resolve(base, '.' + url);
   const rel = relative(base, filePath);
   if (rel.startsWith('..') || resolve(rel) === rel) {
     filePath = join(DIST, 'index.html');
