@@ -18,10 +18,10 @@ import {
 export const addTournament = async (user: ServiceUser, tournamentData: Doc) => safeHandle(async () => {
   if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const err = validate(
-    validateRequired(tournamentData.name as string, 'Tournament name', MAX_TOURNAMENT_NAME),
-    validateRequired(tournamentData.location as string, 'Location', MAX_VENUE_NAME),
-    validateDate(tournamentData.startDate as string, 'Start date'),
-    validateDate(tournamentData.endDate as string, 'End date'),
+    validateRequired(tournamentData.name, 'Tournament name', MAX_TOURNAMENT_NAME),
+    validateRequired(tournamentData.location, 'Location', MAX_VENUE_NAME),
+    validateDate(tournamentData.startDate, 'Start date'),
+    validateDate(tournamentData.endDate, 'End date'),
     validateNumber(Number(tournamentData.numberOfCourts), 'Courts', 1, MAX_COURTS),
   );
   if (err) throw new Error(`invalid-argument: ${err}`);
@@ -64,11 +64,11 @@ export const archiveTournamentRecord = async (user: ServiceUser, tournamentId: s
 export const addGameRecord = async (user: ServiceUser, gameData: Doc) => safeHandle(async () => {
   if (!user || user.role !== 'manager') throw new Error('permission-denied');
   const err = validate(
-    validateRequired(gameData.home_team as string, 'Home team', MAX_TEAM_NAME),
-    validateRequired(gameData.away_team as string, 'Away team', MAX_TEAM_NAME),
-    validateDate(gameData.game_date as string, 'Game date'),
-    validateOptional(gameData.venue as string | undefined, 'Venue', MAX_VENUE_NAME),
-    validateTime(gameData.game_time as string),
+    validateRequired(gameData.home_team, 'Home team', MAX_TEAM_NAME),
+    validateRequired(gameData.away_team, 'Away team', MAX_TEAM_NAME),
+    validateDate(gameData.game_date, 'Game date'),
+    validateOptional(gameData.venue, 'Venue', MAX_VENUE_NAME),
+    validateTime(gameData.game_time),
     gameData.payment_amount != null ? validateNumber(Number(gameData.payment_amount), 'Payment', 0, MAX_FEE) : null,
   );
   if (err) throw new Error(`invalid-argument: ${err}`);
@@ -206,20 +206,24 @@ export const addAvailability = addAvailabilityRecord;
 
 export const submitGameReportRecord = async (user: ServiceUser, reportData: Doc) => safeHandle(async () => {
   if (!user || user.role !== 'referee') throw new Error('permission-denied');
+  // The caller (GameReport.tsx via useReportActions) submits snake_case
+  // fields matching the Firestore schema. This function used to read
+  // camelCase keys, so every field came back undefined — addDoc rejected
+  // the write and report submission was entirely broken.
   const existing = await getDocs(query(
     collection(db, 'game_reports'),
-    where('game_id', '==', reportData.gameId),
+    where('game_id', '==', reportData.game_id),
     where('referee_id', '==', user.id)
   ));
   if (!existing.empty) throw new Error('A report for this game has already been submitted.');
   await addDoc(collection(db, 'game_reports'), {
-    game_id: reportData.gameId, referee_id: user.id,
-    manager_id: reportData.managerId || null,
-    home_score: reportData.homeScore, away_score: reportData.awayScore,
-    professionalism_rating: reportData.professionalismRating,
+    game_id: reportData.game_id, referee_id: user.id,
+    manager_id: reportData.manager_id || null,
+    home_score: reportData.home_score ?? null, away_score: reportData.away_score ?? null,
+    professionalism_rating: reportData.professionalism_rating ?? null,
     incidents: reportData.incidents || '', notes: reportData.notes || '',
-    technical_fouls: reportData.technicalFouls ?? null, personal_fouls: reportData.personalFouls ?? null,
-    ejections: reportData.ejections ?? null, mvp_player: reportData.mvpPlayer || null,
+    technical_fouls: reportData.technical_fouls ?? null, personal_fouls: reportData.personal_fouls ?? null,
+    ejections: reportData.ejections ?? null, mvp_player: reportData.mvp_player || null,
     status: 'submitted', created_at: new Date().toISOString(),
     resolution_note: null, resolved_by: null, resolved_at: null,
   });
