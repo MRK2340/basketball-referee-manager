@@ -5,7 +5,9 @@ name: Hash probe (temporary)
 # cannot reach cdn.sheetjs.com; GitHub runners can. Deleted after use.
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - claude/pr-review-closure-qk9gaf
 
 permissions: {}
 
