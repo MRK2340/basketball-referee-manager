@@ -40,7 +40,7 @@ export const validateDate = (value: unknown, fieldName = 'Date'): string | null 
 
 /** Validate a time string is HH:MM or HH:MM:SS format. */
 export const validateTime = (value: unknown, fieldName = 'Time'): string | null => {
-  if (!value) return null; // time is often optional
+  if (value == null || value === '') return null; // time is often optional
   if (typeof value !== 'string' || !/^\d{1,2}:\d{2}(:\d{2})?$/.test(value)) return `${fieldName} must be in HH:MM format.`;
   return null;
 };

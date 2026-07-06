@@ -8,7 +8,7 @@ import {
   validateRequired, validateOptional, validateDate, validateTime, validateEmail,
 } from '../lib/validation';
 
-const NON_STRINGS = [null, undefined, 42, true, {}, ['a'], () => {}];
+const NON_STRINGS = [null, undefined, 0, 42, false, true, {}, ['a'], () => {}];
 
 describe('validators reject non-string input instead of throwing', () => {
   it('validateRequired returns an error for every non-string', () => {
@@ -22,17 +22,26 @@ describe('validators reject non-string input instead of throwing', () => {
     expect(validateOptional(null, 'Field')).toBeNull();
     expect(validateOptional(undefined, 'Field')).toBeNull();
     expect(validateOptional('', 'Field')).toBeNull();
-    for (const v of [42, true, {}, ['a']]) {
+    for (const v of [0, 42, false, true, {}, ['a']]) {
       expect(() => validateOptional(v, 'Field')).not.toThrow();
       expect(validateOptional(v, 'Field')).toMatch(/Field/);
     }
   });
 
-  it('validateDate and validateTime error on non-string truthy input', () => {
+  it('validateDate and validateTime error on non-string input', () => {
     for (const v of [42, true, {}, ['a']]) {
       expect(validateDate(v, 'Date')).toMatch(/Date/);
       expect(validateTime(v, 'Time')).toMatch(/Time/);
     }
+    // Falsy non-strings must not slip through as "not provided"
+    for (const v of [0, false]) {
+      expect(validateTime(v, 'Time')).toMatch(/Time/);
+      expect(validateDate(v, 'Date')).toMatch(/Date/);
+    }
+    // Genuinely absent time stays optional
+    expect(validateTime(null)).toBeNull();
+    expect(validateTime(undefined)).toBeNull();
+    expect(validateTime('')).toBeNull();
   });
 
   it('validateEmail errors on non-string truthy input', () => {
