@@ -22,6 +22,7 @@ npm-debug.log*
 # Cache
 .eslintcache
 .vite/
+.firebase/
 
 # Environment and credential files
 .env
@@ -32,12 +33,6 @@ credentials.json
 *.key
 .credentials
 
-# Emergent platform internal files
-memory/test_credentials.md
-
-# Prevent npm lockfile conflicts (project uses yarn)
+# Prevent npm lockfile conflicts (project uses yarn; functions/ uses npm)
 package-lock.json
-
-# Python bytecode
-__pycache__/
-*.pyc
+!functions/package-lock.json

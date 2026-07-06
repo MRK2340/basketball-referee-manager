@@ -80,42 +80,6 @@ jobs:
         working-directory: functions
         run: node --check index.js
 
-  backend:
-    name: Verify backend dependencies
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: pip
-          cache-dependency-path: backend/requirements.txt
-
-      # Full resolver dry-run — catches incompatible pins (e.g. a fastapi that
-      # caps starlette below the pinned version) without installing everything
-      - name: Check dependency pins resolve together
-        run: |
-          python -m pip install --upgrade pip
-          pip install --dry-run --quiet -r backend/requirements.txt
-
-      - name: Smoke-test the API server
-        run: |
-          pip install --quiet $(grep -E '^(fastapi|starlette|uvicorn|pydantic|pydantic_core)==' backend/requirements.txt) httpx
-          python -m compileall -q backend
-          python - <<'EOF'
-          import sys
-          sys.path.insert(0, 'backend')
-          import server
-          from fastapi.testclient import TestClient
-          resp = TestClient(server.app).get('/api/health')
-          assert resp.status_code == 200, f'health returned {resp.status_code}'
-          print('backend health OK:', resp.json())
-          EOF
-
   rules:
     name: Validate Firebase rules
     runs-on: ubuntu-latest

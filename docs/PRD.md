@@ -1,5 +1,12 @@
 # PRD - iWhistle Basketball Referee Manager
 
+> **Historical document.** This is the phase-by-phase build log from the original
+> Emergent/Hostinger-Horizons development platform. Paths and infrastructure it
+> mentions (`/app/backend`, `/app/frontend`, supervisor, MongoDB, the `serve`
+> fallback) belong to that platform and no longer exist in this repository.
+> For the current architecture and setup see [README.md](../README.md); for
+> deploys see [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Original Problem Statement
 Recreate the GitHub repository `MRK2340/basketball-referee-manager`. Build an AAU youth basketball league manager app where:
 - **Referees** can view their schedule, log availability, and communicate with managers

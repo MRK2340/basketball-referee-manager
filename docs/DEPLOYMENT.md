@@ -67,11 +67,10 @@ GitHub → repo **Settings → Branches → Add branch ruleset** (or classic
 
 - Branch name pattern: `main`
 - Enable **Require a pull request before merging**
-- Enable **Require status checks to pass** and add these four checks
+- Enable **Require status checks to pass** and add these three checks
   (type the names exactly):
   - `Verify web app`
   - `Verify Cloud Functions`
-  - `Verify backend dependencies`
   - `Validate Firebase rules`
 - Enable **Require branches to be up to date before merging** (optional but
   recommended).

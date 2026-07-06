@@ -1,9 +1,0 @@
-{
-  "name": "frontend-launcher",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "cd .. && npx vite --host :: --port 3000",
-    "build": "cd .. && yarn build",
-    "postinstall": "cd .. && yarn install"
-  }
-}
