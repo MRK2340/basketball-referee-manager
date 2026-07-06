@@ -4,6 +4,10 @@
  * and the receipt PDF generator utility.
  */
 import { describe, it, expect } from 'vitest';
+import path from 'path';
+
+// Repo root — vitest runs with cwd at the project root.
+const ROOT = process.cwd();
 
 // ── Test the mappers with Record<string, unknown> type safety ─────────────────
 
@@ -60,7 +64,7 @@ describe('Mapper type safety (Record<string, unknown>)', () => {
 describe('Security: Firestore rules review', () => {
   it('ratings rule no longer has || true (H1 fix verified)', async () => {
     const fs = await import('fs');
-    const rules = fs.readFileSync('/app/firestore.rules', 'utf8');
+    const rules = fs.readFileSync(path.join(ROOT, 'firestore.rules'), 'utf8');
     // Line 150 should NOT have || true
     expect(rules).not.toContain('isAuth() || true');
     // ratings should require isAuth()
@@ -69,7 +73,7 @@ describe('Security: Firestore rules review', () => {
 
   it('live_game_sessions requires manager_id ownership (H2 fix verified)', async () => {
     const fs = await import('fs');
-    const rules = fs.readFileSync('/app/firestore.rules', 'utf8');
+    const rules = fs.readFileSync(path.join(ROOT, 'firestore.rules'), 'utf8');
     // Should have manager_id check, not generic allow write: if isAuth()
     const liveSection = rules.substring(rules.indexOf('live_game_sessions'));
     expect(liveSection).toContain('manager_id');
@@ -78,7 +82,7 @@ describe('Security: Firestore rules review', () => {
 
   it('backend CORS does not combine allow_origins=* with credentials (H3 fix verified)', async () => {
     const fs = await import('fs');
-    const serverPy = fs.readFileSync('/app/backend/server.py', 'utf8');
+    const serverPy = fs.readFileSync(path.join(ROOT, 'backend/server.py'), 'utf8');
     expect(serverPy).toContain('allow_credentials=False');
     expect(serverPy).not.toContain('allow_credentials=True');
   });
@@ -89,14 +93,14 @@ describe('Security: Firestore rules review', () => {
 describe('Type safety: Record<string, unknown> (H6 fix)', () => {
   it('mappers.ts uses Record<string, unknown> not Record<string, any>', async () => {
     const fs = await import('fs');
-    const mappersSrc = fs.readFileSync('/app/src/lib/mappers.ts', 'utf8');
+    const mappersSrc = fs.readFileSync(path.join(ROOT, 'src/lib/mappers.ts'), 'utf8');
     expect(mappersSrc).toContain('Record<string, unknown>');
     expect(mappersSrc).not.toContain('Record<string, any>');
   });
 
   it('firestoreService helpers use Record<string, unknown> not Record<string, any>', async () => {
     const fs = await import('fs');
-    const fsSrc = fs.readFileSync('/app/src/lib/firestore/helpers.ts', 'utf8');
+    const fsSrc = fs.readFileSync(path.join(ROOT, 'src/lib/firestore/helpers.ts'), 'utf8');
     expect(fsSrc).toContain('Record<string, unknown>');
     expect(fsSrc).not.toContain('Record<string, any>');
   });
@@ -107,18 +111,18 @@ describe('Type safety: Record<string, unknown> (H6 fix)', () => {
 describe('Code quality: dead code removal (H5 fix)', () => {
   it('old monolithic Calendar.tsx has been removed', async () => {
     const fs = await import('fs');
-    expect(fs.existsSync('/app/src/pages/Calendar.tsx')).toBe(false);
+    expect(fs.existsSync(path.join(ROOT, 'src/pages/Calendar.tsx'))).toBe(false);
   });
 
   it('Calendar/index.tsx exists as the active component', async () => {
     const fs = await import('fs');
-    expect(fs.existsSync('/app/src/pages/Calendar/index.tsx')).toBe(true);
+    expect(fs.existsSync(path.join(ROOT, 'src/pages/Calendar/index.tsx'))).toBe(true);
   });
 
   it('Receipt PDF logic extracted to generateReceiptPdf.ts', async () => {
     const fs = await import('fs');
-    expect(fs.existsSync('/app/src/lib/generateReceiptPdf.ts')).toBe(true);
-    const content = fs.readFileSync('/app/src/lib/generateReceiptPdf.ts', 'utf8');
+    expect(fs.existsSync(path.join(ROOT, 'src/lib/generateReceiptPdf.ts'))).toBe(true);
+    const content = fs.readFileSync(path.join(ROOT, 'src/lib/generateReceiptPdf.ts'), 'utf8');
     expect(content).toContain('generateReceiptPdf');
     expect(content).toContain('jsPDF');
   });

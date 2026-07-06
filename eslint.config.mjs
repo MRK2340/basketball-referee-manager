@@ -17,8 +17,8 @@ export default [
 		settings: {
 			react: { version: 'detect' },
 			'import/resolver': {
-				node: { extensions: ['.js', '.jsx'] },
-				alias: { map: [['@', './src']], extensions: ['.js', '.jsx'] },
+				node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] },
+				alias: { map: [['@', './src']], extensions: ['.js', '.jsx', '.ts', '.tsx'] },
 			},
 		},
 		rules: {
@@ -51,7 +51,9 @@ export default [
 			'import/no-cycle': 'off',
 		},
 	},
-	{ files: ['tools/**/*.js', 'tailwind.config.js'], languageOptions: { globals: globals.node } },
+	{ files: ['tools/**/*.js', 'tailwind.config.js', 'serve.js'], languageOptions: { globals: { ...globals.node } } },
+	// Vitest suites run under Node and may read repo files via fs/process.
+	{ files: ['src/__tests__/**/*.{js,jsx}'], languageOptions: { globals: { ...globals.node } } },
 	// Shadcn UI stubs ship with package imports that may not be installed (unused components).
 	// Disable the unresolved-module check only for that directory.
 	{ files: ['src/components/ui/**/*.{js,jsx}'], rules: { 'import/no-unresolved': 'off' } },
