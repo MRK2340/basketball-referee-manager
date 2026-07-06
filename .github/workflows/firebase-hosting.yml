@@ -12,6 +12,13 @@ permissions:
   contents: read
   pull-requests: write
 
+# Rapid successive merges must not deploy out of order: an older build
+# finishing late would overwrite the newer live site. One in-flight run per
+# ref; a newer push cancels the older run.
+concurrency:
+  group: firebase-hosting-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
   VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
@@ -61,19 +68,32 @@ jobs:
   deploy-preview:
     name: Deploy preview channel
     needs: build
-    if: github.event_name == 'pull_request'
+    # Skip (not fail) when deploying is impossible: Dependabot-triggered
+    # runs can only read Dependabot secrets (never Actions secrets), and
+    # fork PRs get no secrets at all
+    if: >
+      github.event_name == 'pull_request' &&
+      github.actor != 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    env:
+      # secrets context is not allowed in job-level `if` — surface it as env
+      # so steps can skip cleanly until FIREBASE_SERVICE_ACCOUNT exists
+      HAS_DEPLOY_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
       - name: Checkout
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/checkout@v4
 
       - name: Download build artifact
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
       - name: Deploy to Firebase Hosting preview channel
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
@@ -86,17 +106,23 @@ jobs:
     needs: build
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    env:
+      # Skip deploy steps cleanly until the service account secret exists
+      HAS_DEPLOY_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
       - name: Checkout
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/checkout@v4
 
       - name: Download build artifact
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
       - name: Deploy to Firebase Hosting live channel
+        if: env.HAS_DEPLOY_CREDENTIALS == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
