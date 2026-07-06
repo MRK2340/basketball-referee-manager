@@ -9,6 +9,8 @@ import {
   safeHandle, docsToArr, chunkArray, toISOString,
   type Doc, type SafeResult, type ServiceUser,
 } from './helpers';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
 import {
   mapGame, mapTournament, mapMessage,
   type MappedProfile,
@@ -97,27 +99,21 @@ export const fetchMoreNotifications = async (
   };
 });
 
+export interface PublicRefereeProfile {
+  id: string; name: string; avatarUrl: string; bio: string; location: string;
+  certifications: string[]; gamesOfficiated: number; rating: number;
+  totalRatings: number; experience: string; createdAt: string;
+}
+
+// The /referee/:id page is public (no login), but user docs are auth-only in
+// Firestore rules — the profile is served by a Cloud Function that projects
+// public-safe fields only (never email/phone).
 export const fetchPublicRefereeProfile = async (refereeId: string) => safeHandle(async () => {
-  const userSnap = await getDoc(doc(db, 'users', refereeId));
-  if (!userSnap.exists()) throw new Error('Referee not found.');
-  const data = userSnap.data();
-  if (data.role !== 'referee') throw new Error('Profile not available.');
-
-  const ratingsSnap = await getDocs(query(collection(db, 'referee_ratings'), where('referee_id', '==', refereeId)));
-  const ratings = docsToArr(ratingsSnap);
-  const avgRating = ratings.length > 0
-    ? ratings.reduce((sum, r) => sum + (Number(r.stars) || 0), 0) / ratings.length
-    : (Number(data.rating) || 0);
-
-  return {
-    id: refereeId, name: data.name, avatarUrl: data.avatar_url || '',
-    bio: data.bio || '', location: data.location || '',
-    certifications: data.certifications || [],
-    gamesOfficiated: data.games_officiated || 0,
-    rating: Math.round(avgRating * 10) / 10,
-    totalRatings: ratings.length,
-    experience: data.experience || '', createdAt: data.created_at || '',
-  };
+  const call = httpsCallable<{ refereeId: string }, PublicRefereeProfile>(
+    functions, 'getPublicRefereeProfile',
+  );
+  const result = await call({ refereeId });
+  return result.data;
 });
 
 export const writeAuditLog = async (

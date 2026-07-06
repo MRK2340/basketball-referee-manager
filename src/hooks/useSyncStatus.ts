@@ -10,6 +10,20 @@ import { db } from '@/lib/firebase';
 import { toast } from '@/components/ui/use-toast';
 import type { AppUser } from '@/lib/types';
 
+/** JSON with recursively sorted object keys — Firestore does not guarantee
+ * key order across snapshots, and an order-only difference must not read as
+ * a content change. */
+const stableStringify = (value: unknown): string => {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  if (value !== null && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`);
+    return `{${entries.join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'undefined';
+};
+
 export interface SyncState {
   /** Number of pending (un-acked) local writes */
   pendingWrites: number;
@@ -33,7 +47,12 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
   const [conflictDetected, setConflictDetected] = useState(false);
 
   const prevPendingRef = useRef(false);
-  const serverVersionsRef = useRef(new Map<string, number>());
+  // Last-seen content per doc (JSON), keyed by collection-prefixed id.
+  // Assignments/tournaments carry no updated_at field, so conflict detection
+  // compares content: the local cache already reflects our own optimistic
+  // writes, so our own server acks compare equal — only changes made by
+  // ANOTHER session actually differ from what we last saw.
+  const docContentsRef = useRef(new Map<string, string>());
 
   const dismissConflict = useCallback(() => setConflictDetected(false), []);
 
@@ -71,14 +90,16 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
         }
 
         // Detect server-side update while user was offline
-        // (fromCache=false, no pending writes, and doc versions changed)
+        // (fromCache=false, no pending writes, and doc content changed
+        // relative to what this session last saw — own-write acks match the
+        // optimistic cache content and are NOT flagged)
         if (!fromCache && !hasPending) {
           let serverChanged = false;
           snapshot.docChanges().forEach(change => {
             if (change.type === 'modified') {
-              const prevVersion = serverVersionsRef.current.get(change.doc.id);
-              const newVersion = change.doc.data()?.updated_at || change.doc.data()?.created_at;
-              if (prevVersion !== undefined && newVersion !== prevVersion) {
+              const prevContent = docContentsRef.current.get(`a:${change.doc.id}`);
+              const newContent = stableStringify(change.doc.data());
+              if (prevContent !== undefined && newContent !== prevContent) {
                 serverChanged = true;
               }
             }
@@ -94,10 +115,14 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
           }
         }
 
-        // Track versions for conflict detection
+        // Track content for conflict detection (includes optimistic writes,
+        // so this session's own changes never read as foreign); prune docs
+        // that left the query so the cache stays bounded
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'removed') docContentsRef.current.delete(`a:${change.doc.id}`);
+        });
         snapshot.docs.forEach(d => {
-          const data = d.data();
-          serverVersionsRef.current.set(d.id, data?.updated_at || data?.created_at || 0);
+          docContentsRef.current.set(`a:${d.id}`, stableStringify(d.data()));
         });
 
         prevPendingRef.current = hasPending;
@@ -112,8 +137,10 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
           if (!snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites) {
             snapshot.docChanges().forEach(change => {
               if (change.type === 'modified') {
-                const prev = serverVersionsRef.current.get(change.doc.id);
-                const curr = change.doc.data()?.updated_at;
+                const prev = docContentsRef.current.get(`t:${change.doc.id}`);
+                const curr = stableStringify(change.doc.data());
+                // Content comparison: this session's own edit acks match the
+                // optimistic cache and stay silent
                 if (prev !== undefined && curr !== prev) {
                   toast({
                     title: 'Tournament updated',
@@ -121,12 +148,14 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
                     duration: 5000,
                   });
                 }
-                serverVersionsRef.current.set(change.doc.id, curr);
               }
             });
           }
+          snapshot.docChanges().forEach(change => {
+            if (change.type === 'removed') docContentsRef.current.delete(`t:${change.doc.id}`);
+          });
           snapshot.docs.forEach(d => {
-            serverVersionsRef.current.set(d.id, d.data()?.updated_at || 0);
+            docContentsRef.current.set(`t:${d.id}`, stableStringify(d.data()));
           });
         })
       );
@@ -134,7 +163,7 @@ export const useSyncStatus = (user: AppUser | null): SyncState => {
 
     return () => {
       unsubs.forEach(u => u());
-      serverVersionsRef.current.clear();
+      docContentsRef.current.clear();
     };
   }, [user?.id, user?.role]);
 
