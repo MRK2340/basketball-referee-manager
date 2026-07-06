@@ -99,6 +99,10 @@ yarn lint          # run ESLint
 yarn test          # run Vitest (51 tests)
 ```
 
+### GitHub Actions Environment
+
+CI uses a GitHub Actions environment named `github`. Create it in **Settings → Environments → github** and add the `VITE_*` build variables from `.env.example` as environment variables. See `.github/README.md` for the complete list.
+
 ### Firebase Deployment
 
 ```bash
