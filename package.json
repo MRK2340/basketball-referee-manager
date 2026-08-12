@@ -67,7 +67,7 @@
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.14.0",
-    "postcss": "^8.5.9",
+    "postcss": "^8.5.23",
     "tailwindcss": "^4.2.2",
     "terser": "^5.39.0",
     "typescript": "^6.0.2",
